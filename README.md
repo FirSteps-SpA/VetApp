@@ -44,8 +44,8 @@ Requisitos: Node.js 18.17+ (recomendado 20+) y un proyecto Supabase.
    Las migraciones están en [`supabase/migrations/`](supabase/migrations) y el
    seed inicial en [`supabase/seed.sql`](supabase/seed.sql). Aplícalas en orden:
 
-   - **Opción A — SQL Editor del dashboard:** pega y ejecuta, en orden, los tres
-     archivos de `supabase/migrations/` y luego `supabase/seed.sql`.
+   - **Opción A — SQL Editor del dashboard:** pega y ejecuta, en orden numérico,
+     todos los archivos de `supabase/migrations/` y luego `supabase/seed.sql`.
    - **Opción B — Supabase CLI:** `supabase db push` (aplica migraciones) y luego
      ejecuta el seed.
 

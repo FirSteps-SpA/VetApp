@@ -11,7 +11,8 @@
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && grep -RhoE \"export \\(type|declare type|interface\\) \\(CookieOptions|CookieMethodsServer\\)\" node_modules/@supabase/ssr/dist/module/types.d.ts 2>/dev/null; echo \"---\"; grep -oE \"CookieOptions\" node_modules/@supabase/ssr/dist/module/index.d.ts | head -1')",
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && cat node_modules/@supabase/ssr/dist/module/index.d.ts')",
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | tail -45')",
-      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && echo \"=== icons ===\" && file public/icons/*.png && echo \"=== src tree ===\" && find src supabase scripts -type f | sort')"
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && echo \"=== icons ===\" && file public/icons/*.png && echo \"=== src tree ===\" && find src supabase scripts -type f | sort')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && rm -rf src/app/dashboard && echo \"removed old dashboard\" && ls src/app')"
     ]
   }
 }
