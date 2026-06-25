@@ -1,0 +1,168 @@
+# PROMPT
+
+Actúa como un Senior Staff Engineer especializado en:
+
+* Progressive Web Apps (PWA)
+* TypeScript
+* Aplicaciones clínicas y de gestión de datos médicos
+* Arquitectura de sistemas multi-rol
+* Generación y exportación de documentos (PDF)
+* Gestión de archivos adjuntos (imágenes, documentos clínicos)
+* Diseño de sistemas escalables para clínicas pequeñas
+* Supabase (Auth, PostgreSQL, Storage, Row Level Security)
+* React o Next.js con soporte PWA
+
+Tu objetivo es planificar en detalle el desarrollo de **VetApp**: una aplicación web progresiva (PWA) para la gestión clínica de una veterinaria, inicialmente de uso interno y con evolución hacia un portal de acceso para clientes.
+
+---
+
+## Contexto
+
+### Situación actual
+
+La veterinaria opera sin un sistema digital centralizado. Los registros clínicos se mantienen de forma manual o fragmentada. Los problemas concretos observados son:
+
+- No existe historial clínico centralizado y accesible rápidamente durante una consulta
+- Las recetas se escriben manualmente y no quedan registradas de forma recuperable
+- Los exámenes y documentos adjuntos (fotos, PDFs, radiografías) se reciben por WhatsApp u otros medios no estructurados
+- Cuando un cliente solicita antecedentes (recetas, exámenes), el proceso es manual y lento
+- No hay agenda digital: las citas se coordinan por teléfono o WhatsApp
+- No hay sistema de recordatorios de vacunas pendientes
+- La derivación a otro especialista requiere preparar documentación manualmente
+
+### Escenarios concretos de uso
+
+Estos escenarios ilustran las necesidades reales del sistema:
+
+**Escenario 1 — Paciente antiguo:** Un perro que se atendió hace 8 meses llega a consulta. En los primeros 30 segundos, el veterinario necesita ver: nombre y especie, última consulta y diagnóstico, medicamentos activos, vacunas al día o pendientes.
+
+**Escenario 2 — Dueño pide antecedentes:** Un cliente llama solicitando todas las recetas y exámenes de los últimos dos años. Hoy esto se hace manualmente; la app debe permitir exportarlo en segundos.
+
+**Escenario 3 — Control postoperatorio:** Un paciente vuelve tras una cirugía. Se necesita consultar protocolo quirúrgico, medicación indicada, y registrar la evolución del control.
+
+**Escenario 4 — Derivación:** Se necesita enviar historial clínico completo a otro veterinario. El sistema debe generar un PDF estructurado con logo de la clínica, datos del paciente, historial de consultas, recetas y exámenes adjuntos.
+
+**Escenario 5 — Crecimiento futuro:** En dos años podría incorporarse otro veterinario o una recepcionista. El sistema debe soportar múltiples usuarios con roles diferenciados sin cambios estructurales.
+
+---
+
+## Propuesta del producto
+
+### Fase I — Uso interno (solo veterinario)
+
+VetApp es inicialmente una PWA de uso interno, accesible desde cualquier dispositivo con navegador. Su objetivo es centralizar la gestión clínica:
+
+1. Registrar y buscar pacientes por nombre, número de ficha o teléfono del dueño
+2. Ver ficha clínica completa: datos generales, historial de consultas, vacunas, cirugías, medicamentos, exámenes adjuntos
+3. Registrar consultas (motivo, diagnóstico, tratamiento) con campos estructurados y texto libre
+4. Emitir recetas desde la ficha del paciente y consultarlas históricamente
+5. Adjuntar exámenes (fotos, PDFs, radiografías) vinculados a la ficha del paciente
+6. Exportar historial clínico completo como PDF con logo de la clínica
+7. Gestionar agenda: registrar y ver citas del día
+8. Control de vacunas: registrar aplicadas y detectar pendientes
+
+### Fase II — Portal para clientes (dueños de mascotas)
+
+En una segunda etapa, se incorpora acceso para clientes:
+
+1. Acceder al historial clínico de su mascota
+2. Descargar recetas y exámenes sin intermediarios
+3. Solicitar horas de atención (con aprobación del veterinario)
+4. Cancelar o reagendar citas
+5. Recibir recordatorios de citas y vacunas pendientes
+
+---
+
+## Clasificación de historias de usuario
+
+### Imprescindible — Fase I
+
+1. Registrar nuevo paciente
+2. Buscar paciente por nombre, ficha o teléfono del dueño
+3. Ver ficha clínica completa
+4. Registrar consulta (motivo, diagnóstico, tratamiento)
+5. Adjuntar exámenes y documentos a la ficha
+6. Emitir receta desde la ficha del paciente
+7. Exportar historial clínico como PDF
+
+### Deseable — Fase I
+
+8. Agenda: registrar y ver citas del día
+9. Recordatorios internos de vacunas pendientes
+10. Control de esquemas de vacunación por paciente
+11. Auditoría básica: registro de cuándo se modificó una ficha
+
+### Futuro — Fase II
+
+12. Portal de acceso para clientes (dueños)
+13. Solicitud y gestión de reservas online
+14. Notificaciones automáticas a clientes (citas, vacunas)
+
+---
+
+## Perfiles de usuario
+
+### Fase I
+1. **Dev** — acceso total, configuración del sistema
+2. **Veterinario** — acceso completo a fichas, consultas, recetas, exámenes, agenda
+
+### Fase II (adicionales)
+3. **Recepcionista** — gestión de agenda y pacientes, sin acceso a datos clínicos sensibles
+4. **Cliente / Dueño de mascota** — acceso solo a información de sus propias mascotas
+
+---
+
+## Stack tecnológico
+
+* **Tipo de app:** Progressive Web App (PWA) — instalable, funciona en móvil y desktop, sin necesidad de App Store
+* **Framework:** Next.js con soporte PWA (next-pwa o similar)
+* **Lenguaje:** TypeScript estricto
+* **Backend / Auth / DB:** Supabase
+  * Auth con roles y Row Level Security
+  * PostgreSQL como base de datos principal
+  * Storage para archivos adjuntos (exámenes, imágenes, radiografías)
+  * Realtime (considerado desde Fase I para agenda, activo en Fase II si se requiere)
+* **Generación de PDF:** librería client-side o server-side (a definir según necesidades de formato)
+* **Sin app nativa:** la PWA cubre el caso de uso; no se requiere React Native ni Expo
+
+---
+
+## Principios de arquitectura
+
+### Ficha clínica como eje central
+
+Todo el sistema orbita alrededor de la ficha del paciente. Consultas, recetas, exámenes, vacunas y citas son entidades relacionadas a ella. La búsqueda rápida de pacientes y el acceso inmediato a su ficha son el flujo más crítico de la app.
+
+### Roles y permisos desde el día uno
+
+Aunque Fase I tiene un único usuario activo (el veterinario), el modelo de roles debe diseñarse desde el inicio para soportar recepcionista y cliente en Fase II sin refactoring del esquema de datos ni de la capa de seguridad.
+
+### Archivos adjuntos como ciudadanos de primera clase
+
+Los exámenes (fotos, PDFs, radiografías) son parte central del historial clínico, no un complemento. El modelo de datos y el storage deben tratarlos como entidades propias con metadatos (tipo, fecha, descripción, consulta relacionada).
+
+### Exportación como función core, no como feature adicional
+
+La generación de PDF del historial clínico es un flujo crítico (derivaciones, entrega a clientes). Debe diseñarse desde el inicio con formato estructurado, logo de clínica y selección de qué incluir (completo vs. resumen).
+
+### Preparado para Fase II sin bloquear Fase I
+
+Las decisiones de modelo de datos deben considerar el acceso futuro de clientes. Particularmente: la relación entre dueño y paciente (posibilidad de múltiples dueños, acceso restringido por paciente), y la generación de notificaciones que en Fase I son internas y en Fase II se envían al cliente.
+
+---
+
+## Modelo de datos inicial (referencial)
+
+```
+pacientes        → id, nombre, especie, raza, fecha_nacimiento, foto_url, notas, created_at, updated_at
+dueños           → id, nombre, telefono, email, direccion
+paciente_dueños  → paciente_id, dueño_id (relación muchos a muchos)
+consultas        → id, paciente_id, veterinario_id, fecha, motivo, diagnostico, tratamiento, notas, created_at
+recetas          → id, consulta_id, paciente_id, medicamentos (jsonb), instrucciones, fecha, pdf_url
+examenes         → id, paciente_id, consulta_id (nullable), tipo, descripcion, archivo_url, fecha, created_at
+vacunas          → id, paciente_id, nombre_vacuna, fecha_aplicacion, proxima_dosis, lote, veterinario_id
+citas            → id, paciente_id, dueño_id, veterinario_id, fecha_hora, motivo, estado, notas
+usuarios         → id, nombre, email, rol (dev/veterinario/recepcionista/cliente)
+```
+
+---

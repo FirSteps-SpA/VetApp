@@ -1,0 +1,200 @@
+## Tareas
+
+Quiero que produzcas los siguientes entregables. No generes código todavía. Concéntrate exclusivamente en planificación, arquitectura y decisiones de diseño de sistema.
+
+---
+
+### 1. Modelo de datos completo
+
+Diseña el esquema de base de datos completo para Supabase.
+
+Para cada tabla especifica:
+* nombre y propósito
+* columnas con tipos PostgreSQL
+* constraints (PK, FK, NOT NULL, DEFAULT)
+* índices recomendados
+* Row Level Security: qué rol puede SELECT / INSERT / UPDATE / DELETE y bajo qué condiciones
+* relaciones con otras tablas
+
+Considera especialmente:
+* la relación paciente–dueño (¿puede un paciente tener varios dueños? ¿puede un dueño tener varias mascotas?)
+* cómo se modela el acceso de clientes en Fase II sin cambiar el esquema de Fase I
+* cómo se vinculan exámenes a consultas específicas (o a la ficha en general)
+* el modelo de recetas como documento exportable
+
+---
+
+### 2. Gestión de archivos adjuntos
+
+Diseña la estrategia completa para manejo de archivos en Supabase Storage.
+
+Incluye:
+* estructura de buckets y carpetas
+* tipos de archivo soportados (imagen, PDF, DICOM si aplica)
+* política de acceso por rol (veterinario vs. cliente en Fase II)
+* cómo se vinculan archivos a fichas y consultas en la base de datos
+* estrategia de nombres de archivo para evitar colisiones
+* consideraciones de tamaño y cuota de almacenamiento
+
+---
+
+### 3. Sistema de autenticación y roles
+
+Diseña el flujo completo de autenticación usando Supabase Auth.
+
+Incluye:
+* flujo de login para cada rol
+* cómo se propagan permisos vía Row Level Security
+* diferencias de experiencia entre veterinario, recepcionista y cliente
+* cómo se crea el acceso para un cliente en Fase II (¿invitación? ¿registro abierto? ¿vinculación a ficha de paciente?)
+* consideraciones de seguridad para datos clínicos sensibles
+
+---
+
+### 4. Flujo de ficha clínica
+
+Diseña el flujo completo de la ficha del paciente, que es el núcleo del sistema.
+
+Incluye:
+* qué información se muestra en los primeros 30 segundos (Escenario 1)
+* jerarquía de información: qué va en el resumen superior, qué en tabs o secciones secundarias
+* cómo se navega entre consultas históricas
+* cómo se adjuntan y visualizan exámenes dentro de la ficha
+* cómo se emite una receta desde la ficha
+* cómo se registra una nueva consulta sin perder el contexto de la ficha
+
+---
+
+### 5. Generación de PDF
+
+Diseña la estrategia completa de exportación de documentos.
+
+Incluye:
+* tipos de documento exportable: historial completo, resumen, receta, derivación
+* qué campos incluye cada tipo de documento
+* dónde se genera el PDF (cliente vs. servidor) y por qué
+* cómo se incluye el logo de la clínica
+* cómo se selecciona qué incluir (rango de fechas, solo recetas, solo exámenes, etc.)
+* si los PDFs generados se almacenan en Storage o se generan bajo demanda
+* flujo de derivación (Escenario 4): qué genera, qué incluye, cómo se envía
+
+---
+
+### 6. Arquitectura de navegación PWA
+
+Diseña la estructura de navegación completa de la app.
+
+Incluye:
+* árbol de rutas completo para Fase I y Fase II
+* qué rutas son públicas y cuáles protegidas por rol
+* flujo principal del veterinario en una consulta típica (búsqueda → ficha → consulta → receta → cierre)
+* cómo se comporta la app instalada como PWA en móvil vs. desktop
+* estrategia de caché offline: qué funciona sin conexión y qué requiere conectividad
+
+---
+
+### 7. Módulo de agenda
+
+Diseña el módulo de gestión de citas.
+
+Incluye:
+* vista del veterinario: citas del día, semana
+* flujo de registro de una nueva cita desde la ficha del paciente
+* estados posibles de una cita (pendiente, confirmada, realizada, cancelada)
+* cómo se vincula una cita a una consulta una vez realizada
+* en Fase II: flujo de solicitud de hora por parte del cliente y aprobación por el veterinario
+
+---
+
+### 8. Módulo de vacunas y alertas
+
+Diseña el módulo de control de vacunación.
+
+Incluye:
+* modelo de esquema de vacunación por especie (¿configurable o hardcodeado?)
+* cómo se registra una vacuna aplicada
+* cómo se calcula y almacena la próxima dosis
+* cómo se detectan vacunas vencidas o próximas a vencer
+* vista interna de pacientes con vacunas pendientes (US #14)
+* en Fase II: notificación automática al dueño
+
+---
+
+### 9. Portal de clientes — Fase II
+
+Diseña la arquitectura del portal de acceso para dueños de mascotas.
+
+Incluye:
+* cómo accede un cliente por primera vez (flujo de invitación o registro)
+* qué puede ver y qué no puede ver en la ficha de su mascota
+* cómo descarga recetas y exámenes (Escenario 2 desde el lado del cliente)
+* flujo de solicitud de hora y gestión de reservas
+* flujo de notificaciones (citas, vacunas): push notification via PWA, email, o ambos
+* cómo se segrega la información si el dueño tiene múltiples mascotas
+* consideraciones de privacidad y consentimiento de datos
+
+---
+
+### 10. Escalabilidad futura
+
+Sin implementar nada todavía, diseña cómo debería escalar el sistema.
+
+Incluye:
+* incorporación de segundo veterinario: ¿qué cambia en el modelo de datos y en los permisos?
+* incorporación de recepcionista: ¿qué puede ver y gestionar vs. el veterinario?
+* múltiples sucursales en el futuro: ¿cómo afecta al modelo de datos?
+* qué decisiones de Fase I podrían dificultar el crecimiento si no se toman correctamente
+
+---
+
+### 11. Fases de implementación
+
+Divide el desarrollo en fases incrementales con entregables concretos.
+
+Para cada fase incluye:
+* objetivo
+* entregables técnicos
+* entregables funcionales (qué puede hacer el usuario al finalizar la fase)
+* criterios de éxito
+* dependencias de fases anteriores
+
+Fases sugeridas como punto de partida:
+
+#### Fase 1 — Fundación
+Proyecto Next.js + PWA, Supabase configurado, auth básica, estructura de carpetas
+
+#### Fase 2 — Pacientes
+Crear paciente, buscar paciente, ver ficha básica
+
+#### Fase 3 — Consultas y recetas
+Registrar consulta, emitir receta, historial de consultas
+
+#### Fase 4 — Exámenes y archivos
+Adjuntar archivos a fichas y consultas, visualización en ficha
+
+#### Fase 5 — Exportación PDF
+Generación de historial completo, receta exportable, documento de derivación
+
+#### Fase 6 — Agenda y vacunas
+Registro de citas, vista del día, control de vacunación, alertas internas
+
+#### Fase 7 — Portal de clientes
+Auth para clientes, acceso a ficha propia, descarga de documentos
+
+#### Fase 8 — Reservas y notificaciones
+Solicitud de hora online, recordatorios automáticos
+
+#### Fase 9 — Pulido y deploy
+Optimización PWA, instalabilidad, pruebas en dispositivos reales
+
+---
+
+## Restricciones
+
+* No generar código todavía
+* No generar estilos ni decisiones visuales
+* No asumir app nativa (React Native / Expo): la solución es PWA
+* No asumir que habrá más de un veterinario en Fase I, pero diseñar para que escale
+* Concentrarse exclusivamente en planificación, arquitectura, modelo de datos y flujos
+* Todas las decisiones deben justificarse considerando tanto Fase I como la evolución a Fase II
+* Los datos clínicos son sensibles: las decisiones de seguridad y acceso deben ser explícitas
