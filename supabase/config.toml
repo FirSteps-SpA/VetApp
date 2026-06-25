@@ -1,0 +1,6 @@
+# Configuración mínima del Supabase CLI.
+# Solo necesaria si decides usar el stack local / `supabase db push`.
+project_id = "vetapp"
+
+[db]
+major_version = 15

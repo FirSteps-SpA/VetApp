@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'node -v; npm -v; which node')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd ~ && rm -rf vetapp-scaffold && npx --yes create-next-app@14 vetapp-scaffold --ts --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm 2>&1 | tail -30')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'rsync -a --exclude=.git --exclude=README.md --exclude=.gitignore /home/benito/vetapp-scaffold/ /home/benito/kmykko/VetApp/ && rm -rf /home/benito/vetapp-scaffold && echo \"=== Project root ===\" && ls -A /home/benito/kmykko/VetApp')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && echo \"=== package.json ===\" && cat package.json && echo \"=== next.config.mjs ===\" && cat next.config.mjs && echo \"=== src tree ===\" && find src public -type f 2>/dev/null')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'echo \"convert:\"; which convert magick 2>/dev/null; echo \"rsvg:\"; which rsvg-convert 2>/dev/null; echo \"done\"')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && npm install 2>&1 | tail -20')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && npm run gen:icons 2>&1 && echo \"=== BUILD ===\" && npm run build 2>&1 | tail -40')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && grep -RhoE \"export \\(type|declare type|interface\\) \\(CookieOptions|CookieMethodsServer\\)\" node_modules/@supabase/ssr/dist/module/types.d.ts 2>/dev/null; echo \"---\"; grep -oE \"CookieOptions\" node_modules/@supabase/ssr/dist/module/index.d.ts | head -1')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && cat node_modules/@supabase/ssr/dist/module/index.d.ts')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | tail -45')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && echo \"=== icons ===\" && file public/icons/*.png && echo \"=== src tree ===\" && find src supabase scripts -type f | sort')"
+    ]
+  }
+}

@@ -20,6 +20,76 @@ La aplicación nace como herramienta de uso interno para el veterinario y está 
 - **Backend:** Supabase (Auth, PostgreSQL con Row Level Security, Storage)
 - **Generación de PDF:** `@react-pdf/renderer` (client-side)
 
+## Puesta en marcha (desarrollo)
+
+Requisitos: Node.js 18.17+ (recomendado 20+) y un proyecto Supabase.
+
+1. **Instalar dependencias**
+
+   ```bash
+   npm install
+   ```
+
+2. **Variables de entorno**
+
+   Copia `.env.example` a `.env.local` y completa los valores desde
+   *Project Settings → API* en el dashboard de Supabase:
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. **Aplicar el esquema de base de datos**
+
+   Las migraciones están en [`supabase/migrations/`](supabase/migrations) y el
+   seed inicial en [`supabase/seed.sql`](supabase/seed.sql). Aplícalas en orden:
+
+   - **Opción A — SQL Editor del dashboard:** pega y ejecuta, en orden, los tres
+     archivos de `supabase/migrations/` y luego `supabase/seed.sql`.
+   - **Opción B — Supabase CLI:** `supabase db push` (aplica migraciones) y luego
+     ejecuta el seed.
+
+   Esto crea todas las tablas, índices, RLS, triggers, buckets de Storage, los
+   esquemas de vacunación por defecto, la configuración placeholder de la clínica
+   y la sucursal principal.
+
+4. **Crear el primer usuario (veterinario / dev)**
+
+   No hay registro abierto. Para el usuario inicial:
+
+   1. *Authentication → Users → Add user* en el dashboard (email + contraseña).
+   2. En el SQL Editor, inserta su fila en `usuarios` con el `id` de ese auth user:
+
+      ```sql
+      insert into usuarios (id, nombre, email, rol)
+      values ('<auth-user-id>', 'Nombre Apellido', 'vet@ejemplo.com', 'veterinario');
+      ```
+
+   El trigger `sync_usuario_metadata` propaga el `rol` (y `sucursal_id`) al JWT.
+   Si la sesión ya estaba abierta, cierra y vuelve a iniciar para refrescar el token.
+
+5. **Levantar el servidor de desarrollo**
+
+   ```bash
+   npm run dev
+   ```
+
+   La app queda en `http://localhost:3000` (el service worker PWA está desactivado
+   en desarrollo; se activa en el build de producción).
+
+### Scripts
+
+| Script | Acción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción (genera el service worker PWA) |
+| `npm run start` | Sirve el build de producción |
+| `npm run lint` | ESLint |
+| `npm run gen:icons` | Regenera los íconos PWA placeholder en `public/icons/` |
+
+> Los íconos de `public/icons/` son placeholders generados por script. Reemplázalos
+> por el branding real de la clínica cuando esté disponible.
+
 ## Documentación
 
 La planificación técnica completa —modelo de datos, RLS, flujos, fases de implementación y escalabilidad— está en [`docs/vetapp_arquitectura.md`](docs/vetapp_arquitectura.md).
