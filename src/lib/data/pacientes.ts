@@ -1,7 +1,11 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
-import type { DuenoDePaciente, Paciente } from "@/lib/types/db";
+import type {
+  DuenoDePaciente,
+  Medicamento,
+  Paciente,
+} from "@/lib/types/db";
 
 // Búsqueda por nombre, número de ficha o teléfono del dueño (vía RPC).
 export async function buscarPacientes(q?: string): Promise<Paciente[]> {
@@ -57,6 +61,7 @@ export async function getDuenosDePaciente(
 export interface ResumenClinico {
   ultimaConsulta: { fecha: string; diagnostico: string } | null;
   proximaCita: { fecha_hora: string; motivo: string } | null;
+  medicamentosActivos: Medicamento[];
   vacunasVencidas: number;
   vacunasProximas: number;
 }
@@ -66,7 +71,8 @@ export async function getResumenClinico(
 ): Promise<ResumenClinico> {
   const supabase = createClient();
 
-  const [consultaRes, citaRes, vencidasRes, proximasRes] = await Promise.all([
+  const [consultaRes, citaRes, recetaRes, vencidasRes, proximasRes] =
+    await Promise.all([
     supabase
       .from("consultas")
       .select("fecha, diagnostico")
@@ -81,6 +87,14 @@ export async function getResumenClinico(
       .in("estado", ["pendiente", "confirmada"])
       .gte("fecha_hora", new Date().toISOString())
       .order("fecha_hora", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("recetas")
+      .select("medicamentos")
+      .eq("paciente_id", pacienteId)
+      .eq("vigente", true)
+      .order("fecha", { ascending: false })
       .limit(1)
       .maybeSingle(),
     supabase
@@ -108,6 +122,8 @@ export async function getResumenClinico(
           motivo: citaRes.data.motivo as string,
         }
       : null,
+    medicamentosActivos:
+      (recetaRes.data?.medicamentos as Medicamento[] | undefined) ?? [],
     vacunasVencidas: vencidasRes.count ?? 0,
     vacunasProximas: proximasRes.count ?? 0,
   };

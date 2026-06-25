@@ -2,15 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+import { getConsultas, getRecetas } from "@/lib/data/consultas";
+import { getExamenes, getUrlsExamenes } from "@/lib/data/examenes";
 import {
   getDuenosDePaciente,
   getFotoSignedUrl,
   getPaciente,
   getResumenClinico,
 } from "@/lib/data/pacientes";
-import { labelEspecie, SEXOS } from "@/lib/types/db";
+import { labelEspecie, resumenMedicamento, SEXOS } from "@/lib/types/db";
 import { calcularEdad, formatearFecha, formatearPeso } from "@/lib/utils/format";
 
+import { NuevaConsultaDrawer } from "./consultas/nueva-consulta-drawer";
 import { FichaTabs } from "./tabs";
 import { PhotoUploader } from "./photo-uploader";
 import { RecordVisit } from "./record-visit";
@@ -41,11 +44,16 @@ export default async function FichaPage({
   const paciente = await getPaciente(params.id);
   if (!paciente) notFound();
 
-  const [duenos, resumen, fotoUrl] = await Promise.all([
-    getDuenosDePaciente(paciente.id),
-    getResumenClinico(paciente.id),
-    getFotoSignedUrl(paciente.foto_url),
-  ]);
+  const [duenos, resumen, fotoUrl, consultas, recetas, examenes] =
+    await Promise.all([
+      getDuenosDePaciente(paciente.id),
+      getResumenClinico(paciente.id),
+      getFotoSignedUrl(paciente.foto_url),
+      getConsultas(paciente.id),
+      getRecetas(paciente.id),
+      getExamenes(paciente.id),
+    ]);
+  const urlsExamenes = await getUrlsExamenes(examenes);
 
   const principal = duenos.find((d) => d.es_principal) ?? duenos[0] ?? null;
   const edad = calcularEdad(paciente.fecha_nacimiento);
@@ -76,12 +84,15 @@ export default async function FichaPage({
         }}
       />
 
-      <Link
-        href="/pacientes"
-        className="text-sm text-slate-500 hover:text-slate-700"
-      >
-        ← Pacientes
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/pacientes"
+          className="text-sm text-slate-500 hover:text-slate-700"
+        >
+          ← Pacientes
+        </Link>
+        <NuevaConsultaDrawer pacienteId={paciente.id} />
+      </div>
 
       {/* Hero card */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -171,10 +182,36 @@ export default async function FichaPage({
             </span>
           </div>
         </div>
+
+        {/* Medicamentos activos (última receta vigente) */}
+        <div className="mt-3 border-t border-slate-100 pt-3">
+          <p className="text-xs text-slate-400">Medicamentos activos</p>
+          {resumen.medicamentosActivos.length > 0 ? (
+            <ul className="mt-1 flex flex-wrap gap-1.5">
+              {resumen.medicamentosActivos.map((m, i) => (
+                <li
+                  key={i}
+                  className="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700"
+                >
+                  {resumenMedicamento(m)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">Sin medicamentos vigentes</p>
+          )}
+        </div>
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white px-5 py-2">
-        <FichaTabs notas={paciente.notas} />
+        <FichaTabs
+          pacienteId={paciente.id}
+          notas={paciente.notas}
+          consultas={consultas}
+          recetas={recetas}
+          examenes={examenes}
+          urlsExamenes={urlsExamenes}
+        />
       </section>
     </div>
   );
