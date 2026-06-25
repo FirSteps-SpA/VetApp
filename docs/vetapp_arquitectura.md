@@ -1046,15 +1046,24 @@ En la UI, la recepcionista solo ve las secciones de Agenda, Pacientes (básico) 
 
 No está en el roadmap inmediato, pero estas son las decisiones que facilitan o complican el escalamiento a multi-sucursal.
 
+> **Recomendación adoptada:** aunque la *funcionalidad* multi-sucursal no se active hasta una fase futura, la *estructura mínima* se anticipa desde la Fase 1. La misma lógica que justificó incluir `dueños.usuario_id` y `veterinario_id` desde el inicio (ver tabla 10.4) aplica aquí: agregar `sucursal_id` después implica `ALTER TABLE` sobre datos productivos. Crear la tabla `sucursales` (con una fila "principal" por defecto) y las columnas `sucursal_id` nullable desde el deploy inicial evita esa migración disruptiva. En modo mono-sucursal todo opera de forma transparente contra la sucursal por defecto.
+
 **Cambios necesarios en el schema:**
-- Agregar tabla `sucursales` con `id`, `nombre`, `dirección`, configuración propia
-- Agregar `sucursal_id` (FK) a: `usuarios`, `citas`, `clinica_config`
-- Los pacientes y fichas clínicas no se asignan a sucursal (pueden atenderse en cualquiera)
-- Las citas sí tienen sucursal (¿en qué lugar se atiende?)
+- Agregar tabla `sucursales` con `id`, `nombre`, `direccion`, `telefono`, `activo` y configuración propia
+- Agregar `sucursal_id` (FK) a: `usuarios` (o tabla N:M `usuario_sucursales` si un veterinario rota entre sedes), `citas`, `clinica_config`
+- Los pacientes y fichas clínicas **no** se asignan a sucursal: la ficha es única y portable, un paciente puede atenderse en cualquier sede (coherente con "ficha clínica como eje central")
+- Solo lo operativo lleva sucursal: las `citas` (¿en qué lugar se atiende?), los `usuarios` y la configuración
+- Propagar `sucursal_id` al JWT (`app_metadata`), igual que el `rol`
 
 **Cambios en RLS:**
 - La recepcionista solo ve citas de su sucursal: `AND sucursal_id = auth.jwt() -> 'app_metadata' ->> 'sucursal_id'`
 - El veterinario puede tener múltiples sucursales o estar restringido a una
+
+**Activación funcional (fase futura, post-9):**
+- UI de gestión de sucursales en `/admin`
+- `clinica_config` por sucursal: logo y datos por sede en los encabezados de los PDFs
+- Relación N:M usuario↔sucursal si un veterinario atiende en varias sedes
+- Selector de sucursal en el login/header
 
 ---
 
@@ -1093,6 +1102,7 @@ El desarrollo se divide en 9 fases incrementales. Cada fase entrega valor funcio
 - Triggers para `audit_log` y `updated_at` implementados
 - Esquemas de vacunación por defecto pre-cargados
 - `clinica_config` con datos de placeholder
+- **Estructura multi-sucursal anticipada (ver 10.3):** tabla `sucursales` con una fila "principal" por defecto; columnas `sucursal_id` nullable en `usuarios` y `citas`; propagación de `sucursal_id` al JWT (`app_metadata`) junto al `rol`. La funcionalidad no se expone en la UI todavía, pero se evita una migración disruptiva futura
 - Middleware de Next.js para protección de rutas por rol
 - Variables de entorno configuradas para dev y producción
 
@@ -1227,6 +1237,7 @@ El desarrollo se divide en 9 fases incrementales. Cada fase entrega valor funcio
 - Trigger de recálculo de `estado_alerta`
 - Cron job nocturno de actualización de alertas (`pg_cron`)
 - Widget de alertas en `/dashboard`
+- **Preparación multi-sucursal en agenda (ver 10.3):** las citas son la entidad operativa que lleva `sucursal_id`. Dejar la RLS de recepcionista lista para filtrar por sucursal (`AND sucursal_id = auth.jwt()->'app_metadata'->>'sucursal_id'`); en modo mono-sucursal se autocompleta con la sucursal por defecto
 
 **Entregables funcionales:**
 - Ver todas las citas del día ordenadas por hora
