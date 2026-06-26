@@ -19,6 +19,8 @@ export async function crearPaciente(
   formData: FormData,
 ): Promise<FormState> {
   // --- Dueño ---
+  const duenoModo = str(formData, "dueno_modo") || "nuevo";
+  const duenoIdExistente = str(formData, "dueno_id");
   const duenoNombre = str(formData, "dueno_nombre");
   const duenoTelefono = str(formData, "dueno_telefono");
   const duenoEmail = str(formData, "dueno_email");
@@ -35,7 +37,12 @@ export async function crearPaciente(
   const notas = str(formData, "notas");
 
   // --- Validación ---
-  if (!duenoNombre || !duenoTelefono) {
+  const usarExistente = duenoModo === "existente";
+  if (usarExistente) {
+    if (!duenoIdExistente) {
+      return { error: "Selecciona un dueño existente." };
+    }
+  } else if (!duenoNombre || !duenoTelefono) {
     return { error: "El dueño requiere nombre y teléfono." };
   }
   if (!nombre) {
@@ -57,25 +64,31 @@ export async function crearPaciente(
 
   const supabase = createClient();
 
-  // 1) Crear dueño.
-  const { data: dueno, error: duenoError } = await supabase
-    .from("duenos")
-    .insert({
-      nombre: duenoNombre,
-      telefono: duenoTelefono,
-      email: duenoEmail || null,
-      direccion: duenoDireccion || null,
-    })
-    .select("id")
-    .single();
+  // 1) Resolver el dueño: existente o nuevo.
+  let duenoId: string;
+  if (usarExistente) {
+    duenoId = duenoIdExistente;
+  } else {
+    const { data: dueno, error: duenoError } = await supabase
+      .from("duenos")
+      .insert({
+        nombre: duenoNombre,
+        telefono: duenoTelefono,
+        email: duenoEmail || null,
+        direccion: duenoDireccion || null,
+      })
+      .select("id")
+      .single();
 
-  if (duenoError || !dueno) {
-    return {
-      error:
-        duenoError?.code === "23505"
-          ? "Ya existe un dueño con ese email."
-          : "No se pudo crear el dueño. Intenta nuevamente.",
-    };
+    if (duenoError || !dueno) {
+      return {
+        error:
+          duenoError?.code === "23505"
+            ? "Ya existe un dueño con ese email."
+            : "No se pudo crear el dueño. Intenta nuevamente.",
+      };
+    }
+    duenoId = dueno.id;
   }
 
   // 2) Crear paciente (numero_ficha lo asigna un trigger).
@@ -95,15 +108,17 @@ export async function crearPaciente(
     .single();
 
   if (pacienteError || !paciente) {
-    // Limpieza: evitar dueño huérfano si falla el paciente.
-    await supabase.from("duenos").delete().eq("id", dueno.id);
+    // Limpieza: evitar dueño huérfano solo si lo creamos en este flujo.
+    if (!usarExistente) {
+      await supabase.from("duenos").delete().eq("id", duenoId);
+    }
     return { error: "No se pudo crear el paciente. Intenta nuevamente." };
   }
 
   // 3) Vincular como dueño principal.
   const { error: linkError } = await supabase.from("paciente_duenos").insert({
     paciente_id: paciente.id,
-    dueno_id: dueno.id,
+    dueno_id: duenoId,
     es_principal: true,
   });
 

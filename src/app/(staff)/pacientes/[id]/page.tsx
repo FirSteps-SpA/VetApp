@@ -91,7 +91,15 @@ export default async function FichaPage({
         >
           ← Pacientes
         </Link>
-        <NuevaConsultaDrawer pacienteId={paciente.id} />
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/pacientes/${paciente.id}/editar`}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+          >
+            Editar
+          </Link>
+          <NuevaConsultaDrawer pacienteId={paciente.id} />
+        </div>
       </div>
 
       {/* Hero card */}
@@ -143,7 +151,17 @@ export default async function FichaPage({
         {/* Dueño principal + resumen clínico */}
         <div className="mt-5 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-3">
           <div>
-            <p className="text-xs text-slate-400">Dueño principal</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-slate-400">
+                {duenos.length > 1 ? "Dueños" : "Dueño principal"}
+              </p>
+              <Link
+                href={`/pacientes/${paciente.id}/duenos`}
+                className="text-xs font-medium text-teal-700 hover:underline"
+              >
+                Gestionar{duenos.length > 1 ? ` (${duenos.length})` : ""}
+              </Link>
+            </div>
             {principal ? (
               <>
                 <p className="text-sm font-medium text-slate-800">

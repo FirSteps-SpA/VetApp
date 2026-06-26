@@ -12,6 +12,7 @@ import {
 } from "@/lib/types/db";
 import { formatearFecha } from "@/lib/utils/format";
 
+import { AnularRecetaButton } from "./consultas/anular-receta-button";
 import { ExamenesTab } from "./examenes/examenes-tab";
 
 type TabId = "resumen" | "historial" | "recetas" | "examenes" | "vacunas" | "citas";
@@ -89,7 +90,13 @@ function Campo({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-function RecetaItem({ receta }: { receta: Receta }) {
+function RecetaItem({
+  receta,
+  pacienteId,
+}: {
+  receta: Receta;
+  pacienteId: string;
+}) {
   return (
     <div className="rounded-lg border border-slate-200 p-3">
       <div className="flex items-center gap-2">
@@ -108,6 +115,9 @@ function RecetaItem({ receta }: { receta: Receta }) {
         >
           {receta.vigente ? "Vigente" : "Anulada"}
         </span>
+        {receta.vigente && (
+          <AnularRecetaButton recetaId={receta.id} pacienteId={pacienteId} />
+        )}
       </div>
       <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-slate-700">
         {receta.medicamentos.map((m, i) => (
@@ -203,7 +213,7 @@ export function FichaTabs({
           ) : (
             <div className="space-y-2">
               {recetas.map((r) => (
-                <RecetaItem key={r.id} receta={r} />
+                <RecetaItem key={r.id} receta={r} pacienteId={pacienteId} />
               ))}
             </div>
           ))}

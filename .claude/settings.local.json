@@ -15,7 +15,10 @@
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && rm -rf src/app/dashboard && echo \"removed old dashboard\" && ls src/app')",
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -40')",
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -30')",
-      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -35')"
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -35')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -22')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -16')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -25')"
     ]
   }
 }

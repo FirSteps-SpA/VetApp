@@ -149,3 +149,20 @@ export async function crearConsulta(
   revalidatePath(`/pacientes/${input.pacienteId}`);
   return { ok: true, consultaId: consulta.id };
 }
+
+// Invalida una receta (no se elimina; queda como histórico anulado).
+export async function anularReceta(
+  recetaId: string,
+  pacienteId: string,
+): Promise<{ error: string | null }> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("recetas")
+    .update({ vigente: false })
+    .eq("id", recetaId);
+
+  if (error) return { error: "No se pudo anular la receta." };
+
+  revalidatePath(`/pacientes/${pacienteId}`);
+  return { error: null };
+}

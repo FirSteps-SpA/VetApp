@@ -10,6 +10,8 @@ import {
 } from "@/lib/types/db";
 import { formatearFecha, formatearPeso } from "@/lib/utils/format";
 
+import { AnularRecetaButton } from "../anular-receta-button";
+
 export const metadata: Metadata = {
   title: "Consulta",
 };
@@ -26,7 +28,13 @@ function Bloque({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-function RecetaBloque({ receta }: { receta: Receta }) {
+function RecetaBloque({
+  receta,
+  pacienteId,
+}: {
+  receta: Receta;
+  pacienteId: string;
+}) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-center gap-2">
@@ -43,6 +51,9 @@ function RecetaBloque({ receta }: { receta: Receta }) {
         >
           {receta.vigente ? "Vigente" : "Anulada"}
         </span>
+        {receta.vigente && (
+          <AnularRecetaButton recetaId={receta.id} pacienteId={pacienteId} />
+        )}
       </div>
       <ul className="mt-2 space-y-1 text-sm text-slate-700">
         {receta.medicamentos.map((m, i) => (
@@ -121,7 +132,7 @@ export default async function ConsultaPage({
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-slate-700">Recetas</h2>
           {recetas.map((r) => (
-            <RecetaBloque key={r.id} receta={r} />
+            <RecetaBloque key={r.id} receta={r} pacienteId={params.id} />
           ))}
         </section>
       )}
