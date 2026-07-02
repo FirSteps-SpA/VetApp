@@ -35,6 +35,33 @@ export async function getCitasRango(
   return ((data as unknown as Row[]) ?? []).map(mapRow);
 }
 
+// Solicitudes de cita hechas por clientes, pendientes de aprobación.
+export async function getSolicitudesPendientes(): Promise<CitaConRel[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("citas")
+    .select(SELECT)
+    .eq("creado_por_cliente", true)
+    .eq("estado", "pendiente")
+    .order("fecha_hora", { ascending: true });
+
+  if (error) {
+    console.error("getSolicitudesPendientes:", error.message);
+    return [];
+  }
+  return ((data as unknown as Row[]) ?? []).map(mapRow);
+}
+
+export async function countSolicitudesPendientes(): Promise<number> {
+  const supabase = createClient();
+  const { count } = await supabase
+    .from("citas")
+    .select("id", { count: "exact", head: true })
+    .eq("creado_por_cliente", true)
+    .eq("estado", "pendiente");
+  return count ?? 0;
+}
+
 export async function getCitasPaciente(
   pacienteId: string,
 ): Promise<CitaConRel[]> {

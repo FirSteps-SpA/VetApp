@@ -8,6 +8,8 @@ import type {
   EstadoAlertaVacuna,
   EstadoCita,
   Medicamento,
+  Notificacion,
+  NotificacionesConfig,
   TipoConsulta,
   TipoExamen,
 } from "@/lib/types/db";
@@ -65,6 +67,61 @@ export interface CitaPortal {
   motivo: string;
   estado: EstadoCita;
   paciente: { nombre: string } | null;
+}
+
+// El dueño (registro) asociado al cliente autenticado.
+export async function getMiDueno(): Promise<Dueno | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from("duenos")
+    .select("*")
+    .eq("usuario_id", user.id)
+    .maybeSingle();
+  return (data as Dueno | null) ?? null;
+}
+
+export async function getMisNotificaciones(): Promise<Notificacion[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("notificaciones")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(50);
+  return (data as Notificacion[]) ?? [];
+}
+
+export async function countNotificacionesNoLeidas(): Promise<number> {
+  const supabase = createClient();
+  const { count } = await supabase
+    .from("notificaciones")
+    .select("id", { count: "exact", head: true })
+    .eq("leida", false);
+  return count ?? 0;
+}
+
+// Preferencias del cliente (con defaults si aún no las guardó).
+export async function getMiConfig(): Promise<NotificacionesConfig | null> {
+  const dueno = await getMiDueno();
+  if (!dueno) return null;
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("notificaciones_config")
+    .select("*")
+    .eq("dueno_id", dueno.id)
+    .maybeSingle();
+  return (
+    (data as NotificacionesConfig | null) ?? {
+      dueno_id: dueno.id,
+      recordatorio_citas: true,
+      recordatorio_vacunas: true,
+      canal_email: true,
+      canal_push: true,
+    }
+  );
 }
 
 // Mascotas del cliente autenticado (RLS filtra a las suyas).

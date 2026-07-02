@@ -17,7 +17,15 @@ export default async function MisCitasPage() {
       <Link href="/portal" className="text-sm text-slate-500 hover:text-slate-700">
         ← Portal
       </Link>
-      <h1 className="mb-4 mt-2 text-xl font-semibold text-slate-900">Mis citas</h1>
+      <div className="mb-4 mt-2 flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-slate-900">Mis citas</h1>
+        <Link
+          href="/portal/citas/solicitar"
+          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+        >
+          + Solicitar hora
+        </Link>
+      </div>
       {citas.length === 0 ? (
         <p className="text-sm text-slate-500">No tienes citas registradas.</p>
       ) : (

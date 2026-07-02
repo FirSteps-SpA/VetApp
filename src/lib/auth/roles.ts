@@ -32,6 +32,7 @@ const ROUTE_ROLES: { prefix: string; roles: Rol[] }[] = [
   { prefix: "/dashboard", roles: ["dev", "veterinario", "recepcionista"] },
   { prefix: "/pacientes", roles: ["dev", "veterinario", "recepcionista"] },
   { prefix: "/agenda", roles: ["dev", "veterinario", "recepcionista"] },
+  { prefix: "/reservas", roles: ["dev", "veterinario", "recepcionista"] },
   { prefix: "/vacunas", roles: ["dev", "veterinario"] },
 ];
 

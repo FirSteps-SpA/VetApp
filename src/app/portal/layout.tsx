@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { getRol } from "@/lib/auth/roles";
+import { countNotificacionesNoLeidas } from "@/lib/data/portal";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PortalLayout({
@@ -22,6 +23,8 @@ export default async function PortalLayout({
     .eq("id", user.id)
     .maybeSingle();
 
+  const noLeidas = await countNotificacionesNoLeidas();
+
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
@@ -30,6 +33,17 @@ export default async function PortalLayout({
             VetApp · Portal
           </Link>
           <div className="flex items-center gap-3">
+            <Link
+              href="/portal/notificaciones"
+              className="relative text-base text-slate-600 hover:text-teal-700"
+            >
+              🔔
+              {noLeidas > 0 && (
+                <span className="absolute -right-2 -top-1 rounded-full bg-red-500 px-1.5 text-xs font-semibold text-white">
+                  {noLeidas}
+                </span>
+              )}
+            </Link>
             <span className="hidden text-xs text-slate-500 sm:inline">
               {perfil?.nombre ?? user.email}
             </span>

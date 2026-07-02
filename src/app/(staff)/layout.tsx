@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { getRol } from "@/lib/auth/roles";
+import { countSolicitudesPendientes } from "@/lib/data/citas";
 import { createClient } from "@/lib/supabase/server";
 
 import { NavLinks } from "./nav-links";
@@ -18,6 +19,9 @@ export default async function StaffLayout({
   if (!user) redirect("/login");
 
   const rol = getRol(user);
+  if (rol === "cliente") redirect("/portal");
+
+  const reservasPendientes = await countSolicitudesPendientes();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -28,7 +32,7 @@ export default async function StaffLayout({
               VetApp
             </Link>
             <div className="hidden sm:block">
-              <NavLinks />
+              <NavLinks reservasPendientes={reservasPendientes} />
             </div>
           </div>
 

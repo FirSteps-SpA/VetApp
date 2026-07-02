@@ -307,3 +307,28 @@ export interface CitaConRel extends Cita {
   paciente: { nombre: string; especie: Especie; numero_ficha: string } | null;
   dueno: { nombre: string; telefono: string } | null;
 }
+
+// ---------------------------------------------------------------------------
+// Notificaciones (Fase 8)
+// ---------------------------------------------------------------------------
+
+export interface Notificacion {
+  id: string;
+  usuario_id: string;
+  tipo: string;
+  titulo: string;
+  cuerpo: string | null;
+  url: string | null;
+  referencia_tipo: string | null;
+  referencia_id: string | null;
+  leida: boolean;
+  created_at: string;
+}
+
+export interface NotificacionesConfig {
+  dueno_id: string;
+  recordatorio_citas: boolean;
+  recordatorio_vacunas: boolean;
+  canal_email: boolean;
+  canal_push: boolean;
+}
