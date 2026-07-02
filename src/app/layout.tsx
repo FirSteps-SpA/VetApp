@@ -14,6 +14,9 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  ),
   applicationName: "VetApp",
   title: {
     default: "VetApp",
@@ -21,6 +24,11 @@ export const metadata: Metadata = {
   },
   description: "Gestión clínica veterinaria",
   manifest: "/manifest.json",
+  // App privada con datos clínicos: no indexar.
+  robots: { index: false, follow: false },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

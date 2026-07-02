@@ -29,7 +29,9 @@
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node|deprecated\" | tail -25')",
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && grep -roE \"customWorker[A-Za-z]+\" node_modules/@ducanh2912/next-pwa/dist/*.js 2>/dev/null | sort -u | head; echo \"---defaults---\"; grep -roE \"customWorker[A-Za-z]+ ?[:=] ?\\\\\"[^\\\\\"]*\\\\\"\" node_modules/@ducanh2912/next-pwa/dist/*.js 2>/dev/null | sort -u | head')",
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && grep -oE \"customWorkerSrc[^,;]{0,60}\" node_modules/@ducanh2912/next-pwa/dist/index.js | head -5')",
-      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node|deprecated\" | tail -40')"
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node|deprecated\" | tail -40')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node|deprecated\" | tail -22')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node|deprecated\" | tail -14')"
     ]
   }
 }

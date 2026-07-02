@@ -90,6 +90,42 @@ Requisitos: Node.js 18.17+ (recomendado 20+) y un proyecto Supabase.
 > Los íconos de `public/icons/` son placeholders generados por script. Reemplázalos
 > por el branding real de la clínica cuando esté disponible.
 
+## Despliegue a producción
+
+Recomendado: **Vercel** (Next.js) + un **proyecto Supabase separado** para producción.
+
+1. **Supabase producción**
+   - Crea un proyecto nuevo (distinto del de desarrollo).
+   - Aplica, en orden, todas las migraciones de `supabase/migrations/` y el `supabase/seed.sql`.
+   - Habilita **Point-in-Time Recovery** (backups) en *Database → Backups*.
+   - Crea el primer usuario staff (ver "Puesta en marcha", paso 4).
+   - (Opcional) Habilita `pg_cron` si quieres el recálculo nocturno de vacunas.
+
+2. **Vercel**
+   - Importa el repositorio. Framework: Next.js (autodetectado).
+   - Configura las **variables de entorno** (ver matriz abajo) apuntando al proyecto Supabase de producción.
+   - El cron de recordatorios ya está declarado en [`vercel.json`](vercel.json) (`/api/cron/notificaciones`, diario 08:00). Vercel inyecta `CRON_SECRET` como `Authorization: Bearer` automáticamente, así que basta definir esa variable.
+
+3. **Verificación post-deploy**
+   - Lighthouse (móvil): PWA instalable y Performance aceptable.
+   - Instalabilidad real: Android Chrome (banner/menu) e iOS Safari (*Compartir → Agregar a inicio*).
+   - Prueba el flujo staff completo (búsqueda → consulta → receta → PDF) y el portal (invitación → login → descarga).
+
+### Matriz de variables de entorno
+
+| Variable | Dónde | Necesaria para |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | dev + prod | Todo |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | dev + prod | Todo |
+| `SUPABASE_SERVICE_ROLE_KEY` | server (secreta) | Invitaciones, portal (signed URLs), envíos, cron |
+| `NEXT_PUBLIC_SITE_URL` | prod | Enlaces absolutos en emails/notificaciones |
+| `RESEND_API_KEY` / `RESEND_FROM` | server | Email transaccional |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | cliente | Suscripción push |
+| `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | server | Envío push |
+| `CRON_SECRET` | server | Proteger el cron de recordatorios |
+
+> Genera las claves VAPID con `npx web-push generate-vapid-keys`. El push real requiere HTTPS (producción), no funciona en `npm run dev` (el service worker está desactivado en desarrollo).
+
 ## Documentación
 
 La planificación técnica completa —modelo de datos, RLS, flujos, fases de implementación y escalabilidad— está en [`docs/vetapp_arquitectura.md`](docs/vetapp_arquitectura.md).
