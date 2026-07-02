@@ -41,3 +41,43 @@ export function formatearFecha(fecha: string | null): string {
 export function formatearPeso(peso: number | null): string {
   return peso == null ? "—" : `${peso} kg`;
 }
+
+// Hora local HH:mm a partir de un timestamptz ISO.
+export function formatearHora(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleTimeString("es-CL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// Fecha + hora legible.
+export function formatearFechaHora(iso: string): string {
+  return `${formatearFecha(iso)} ${formatearHora(iso)}`;
+}
+
+// YYYY-MM-DD de una fecha (local).
+export function isoDia(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
+}
+
+// Lunes (00:00) de la semana que contiene a la fecha dada.
+export function inicioSemana(d: Date): Date {
+  const r = new Date(d);
+  const dow = (r.getDay() + 6) % 7; // 0 = lunes
+  r.setDate(r.getDate() - dow);
+  r.setHours(0, 0, 0, 0);
+  return r;
+}
+
+// Etiqueta de día legible (ej. "lun 28 jun").
+export function etiquetaDia(d: Date): string {
+  return d.toLocaleDateString("es-CL", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+  });
+}

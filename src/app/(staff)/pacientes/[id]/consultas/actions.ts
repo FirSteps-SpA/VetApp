@@ -41,6 +41,7 @@ export interface CrearConsultaInput {
   notas?: string;
   receta?: RecetaInput | null;
   examenes?: ExamenPendiente[];
+  citaId?: string | null;
 }
 
 export type CrearConsultaResult =
@@ -146,8 +147,88 @@ export async function crearConsulta(
     }
   }
 
+  // 4) Vincular con la cita de origen (si la consulta se inició desde la agenda).
+  if (input.citaId) {
+    await supabase
+      .from("citas")
+      .update({ estado: "realizada", consulta_id: consulta.id })
+      .eq("id", input.citaId);
+    revalidatePath("/agenda");
+  }
+
   revalidatePath(`/pacientes/${input.pacienteId}`);
   return { ok: true, consultaId: consulta.id };
+}
+
+export interface ActualizarConsultaInput {
+  tipo: TipoConsulta;
+  motivo: string;
+  anamnesis?: string;
+  examen_fisico?: string;
+  diagnostico: string;
+  diagnostico_diferencial?: string;
+  tratamiento: string;
+  peso_kg?: string;
+  temperatura_c?: string;
+  notas?: string;
+}
+
+// Edita los datos de una consulta. No se eliminan consultas (quedan en audit_log);
+// editar el peso aquí no reescribe pacientes.peso_kg (eso solo ocurre al crear).
+export async function actualizarConsulta(
+  consultaId: string,
+  pacienteId: string,
+  input: ActualizarConsultaInput,
+): Promise<{ error: string | null }> {
+  if (!TIPOS_CONSULTA.some((t) => t.value === input.tipo)) {
+    return { error: "Tipo de consulta inválido." };
+  }
+  if (!input.motivo?.trim()) return { error: "El motivo es obligatorio." };
+  if (!input.diagnostico?.trim())
+    return { error: "El diagnóstico es obligatorio." };
+  if (!input.tratamiento?.trim())
+    return { error: "El tratamiento es obligatorio." };
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("consultas")
+    .update({
+      tipo: input.tipo,
+      motivo: input.motivo.trim(),
+      anamnesis: input.anamnesis?.trim() || null,
+      examen_fisico: input.examen_fisico?.trim() || null,
+      diagnostico: input.diagnostico.trim(),
+      diagnostico_diferencial: input.diagnostico_diferencial?.trim() || null,
+      tratamiento: input.tratamiento.trim(),
+      peso_kg: num(input.peso_kg),
+      temperatura_c: num(input.temperatura_c),
+      notas: input.notas?.trim() || null,
+    })
+    .eq("id", consultaId);
+
+  if (error) return { error: "No se pudo actualizar la consulta." };
+
+  revalidatePath(`/pacientes/${pacienteId}`);
+  revalidatePath(`/pacientes/${pacienteId}/consultas/${consultaId}`);
+  return { error: null };
+}
+
+// Guarda en la receta la ruta del PDF generado y subido a Storage.
+export async function setRecetaPdf(
+  recetaId: string,
+  pacienteId: string,
+  path: string,
+): Promise<{ error: string | null }> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("recetas")
+    .update({ pdf_url: path })
+    .eq("id", recetaId);
+
+  if (error) return { error: "No se pudo guardar el PDF." };
+
+  revalidatePath(`/pacientes/${pacienteId}`);
+  return { error: null };
 }
 
 // Invalida una receta (no se elimina; queda como histórico anulado).

@@ -197,3 +197,113 @@ export function esImagen(mime: string | null): boolean {
 export function esPdf(mime: string | null): boolean {
   return mime === "application/pdf";
 }
+
+// ---------------------------------------------------------------------------
+// Vacunas y configuración (Fase 5 / 6)
+// ---------------------------------------------------------------------------
+
+export interface Vacuna {
+  id: string;
+  paciente_id: string;
+  consulta_id: string | null;
+  veterinario_id: string;
+  nombre_vacuna: string;
+  laboratorio: string | null;
+  lote: string | null;
+  fecha_aplicacion: string;
+  proxima_dosis: string | null;
+  estado_alerta: EstadoAlertaVacuna;
+  notas: string | null;
+  created_at: string;
+}
+
+export interface ClinicaConfig {
+  id: number;
+  nombre_clinica: string;
+  direccion: string | null;
+  telefono: string | null;
+  email: string | null;
+  logo_url: string | null;
+  numero_registro: string | null;
+  ciudad: string | null;
+}
+
+export interface EsquemaVacunacion {
+  id: string;
+  especie: string;
+  nombre_vacuna: string;
+  intervalo_dias: number;
+  es_obligatoria: boolean | null;
+  descripcion: string | null;
+  activo: boolean | null;
+}
+
+// ---------------------------------------------------------------------------
+// Agenda / citas (Fase 6)
+// ---------------------------------------------------------------------------
+
+export type EstadoCita =
+  | "pendiente"
+  | "confirmada"
+  | "en_consulta"
+  | "realizada"
+  | "cancelada"
+  | "no_asistio";
+
+export const ESTADOS_CITA: {
+  value: EstadoCita;
+  label: string;
+  color: string;
+}[] = [
+  { value: "pendiente", label: "Pendiente", color: "bg-amber-100 text-amber-700" },
+  { value: "confirmada", label: "Confirmada", color: "bg-blue-100 text-blue-700" },
+  { value: "en_consulta", label: "En consulta", color: "bg-violet-100 text-violet-700" },
+  { value: "realizada", label: "Realizada", color: "bg-teal-100 text-teal-700" },
+  { value: "cancelada", label: "Cancelada", color: "bg-slate-200 text-slate-600" },
+  { value: "no_asistio", label: "No asistió", color: "bg-red-100 text-red-700" },
+];
+
+export function labelEstadoCita(estado: EstadoCita): string {
+  return ESTADOS_CITA.find((e) => e.value === estado)?.label ?? estado;
+}
+
+export function colorEstadoCita(estado: EstadoCita): string {
+  return (
+    ESTADOS_CITA.find((e) => e.value === estado)?.color ??
+    "bg-slate-100 text-slate-600"
+  );
+}
+
+// Transiciones válidas de estado de cita.
+export const TRANSICIONES_CITA: Record<EstadoCita, EstadoCita[]> = {
+  pendiente: ["confirmada", "en_consulta", "cancelada", "no_asistio"],
+  confirmada: ["en_consulta", "cancelada", "no_asistio"],
+  en_consulta: ["realizada"],
+  realizada: [],
+  cancelada: [],
+  no_asistio: [],
+};
+
+export interface Cita {
+  id: string;
+  paciente_id: string;
+  dueno_id: string | null;
+  veterinario_id: string;
+  sucursal_id: string | null;
+  fecha_hora: string;
+  duracion_minutos: number;
+  motivo: string;
+  estado: EstadoCita;
+  notas: string | null;
+  notas_cliente: string | null;
+  creado_por_cliente: boolean | null;
+  consulta_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Cita con datos del paciente y dueño embebidos (para la agenda).
+export interface CitaConRel extends Cita {
+  paciente: { nombre: string; especie: Especie; numero_ficha: string } | null;
+  dueno: { nombre: string; telefono: string } | null;
+}

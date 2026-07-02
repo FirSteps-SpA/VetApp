@@ -18,7 +18,13 @@
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -35')",
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -22')",
       "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -16')",
-      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -25')"
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -25')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && npm install @react-pdf/renderer@^3.4.0 2>&1 | tail -8')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && node -e \"console.log\\(require\\(\\\\\"./package.json\\\\\"\\).dependencies[\\\\\"@react-pdf/renderer\\\\\"]\\)\"')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -32')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -14')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -20')",
+      "Bash(wsl -d ubuntu-24.04 -- bash -lc 'cd /home/benito/kmykko/VetApp && NEXT_PUBLIC_SUPABASE_URL=\"https://placeholder.supabase.co\" NEXT_PUBLIC_SUPABASE_ANON_KEY=\"placeholder-anon-key\" npm run build 2>&1 | grep -vE \"Node.js 18|upgrade to Node\" | tail -34')"
     ]
   }
 }

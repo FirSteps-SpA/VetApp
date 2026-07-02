@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/pacientes", label: "Pacientes" },
-  { href: "/agenda", label: "Agenda", disabled: true },
-  { href: "/vacunas", label: "Vacunas", disabled: true },
+  { href: "/agenda", label: "Agenda" },
+  { href: "/vacunas", label: "Vacunas" },
 ];
 
 export function NavLinks() {
@@ -18,18 +18,6 @@ export function NavLinks() {
       {LINKS.map((link) => {
         const active =
           pathname === link.href || pathname.startsWith(`${link.href}/`);
-
-        if (link.disabled) {
-          return (
-            <span
-              key={link.href}
-              title="Disponible en una fase posterior"
-              className="cursor-not-allowed rounded-lg px-3 py-2 text-sm font-medium text-slate-300"
-            >
-              {link.label}
-            </span>
-          );
-        }
 
         return (
           <Link

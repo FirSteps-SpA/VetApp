@@ -13,6 +13,7 @@ import {
   marcarPrincipal,
   vincularDueno,
 } from "./actions";
+import { invitarCliente, revocarAcceso } from "./invite-actions";
 
 const field =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
@@ -32,6 +33,11 @@ export function ManageDuenos({
   const [query, setQuery] = useState("");
   const [resultados, setResultados] = useState<Dueno[] | null>(null);
   const [buscando, setBuscando] = useState(false);
+
+  // Invitación al portal.
+  const [enlace, setEnlace] = useState<{ duenoId: string; url: string } | null>(
+    null,
+  );
 
   // Crear nuevo.
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
@@ -65,6 +71,19 @@ export function ManageDuenos({
     setBuscando(false);
   }
 
+  async function invitar(id: string) {
+    setBusy(true);
+    setError(null);
+    const res = await invitarCliente(id, pacienteId);
+    setBusy(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    setEnlace({ duenoId: id, url: res.link });
+    router.refresh();
+  }
+
   async function crear() {
     const ok = await run(() => crearYVincularDueno(pacienteId, nuevo));
     if (ok) {
@@ -89,50 +108,104 @@ export function ManageDuenos({
         {duenos.map((d) => (
           <div
             key={d.id}
-            className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3"
+            className="rounded-xl border border-slate-200 bg-white p-3"
           >
-            <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
-                {d.nombre}
-                {d.es_principal && (
-                  <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700">
-                    Principal
-                  </span>
-                )}
-              </p>
-              <p className="text-sm text-slate-500">{d.telefono}</p>
-            </div>
-            <div className="flex items-center gap-3 text-xs">
-              <Link
-                href={`/pacientes/${pacienteId}/duenos/${d.id}/editar`}
-                className="font-medium text-teal-700 hover:underline"
-              >
-                Editar
-              </Link>
-              {!d.es_principal && (
-                <>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => run(() => marcarPrincipal(pacienteId, d.id))}
-                    className="text-slate-600 hover:underline disabled:opacity-50"
-                  >
-                    Marcar principal
-                  </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                  {d.nombre}
+                  {d.es_principal && (
+                    <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700">
+                      Principal
+                    </span>
+                  )}
+                  {d.usuario_id && (
+                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
+                      Portal activo
+                    </span>
+                  )}
+                </p>
+                <p className="text-sm text-slate-500">{d.telefono}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-xs">
+                <Link
+                  href={`/pacientes/${pacienteId}/duenos/${d.id}/editar`}
+                  className="font-medium text-teal-700 hover:underline"
+                >
+                  Editar
+                </Link>
+                {d.usuario_id ? (
                   <button
                     type="button"
                     disabled={busy}
                     onClick={() => {
-                      if (window.confirm("¿Desvincular este dueño?"))
-                        run(() => desvincularDueno(pacienteId, d.id));
+                      if (window.confirm("¿Revocar el acceso al portal?"))
+                        run(() => revocarAcceso(d.id, pacienteId));
                     }}
                     className="text-red-600 hover:underline disabled:opacity-50"
                   >
-                    Quitar
+                    Revocar portal
                   </button>
-                </>
-              )}
+                ) : d.email ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => invitar(d.id)}
+                    className="text-blue-700 hover:underline disabled:opacity-50"
+                  >
+                    Invitar al portal
+                  </button>
+                ) : (
+                  <span className="text-slate-400" title="Requiere email">
+                    Sin email
+                  </span>
+                )}
+                {!d.es_principal && (
+                  <>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => run(() => marcarPrincipal(pacienteId, d.id))}
+                      className="text-slate-600 hover:underline disabled:opacity-50"
+                    >
+                      Marcar principal
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        if (window.confirm("¿Desvincular este dueño?"))
+                          run(() => desvincularDueno(pacienteId, d.id));
+                      }}
+                      className="text-red-600 hover:underline disabled:opacity-50"
+                    >
+                      Quitar
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
+
+            {enlace?.duenoId === d.id && (
+              <div className="mt-3 rounded-lg bg-blue-50 p-3">
+                <p className="text-xs font-medium text-blue-800">
+                  Enlace de acceso (compártelo con el dueño):
+                </p>
+                <input
+                  readOnly
+                  value={enlace.url}
+                  onFocus={(e) => e.target.select()}
+                  className="mt-1 w-full rounded border border-blue-200 bg-white px-2 py-1 text-xs text-slate-700"
+                />
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard?.writeText(enlace.url)}
+                  className="mt-1 text-xs font-medium text-blue-700 hover:underline"
+                >
+                  Copiar enlace
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </section>

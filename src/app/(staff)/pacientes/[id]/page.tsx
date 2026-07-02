@@ -2,8 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+import { getCitasPaciente } from "@/lib/data/citas";
+import { getClinicaConfig } from "@/lib/data/clinica";
 import { getConsultas, getRecetas } from "@/lib/data/consultas";
 import { getExamenes, getUrlsExamenes } from "@/lib/data/examenes";
+import { getEsquemasVacunacion, getVacunas } from "@/lib/data/vacunas";
 import {
   getDuenosDePaciente,
   getFotoSignedUrl,
@@ -14,6 +17,7 @@ import { labelEspecie, resumenMedicamento, SEXOS } from "@/lib/types/db";
 import { calcularEdad, formatearFecha, formatearPeso } from "@/lib/utils/format";
 
 import { NuevaConsultaDrawer } from "./consultas/nueva-consulta-drawer";
+import { ExportButton } from "./export/export-button";
 import { FichaTabs } from "./tabs";
 import { PhotoUploader } from "./photo-uploader";
 import { RecordVisit } from "./record-visit";
@@ -38,22 +42,39 @@ function Dato({ label, value }: { label: string; value: string }) {
 
 export default async function FichaPage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams: { cita?: string };
 }) {
   const paciente = await getPaciente(params.id);
   if (!paciente) notFound();
 
-  const [duenos, resumen, fotoUrl, consultas, recetas, examenes] =
-    await Promise.all([
+  const [
+    duenos,
+    resumen,
+    fotoUrl,
+    consultas,
+    recetas,
+    examenes,
+    vacunas,
+    clinica,
+    citas,
+  ] = await Promise.all([
       getDuenosDePaciente(paciente.id),
       getResumenClinico(paciente.id),
       getFotoSignedUrl(paciente.foto_url),
       getConsultas(paciente.id),
       getRecetas(paciente.id),
       getExamenes(paciente.id),
+      getVacunas(paciente.id),
+      getClinicaConfig(),
+      getCitasPaciente(paciente.id),
     ]);
-  const urlsExamenes = await getUrlsExamenes(examenes);
+  const [urlsExamenes, esquemas] = await Promise.all([
+    getUrlsExamenes(examenes),
+    getEsquemasVacunacion(paciente.especie),
+  ]);
 
   const principal = duenos.find((d) => d.es_principal) ?? duenos[0] ?? null;
   const edad = calcularEdad(paciente.fecha_nacimiento);
@@ -98,7 +119,23 @@ export default async function FichaPage({
           >
             Editar
           </Link>
-          <NuevaConsultaDrawer pacienteId={paciente.id} />
+          <ExportButton
+            data={{
+              pacienteId: paciente.id,
+              clinica,
+              paciente,
+              dueno: principal,
+              consultas,
+              recetas,
+              examenes,
+              vacunas,
+            }}
+          />
+          <NuevaConsultaDrawer
+            pacienteId={paciente.id}
+            citaId={searchParams.cita}
+            autoOpen={!!searchParams.cita}
+          />
         </div>
       </div>
 
@@ -229,6 +266,9 @@ export default async function FichaPage({
           recetas={recetas}
           examenes={examenes}
           urlsExamenes={urlsExamenes}
+          vacunas={vacunas}
+          esquemas={esquemas}
+          citas={citas}
         />
       </section>
     </div>

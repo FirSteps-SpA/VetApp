@@ -4,16 +4,24 @@ import { useState } from "react";
 import Link from "next/link";
 
 import {
+  colorEstadoCita,
+  labelEstadoCita,
   labelTipoConsulta,
   resumenMedicamento,
+  type CitaConRel,
   type ConsultaConVet,
+  type EsquemaVacunacion,
   type Examen,
   type Receta,
+  type Vacuna,
 } from "@/lib/types/db";
-import { formatearFecha } from "@/lib/utils/format";
+import { formatearFecha, formatearFechaHora } from "@/lib/utils/format";
+
+import { CitaActions } from "@/app/(staff)/agenda/cita-actions";
 
 import { AnularRecetaButton } from "./consultas/anular-receta-button";
 import { ExamenesTab } from "./examenes/examenes-tab";
+import { VacunasTab } from "./vacunas/vacunas-tab";
 
 type TabId = "resumen" | "historial" | "recetas" | "examenes" | "vacunas" | "citas";
 
@@ -143,6 +151,9 @@ export function FichaTabs({
   recetas,
   examenes,
   urlsExamenes,
+  vacunas,
+  esquemas,
+  citas,
 }: {
   pacienteId: string;
   notas: string | null;
@@ -150,6 +161,9 @@ export function FichaTabs({
   recetas: Receta[];
   examenes: Examen[];
   urlsExamenes: Record<string, string>;
+  vacunas: Vacuna[];
+  esquemas: EsquemaVacunacion[];
+  citas: CitaConRel[];
 }) {
   const [active, setActive] = useState<TabId>("resumen");
 
@@ -175,7 +189,11 @@ export function FichaTabs({
                     ? recetas.length
                     : tab.id === "examenes"
                       ? examenes.length
-                      : 0;
+                      : tab.id === "vacunas"
+                        ? vacunas.length
+                        : tab.id === "citas"
+                          ? citas.length
+                          : 0;
               return n > 0 ? (
                 <span className="ml-1 text-xs text-slate-400">{n}</span>
               ) : null;
@@ -225,8 +243,53 @@ export function FichaTabs({
             urls={urlsExamenes}
           />
         )}
-        {active === "vacunas" && <EmptyTab label="Vacunas" fase={6} />}
-        {active === "citas" && <EmptyTab label="Citas" fase={6} />}
+        {active === "vacunas" && (
+          <VacunasTab
+            pacienteId={pacienteId}
+            vacunas={vacunas}
+            esquemas={esquemas}
+          />
+        )}
+        {active === "citas" && (
+          <div className="space-y-3">
+            <Link
+              href={`/agenda/nueva-cita?paciente=${pacienteId}`}
+              className="inline-block rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+            >
+              + Agendar cita
+            </Link>
+            {citas.length === 0 ? (
+              <EmptyTab label="citas registradas" />
+            ) : (
+              <div className="space-y-2">
+                {citas.map((c) => (
+                  <div
+                    key={c.id}
+                    className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 p-3"
+                  >
+                    <span className="text-sm text-slate-600">
+                      {formatearFechaHora(c.fecha_hora)}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
+                      {c.motivo}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${colorEstadoCita(c.estado)}`}
+                    >
+                      {labelEstadoCita(c.estado)}
+                    </span>
+                    <CitaActions
+                      citaId={c.id}
+                      pacienteId={pacienteId}
+                      estado={c.estado}
+                      consultaId={c.consulta_id}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

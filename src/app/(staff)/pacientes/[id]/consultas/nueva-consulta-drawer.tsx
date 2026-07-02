@@ -37,9 +37,17 @@ const emptyMed = (key: number): MedRow => ({
   instrucciones: "",
 });
 
-export function NuevaConsultaDrawer({ pacienteId }: { pacienteId: string }) {
+export function NuevaConsultaDrawer({
+  pacienteId,
+  citaId,
+  autoOpen,
+}: {
+  pacienteId: string;
+  citaId?: string;
+  autoOpen?: boolean;
+}) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!autoOpen);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -156,6 +164,7 @@ export function NuevaConsultaDrawer({ pacienteId }: { pacienteId: string }) {
         archivo_tipo: a.archivo_tipo,
         archivo_tamanio_bytes: a.archivo_tamanio_bytes,
       })),
+      citaId: citaId ?? null,
     });
 
     if (!result.ok) {
@@ -167,7 +176,8 @@ export function NuevaConsultaDrawer({ pacienteId }: { pacienteId: string }) {
     setSubmitting(false);
     setOpen(false);
     reset();
-    router.refresh();
+    if (citaId) router.replace(`/pacientes/${pacienteId}`);
+    else router.refresh();
   }
 
   return (

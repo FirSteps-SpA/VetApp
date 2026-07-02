@@ -88,12 +88,20 @@ export default async function ConsultaPage({
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
-      <Link
-        href={`/pacientes/${params.id}`}
-        className="text-sm text-slate-500 hover:text-slate-700"
-      >
-        ← Ficha del paciente
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href={`/pacientes/${params.id}`}
+          className="text-sm text-slate-500 hover:text-slate-700"
+        >
+          ← Ficha del paciente
+        </Link>
+        <Link
+          href={`/pacientes/${params.id}/consultas/${params.cId}/editar`}
+          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+        >
+          Editar
+        </Link>
+      </div>
 
       <header className="flex flex-wrap items-center gap-2">
         <h1 className="text-2xl font-semibold text-slate-900">
