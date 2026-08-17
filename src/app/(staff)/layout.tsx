@@ -32,7 +32,10 @@ export default async function StaffLayout({
               VetApp
             </Link>
             <div className="hidden sm:block">
-              <NavLinks reservasPendientes={reservasPendientes} />
+              <NavLinks
+              reservasPendientes={reservasPendientes}
+              esDev={rol === "dev"}
+            />
             </div>
           </div>
 

@@ -11,12 +11,19 @@ const LINKS = [
   { href: "/vacunas", label: "Vacunas" },
 ];
 
-export function NavLinks({ reservasPendientes = 0 }: { reservasPendientes?: number }) {
+export function NavLinks({
+  reservasPendientes = 0,
+  esDev = false,
+}: {
+  reservasPendientes?: number;
+  esDev?: boolean;
+}) {
   const pathname = usePathname();
+  const links = esDev ? [...LINKS, { href: "/admin", label: "Admin" }] : LINKS;
 
   return (
     <nav className="flex items-center gap-1">
-      {LINKS.map((link) => {
+      {links.map((link) => {
         const active =
           pathname === link.href || pathname.startsWith(`${link.href}/`);
         const badge = link.href === "/reservas" ? reservasPendientes : 0;

@@ -2,6 +2,8 @@
 // Cuando exista una base con datos, se pueden reemplazar por los tipos generados
 // con `supabase gen types typescript`.
 
+import type { Rol } from "@/lib/auth/roles";
+
 export type Especie =
   | "perro"
   | "gato"
@@ -226,6 +228,28 @@ export interface ClinicaConfig {
   logo_url: string | null;
   numero_registro: string | null;
   ciudad: string | null;
+}
+
+export interface Sucursal {
+  id: string;
+  nombre: string;
+  direccion: string | null;
+  telefono: string | null;
+  email: string | null;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UsuarioAdmin {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  activo: boolean;
+  sucursal_id: string | null;
+  created_at: string;
+  sucursal: { nombre: string } | null;
 }
 
 export interface EsquemaVacunacion {
