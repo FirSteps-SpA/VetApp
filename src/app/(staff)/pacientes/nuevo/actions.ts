@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import { tipoConflictoUnico } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 import { ESPECIES, SEXOS, type Especie, type Sexo } from "@/lib/types/db";
 
@@ -73,6 +74,7 @@ export async function crearPaciente(
       .from("duenos")
       .insert({
         nombre: duenoNombre,
+        rut: str(formData, "dueno_rut") || null,
         telefono: duenoTelefono,
         email: duenoEmail || null,
         direccion: duenoDireccion || null,
@@ -81,11 +83,14 @@ export async function crearPaciente(
       .single();
 
     if (duenoError || !dueno) {
+      const conflicto = tipoConflictoUnico(duenoError);
       return {
         error:
-          duenoError?.code === "23505"
-            ? "Ya existe un dueño con ese email."
-            : "No se pudo crear el dueño. Intenta nuevamente.",
+          conflicto === "rut"
+            ? "El RUT ya está registrado en otro dueño."
+            : conflicto === "email"
+              ? "Ya existe un dueño con ese email."
+              : "No se pudo crear el dueño. Intenta nuevamente.",
       };
     }
     duenoId = dueno.id;
@@ -96,6 +101,7 @@ export async function crearPaciente(
     .from("pacientes")
     .insert({
       nombre,
+      rut: str(formData, "rut") || null,
       especie,
       raza: raza || null,
       fecha_nacimiento: fechaNacimiento || null,
@@ -112,7 +118,12 @@ export async function crearPaciente(
     if (!usarExistente) {
       await supabase.from("duenos").delete().eq("id", duenoId);
     }
-    return { error: "No se pudo crear el paciente. Intenta nuevamente." };
+    return {
+      error:
+        tipoConflictoUnico(pacienteError) === "rut"
+          ? "El RUT ya está registrado en otro paciente."
+          : "No se pudo crear el paciente. Intenta nuevamente.",
+    };
   }
 
   // 3) Vincular como dueño principal.

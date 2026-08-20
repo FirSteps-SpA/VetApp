@@ -170,6 +170,7 @@ export default async function FichaPage({
                   paciente.raza ? ` · ${paciente.raza}` : ""
                 }`}
               />
+              <Dato label="RUT" value={paciente.rut ?? "—"} />
               <Dato label="Edad" value={edad ?? "—"} />
               <Dato label="Peso" value={formatearPeso(paciente.peso_kg)} />
               <Dato label="Sexo" value={sexoLabel} />
@@ -203,6 +204,11 @@ export default async function FichaPage({
               <>
                 <p className="text-sm font-medium text-slate-800">
                   {principal.nombre}
+                  {principal.rut ? (
+                    <span className="ml-1 text-xs font-normal text-slate-400">
+                      · {principal.rut}
+                    </span>
+                  ) : null}
                 </p>
                 <a
                   href={`tel:${principal.telefono}`}

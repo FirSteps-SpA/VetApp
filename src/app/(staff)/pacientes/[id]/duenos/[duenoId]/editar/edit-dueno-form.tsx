@@ -58,6 +58,10 @@ export function EditDuenoForm({
           />
         </label>
         <label className={label}>
+          RUT
+          <input name="rut" defaultValue={dueno.rut ?? ""} className={field} />
+        </label>
+        <label className={label}>
           Email
           <input
             name="email"

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import { tipoConflictoUnico } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 import { ESPECIES, SEXOS, type Especie, type Sexo } from "@/lib/types/db";
 
@@ -45,6 +46,7 @@ export async function actualizarPaciente(
     .from("pacientes")
     .update({
       nombre,
+      rut: str(formData, "rut") || null,
       especie,
       raza: str(formData, "raza") || null,
       fecha_nacimiento: str(formData, "fecha_nacimiento") || null,
@@ -57,7 +59,12 @@ export async function actualizarPaciente(
     .eq("id", pacienteId);
 
   if (error) {
-    return { error: "No se pudo actualizar el paciente." };
+    return {
+      error:
+        tipoConflictoUnico(error) === "rut"
+          ? "El RUT ya está registrado en otro paciente."
+          : "No se pudo actualizar el paciente.",
+    };
   }
 
   revalidatePath(`/pacientes/${pacienteId}`);

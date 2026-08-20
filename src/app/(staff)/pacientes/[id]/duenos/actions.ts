@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import { tipoConflictoUnico } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 import type { Dueno } from "@/lib/types/db";
 
@@ -33,6 +34,7 @@ export async function actualizarDueno(
     .from("duenos")
     .update({
       nombre,
+      rut: str(formData, "rut") || null,
       telefono,
       email: str(formData, "email") || null,
       direccion: str(formData, "direccion") || null,
@@ -41,11 +43,14 @@ export async function actualizarDueno(
     .eq("id", duenoId);
 
   if (error) {
+    const conflicto = tipoConflictoUnico(error);
     return {
       error:
-        error.code === "23505"
-          ? "Ya existe un dueño con ese email."
-          : "No se pudo actualizar el dueño.",
+        conflicto === "rut"
+          ? "El RUT ya está registrado en otro dueño."
+          : conflicto === "email"
+            ? "Ya existe un dueño con ese email."
+            : "No se pudo actualizar el dueño.",
     };
   }
 
@@ -101,7 +106,13 @@ export async function vincularDueno(
 // Crea un dueño nuevo y lo vincula al paciente.
 export async function crearYVincularDueno(
   pacienteId: string,
-  input: { nombre: string; telefono: string; email?: string; direccion?: string },
+  input: {
+    nombre: string;
+    telefono: string;
+    rut?: string;
+    email?: string;
+    direccion?: string;
+  },
 ): Promise<{ error: string | null }> {
   if (!input.nombre?.trim() || !input.telefono?.trim()) {
     return { error: "El dueño requiere nombre y teléfono." };
@@ -113,6 +124,7 @@ export async function crearYVincularDueno(
     .insert({
       nombre: input.nombre.trim(),
       telefono: input.telefono.trim(),
+      rut: input.rut?.trim() || null,
       email: input.email?.trim() || null,
       direccion: input.direccion?.trim() || null,
     })
@@ -120,11 +132,14 @@ export async function crearYVincularDueno(
     .single();
 
   if (duenoError || !dueno) {
+    const conflicto = tipoConflictoUnico(duenoError);
     return {
       error:
-        duenoError?.code === "23505"
-          ? "Ya existe un dueño con ese email."
-          : "No se pudo crear el dueño.",
+        conflicto === "rut"
+          ? "El RUT ya está registrado en otro dueño."
+          : conflicto === "email"
+            ? "Ya existe un dueño con ese email."
+            : "No se pudo crear el dueño.",
     };
   }
 

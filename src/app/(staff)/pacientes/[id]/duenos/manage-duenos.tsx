@@ -44,6 +44,7 @@ export function ManageDuenos({
   const [nuevo, setNuevo] = useState({
     nombre: "",
     telefono: "",
+    rut: "",
     email: "",
     direccion: "",
   });
@@ -87,7 +88,7 @@ export function ManageDuenos({
   async function crear() {
     const ok = await run(() => crearYVincularDueno(pacienteId, nuevo));
     if (ok) {
-      setNuevo({ nombre: "", telefono: "", email: "", direccion: "" });
+      setNuevo({ nombre: "", telefono: "", rut: "", email: "", direccion: "" });
       setMostrarNuevo(false);
     }
   }
@@ -285,6 +286,12 @@ export function ManageDuenos({
                 placeholder="Teléfono *"
                 value={nuevo.telefono}
                 onChange={(e) => setNuevo({ ...nuevo, telefono: e.target.value })}
+                className={field}
+              />
+              <input
+                placeholder="RUT"
+                value={nuevo.rut}
+                onChange={(e) => setNuevo({ ...nuevo, rut: e.target.value })}
                 className={field}
               />
               <input

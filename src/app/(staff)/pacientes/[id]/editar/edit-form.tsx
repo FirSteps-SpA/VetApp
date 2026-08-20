@@ -42,6 +42,10 @@ export function EditForm({ paciente }: { paciente: Paciente }) {
           />
         </label>
         <label className={label}>
+          RUT
+          <input name="rut" defaultValue={paciente.rut ?? ""} className={field} />
+        </label>
+        <label className={label}>
           Especie *
           <select
             name="especie"

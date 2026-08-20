@@ -19,6 +19,7 @@ export type EstadoAlertaVacuna = "al_dia" | "proxima" | "vencida";
 export interface Paciente {
   id: string;
   nombre: string;
+  rut: string | null;
   especie: Especie;
   raza: string | null;
   fecha_nacimiento: string | null;
@@ -36,6 +37,7 @@ export interface Paciente {
 export interface Dueno {
   id: string;
   nombre: string;
+  rut: string | null;
   telefono: string;
   email: string | null;
   direccion: string | null;

@@ -166,6 +166,10 @@ function PacienteInfo({
           <Text style={styles.cellValue}>{paciente.numero_ficha}</Text>
         </View>
         <View style={styles.cell}>
+          <Text style={styles.cellLabel}>RUT</Text>
+          <Text style={styles.cellValue}>{paciente.rut ?? "—"}</Text>
+        </View>
+        <View style={styles.cell}>
           <Text style={styles.cellLabel}>Especie / Raza</Text>
           <Text style={styles.cellValue}>
             {labelEspecie(paciente.especie)}
@@ -189,7 +193,8 @@ function PacienteInfo({
         <View style={{ marginTop: 4 }}>
           <Text style={styles.cellLabel}>Dueño</Text>
           <Text style={styles.cellValue}>
-            {dueno.nombre} · {dueno.telefono}
+            {dueno.nombre}
+            {dueno.rut ? ` · RUT ${dueno.rut}` : ""} · {dueno.telefono}
             {dueno.email ? ` · ${dueno.email}` : ""}
           </Text>
         </View>
@@ -504,7 +509,8 @@ function MascotaInfo({
         <View style={{ marginTop: 4 }}>
           <Text style={styles.cellLabel}>Dueño</Text>
           <Text style={styles.cellValue}>
-            {dueno.nombre} · {dueno.telefono}
+            {dueno.nombre}
+            {dueno.rut ? ` · RUT ${dueno.rut}` : ""} · {dueno.telefono}
           </Text>
         </View>
       ) : null}

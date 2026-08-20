@@ -164,6 +164,10 @@ export function PatientForm() {
               />
             </label>
             <label className={labelClass}>
+              RUT
+              <input name="dueno_rut" className={fieldClass} />
+            </label>
+            <label className={labelClass}>
               Email
               <input name="dueno_email" type="email" className={fieldClass} />
             </label>
@@ -183,6 +187,10 @@ export function PatientForm() {
           <label className={labelClass}>
             Nombre *
             <input name="nombre" required className={fieldClass} />
+          </label>
+          <label className={labelClass}>
+            RUT
+            <input name="rut" className={fieldClass} />
           </label>
           <label className={labelClass}>
             Especie *
