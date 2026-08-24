@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Icon } from "@/components/icon";
+
 import type { Sucursal } from "@/lib/types/db";
 
 import { actualizarSucursal, crearSucursal } from "./actions";
@@ -142,8 +144,9 @@ export function SucursalesManager({ sucursales }: { sucursales: Sucursal[] }) {
               </div>
               <button
                 onClick={() => abrirEdicion(s)}
-                className="text-xs font-medium text-teal-700 hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:underline"
               >
+                <Icon name="pencil" className="h-3.5 w-3.5" />
                 Editar
               </button>
               <button
@@ -203,9 +206,10 @@ export function SucursalesManager({ sucursales }: { sucursales: Sucursal[] }) {
       ) : (
         <button
           onClick={() => setCreando(true)}
-          className="text-sm font-medium text-teal-700 hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:underline"
         >
-          + Agregar sucursal
+          <Icon name="plus" className="h-3.5 w-3.5" />
+          Agregar sucursal
         </button>
       )}
     </div>

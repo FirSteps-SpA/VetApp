@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/icon";
 import type { Metadata } from "next";
 
 import { getCitasRango } from "@/lib/data/citas";
@@ -106,9 +107,10 @@ export default async function AgendaPage({
         <h1 className="text-2xl font-semibold text-slate-900">Agenda</h1>
         <Link
           href={`/agenda/nueva-cita?fecha=${isoDia(fecha)}`}
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
         >
-          + Nueva cita
+          <Icon name="plus" />
+          Nueva cita
         </Link>
       </div>
 

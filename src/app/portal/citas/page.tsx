@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/icon";
 import type { Metadata } from "next";
 
 import { getMisCitas } from "@/lib/data/portal";
@@ -21,9 +22,10 @@ export default async function MisCitasPage() {
         <h1 className="text-xl font-semibold text-slate-900">Mis citas</h1>
         <Link
           href="/portal/citas/solicitar"
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
         >
-          + Solicitar hora
+          <Icon name="plus" />
+          Solicitar hora
         </Link>
       </div>
       {citas.length === 0 ? (

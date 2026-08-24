@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Icon } from "@/components/icon";
 import { useRouter } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/client";
@@ -185,9 +186,10 @@ export function NuevaConsultaDrawer({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700"
       >
-        + Nueva consulta
+        <Icon name="plus" />
+        Nueva consulta
       </button>
 
       {open && (
@@ -422,9 +424,10 @@ export function NuevaConsultaDrawer({
                           emptyMed((rows.at(-1)?.key ?? 0) + 1),
                         ])
                       }
-                      className="text-sm font-medium text-teal-700 hover:underline"
+                      className="inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:underline"
                     >
-                      + Agregar medicamento
+                      <Icon name="plus" className="h-3.5 w-3.5" />
+                      Agregar medicamento
                     </button>
 
                     <label className={label}>
@@ -490,9 +493,10 @@ export function NuevaConsultaDrawer({
                   type="button"
                   onClick={() => fileRef.current?.click()}
                   disabled={subiendoAdjunto}
-                  className="text-sm font-medium text-teal-700 hover:underline disabled:opacity-60"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:underline disabled:opacity-60"
                 >
-                  {subiendoAdjunto ? "Subiendo…" : "+ Adjuntar archivo"}
+                  <Icon name="plus" className="h-3.5 w-3.5" />
+                  {subiendoAdjunto ? "Subiendo…" : "Adjuntar archivo"}
                 </button>
                 <input
                   ref={fileRef}

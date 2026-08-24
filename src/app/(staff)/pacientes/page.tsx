@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/icon";
 import type { Metadata } from "next";
 
 import { buscarPacientes } from "@/lib/data/pacientes";
@@ -26,9 +27,10 @@ export default async function PacientesPage({
         <h1 className="text-2xl font-semibold text-slate-900">Pacientes</h1>
         <Link
           href="/pacientes/nuevo"
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700"
         >
-          + Nuevo
+          <Icon name="plus" />
+          Nuevo
         </Link>
       </div>
 

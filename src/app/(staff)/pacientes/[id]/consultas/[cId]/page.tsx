@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/icon";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -131,8 +132,9 @@ export default async function ConsultaPage({
         </Link>
         <Link
           href={`/pacientes/${params.id}/consultas/${params.cId}/editar`}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
         >
+          <Icon name="pencil" />
           Editar
         </Link>
       </div>

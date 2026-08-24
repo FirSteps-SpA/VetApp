@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { Icon } from "@/components/icon";
+
 import type { Dueno, DuenoDePaciente } from "@/lib/types/db";
 
 import {
@@ -131,8 +133,9 @@ export function ManageDuenos({
               <div className="flex flex-wrap items-center gap-3 text-xs">
                 <Link
                   href={`/pacientes/${pacienteId}/duenos/${d.id}/editar`}
-                  className="font-medium text-teal-700 hover:underline"
+                  className="inline-flex items-center gap-1 font-medium text-teal-700 hover:underline"
                 >
+                  <Icon name="pencil" className="h-3.5 w-3.5" />
                   Editar
                 </Link>
                 {d.usuario_id ? (
@@ -332,9 +335,10 @@ export function ManageDuenos({
           <button
             type="button"
             onClick={() => setMostrarNuevo(true)}
-            className="text-sm font-medium text-teal-700 hover:underline"
+            className="inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:underline"
           >
-            + Crear y vincular un dueño nuevo
+            <Icon name="plus" className="h-3.5 w-3.5" />
+            Crear y vincular un dueño nuevo
           </button>
         )}
       </section>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/icon";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -115,8 +116,9 @@ export default async function FichaPage({
         <div className="flex items-center gap-2">
           <Link
             href={`/pacientes/${paciente.id}/editar`}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
           >
+            <Icon name="pencil" />
             Editar
           </Link>
           <ExportButton

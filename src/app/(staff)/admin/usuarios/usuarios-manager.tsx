@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Icon } from "@/components/icon";
+
 import type { Sucursal, UsuarioAdmin } from "@/lib/types/db";
 
 import { actualizarUsuario, crearUsuario, eliminarUsuario } from "./actions";
@@ -255,8 +257,9 @@ export function UsuariosManager({
                       activo: u.activo,
                     });
                   }}
-                  className="text-xs font-medium text-teal-700 hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:underline"
                 >
+                  <Icon name="pencil" className="h-3.5 w-3.5" />
                   Editar
                 </button>
                 {u.id !== miId && (

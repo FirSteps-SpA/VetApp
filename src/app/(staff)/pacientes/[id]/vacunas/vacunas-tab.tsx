@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icon } from "@/components/icon";
 import { useRouter } from "next/navigation";
 
 import type {
@@ -137,9 +138,10 @@ export function VacunasTab({
         <button
           type="button"
           onClick={() => setAbierto(true)}
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
         >
-          + Registrar vacuna
+          <Icon name="plus" />
+          Registrar vacuna
         </button>
       ) : (
         <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">

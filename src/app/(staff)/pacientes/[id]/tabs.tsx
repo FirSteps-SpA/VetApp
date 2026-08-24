@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icon } from "@/components/icon";
 import Link from "next/link";
 
 import {
@@ -293,9 +294,10 @@ export function FichaTabs({
           <div className="space-y-3">
             <Link
               href={`/agenda/nueva-cita?paciente=${pacienteId}`}
-              className="inline-block rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
             >
-              + Agendar cita
+              <Icon name="plus" />
+              Agendar cita
             </Link>
             {citas.length === 0 ? (
               <EmptyTab label="citas registradas" />

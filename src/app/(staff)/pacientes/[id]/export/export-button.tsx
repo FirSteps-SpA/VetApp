@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icon } from "@/components/icon";
 import dynamic from "next/dynamic";
 
 import type { ExportData } from "./export-panel";
@@ -16,8 +17,9 @@ export function ExportButton({ data }: { data: ExportData }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
       >
+        <Icon name="printer" />
         Exportar
       </button>
       {open && <ExportPanel data={data} onClose={() => setOpen(false)} />}
