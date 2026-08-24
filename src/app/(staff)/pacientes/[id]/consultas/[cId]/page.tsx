@@ -2,15 +2,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+import { getClinicaConfig } from "@/lib/data/clinica";
 import { getConsulta } from "@/lib/data/consultas";
+import { getDuenosDePaciente, getPaciente } from "@/lib/data/pacientes";
 import {
   labelTipoConsulta,
   resumenMedicamento,
+  type ClinicaConfig,
+  type DuenoDePaciente,
+  type Paciente,
   type Receta,
 } from "@/lib/types/db";
 import { formatearFecha, formatearPeso } from "@/lib/utils/format";
 
 import { AnularRecetaButton } from "../anular-receta-button";
+import { ImprimirRecetaButton } from "../../print/imprimir-receta-button";
 
 export const metadata: Metadata = {
   title: "Consulta",
@@ -31,9 +37,17 @@ function Bloque({ label, value }: { label: string; value: string | null }) {
 function RecetaBloque({
   receta,
   pacienteId,
+  clinica,
+  paciente,
+  dueno,
+  veterinario,
 }: {
   receta: Receta;
   pacienteId: string;
+  clinica: ClinicaConfig | null;
+  paciente: Paciente | null;
+  dueno: DuenoDePaciente | null;
+  veterinario: string | null;
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -51,6 +65,15 @@ function RecetaBloque({
         >
           {receta.vigente ? "Vigente" : "Anulada"}
         </span>
+        {paciente && (
+          <ImprimirRecetaButton
+            clinica={clinica}
+            paciente={paciente}
+            dueno={dueno}
+            receta={receta}
+            veterinario={veterinario}
+          />
+        )}
         {receta.vigente && (
           <AnularRecetaButton recetaId={receta.id} pacienteId={pacienteId} />
         )}
@@ -85,6 +108,17 @@ export default async function ConsultaPage({
   if (!result || result.consulta.paciente_id !== params.id) notFound();
 
   const { consulta, recetas } = result;
+
+  // Contexto para imprimir recetas (solo se usa si hay recetas).
+  const [clinica, paciente, duenos] =
+    recetas.length > 0
+      ? await Promise.all([
+          getClinicaConfig(),
+          getPaciente(params.id),
+          getDuenosDePaciente(params.id),
+        ])
+      : [null, null, []];
+  const principal = duenos.find((d) => d.es_principal) ?? duenos[0] ?? null;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
@@ -140,7 +174,15 @@ export default async function ConsultaPage({
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-slate-700">Recetas</h2>
           {recetas.map((r) => (
-            <RecetaBloque key={r.id} receta={r} pacienteId={params.id} />
+            <RecetaBloque
+              key={r.id}
+              receta={r}
+              pacienteId={params.id}
+              clinica={clinica}
+              paciente={paciente}
+              dueno={principal}
+              veterinario={consulta.veterinario?.nombre ?? null}
+            />
           ))}
         </section>
       )}

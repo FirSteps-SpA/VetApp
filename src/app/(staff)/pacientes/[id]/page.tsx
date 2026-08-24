@@ -275,6 +275,9 @@ export default async function FichaPage({
           vacunas={vacunas}
           esquemas={esquemas}
           citas={citas}
+          clinica={clinica}
+          paciente={paciente}
+          dueno={principal}
         />
       </section>
     </div>

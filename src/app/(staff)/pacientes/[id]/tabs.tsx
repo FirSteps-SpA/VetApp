@@ -9,9 +9,12 @@ import {
   labelTipoConsulta,
   resumenMedicamento,
   type CitaConRel,
+  type ClinicaConfig,
   type ConsultaConVet,
+  type DuenoDePaciente,
   type EsquemaVacunacion,
   type Examen,
+  type Paciente,
   type Receta,
   type Vacuna,
 } from "@/lib/types/db";
@@ -21,6 +24,7 @@ import { CitaActions } from "@/app/(staff)/agenda/cita-actions";
 
 import { AnularRecetaButton } from "./consultas/anular-receta-button";
 import { ExamenesTab } from "./examenes/examenes-tab";
+import { ImprimirRecetaButton } from "./print/imprimir-receta-button";
 import { VacunasTab } from "./vacunas/vacunas-tab";
 
 type TabId = "resumen" | "historial" | "recetas" | "examenes" | "vacunas" | "citas";
@@ -101,9 +105,17 @@ function Campo({ label, value }: { label: string; value: string | null }) {
 function RecetaItem({
   receta,
   pacienteId,
+  clinica,
+  paciente,
+  dueno,
+  veterinario,
 }: {
   receta: Receta;
   pacienteId: string;
+  clinica: ClinicaConfig | null;
+  paciente: Paciente;
+  dueno: DuenoDePaciente | null;
+  veterinario: string | null;
 }) {
   return (
     <div className="rounded-lg border border-slate-200 p-3">
@@ -123,6 +135,13 @@ function RecetaItem({
         >
           {receta.vigente ? "Vigente" : "Anulada"}
         </span>
+        <ImprimirRecetaButton
+          clinica={clinica}
+          paciente={paciente}
+          dueno={dueno}
+          receta={receta}
+          veterinario={veterinario}
+        />
         {receta.vigente && (
           <AnularRecetaButton recetaId={receta.id} pacienteId={pacienteId} />
         )}
@@ -154,6 +173,9 @@ export function FichaTabs({
   vacunas,
   esquemas,
   citas,
+  clinica,
+  paciente,
+  dueno,
 }: {
   pacienteId: string;
   notas: string | null;
@@ -164,6 +186,9 @@ export function FichaTabs({
   vacunas: Vacuna[];
   esquemas: EsquemaVacunacion[];
   citas: CitaConRel[];
+  clinica: ClinicaConfig | null;
+  paciente: Paciente;
+  dueno: DuenoDePaciente | null;
 }) {
   const [active, setActive] = useState<TabId>("resumen");
 
@@ -231,7 +256,18 @@ export function FichaTabs({
           ) : (
             <div className="space-y-2">
               {recetas.map((r) => (
-                <RecetaItem key={r.id} receta={r} pacienteId={pacienteId} />
+                <RecetaItem
+                  key={r.id}
+                  receta={r}
+                  pacienteId={pacienteId}
+                  clinica={clinica}
+                  paciente={paciente}
+                  dueno={dueno}
+                  veterinario={
+                    consultas.find((c) => c.id === r.consulta_id)?.veterinario
+                      ?.nombre ?? null
+                  }
+                />
               ))}
             </div>
           ))}
@@ -248,6 +284,9 @@ export function FichaTabs({
             pacienteId={pacienteId}
             vacunas={vacunas}
             esquemas={esquemas}
+            clinica={clinica}
+            paciente={paciente}
+            dueno={dueno}
           />
         )}
         {active === "citas" && (

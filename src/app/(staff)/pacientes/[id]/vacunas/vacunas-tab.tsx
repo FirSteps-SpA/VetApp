@@ -3,10 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { EsquemaVacunacion, EstadoAlertaVacuna, Vacuna } from "@/lib/types/db";
+import type {
+  ClinicaConfig,
+  DuenoDePaciente,
+  EsquemaVacunacion,
+  EstadoAlertaVacuna,
+  Paciente,
+  Vacuna,
+} from "@/lib/types/db";
 import { formatearFecha, isoDia } from "@/lib/utils/format";
 
 import { crearVacuna, eliminarVacuna } from "./actions";
+import { imprimirVacunacion } from "../print/imprimir";
+import { PrintButton } from "../print/print-button";
 
 const field =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
@@ -34,10 +43,16 @@ export function VacunasTab({
   pacienteId,
   vacunas,
   esquemas,
+  clinica,
+  paciente,
+  dueno,
 }: {
   pacienteId: string;
   vacunas: Vacuna[];
   esquemas: EsquemaVacunacion[];
+  clinica: ClinicaConfig | null;
+  paciente: Paciente;
+  dueno: DuenoDePaciente | null;
 }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
@@ -107,6 +122,17 @@ export function VacunasTab({
 
   return (
     <div className="space-y-4">
+      {vacunas.length > 0 && (
+        <div className="flex justify-end">
+          <PrintButton
+            label="Imprimir ficha de vacunación"
+            onClick={() =>
+              imprimirVacunacion({ clinica, paciente, dueno, vacunas })
+            }
+          />
+        </div>
+      )}
+
       {!abierto ? (
         <button
           type="button"
