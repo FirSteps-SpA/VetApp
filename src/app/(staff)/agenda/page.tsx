@@ -116,13 +116,13 @@ export default async function AgendaPage({
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1">
-          <Link href={href(prev)} className="rounded-lg border border-slate-300 px-2 py-1 text-sm hover:bg-slate-100">
+          <Link href={href(prev)} className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-300 text-sm hover:bg-slate-100">
             ←
           </Link>
-          <Link href={href(new Date())} className="rounded-lg border border-slate-300 px-3 py-1 text-sm hover:bg-slate-100">
+          <Link href={href(new Date())} className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 px-4 text-sm hover:bg-slate-100">
             Hoy
           </Link>
-          <Link href={href(next)} className="rounded-lg border border-slate-300 px-2 py-1 text-sm hover:bg-slate-100">
+          <Link href={href(next)} className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-300 text-sm hover:bg-slate-100">
             →
           </Link>
           <span className="ml-2 text-sm text-slate-600">

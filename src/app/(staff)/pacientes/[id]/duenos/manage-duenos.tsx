@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { ActionMenu } from "@/components/action-menu";
 import { Icon } from "@/components/icon";
 
 import type { Dueno, DuenoDePaciente } from "@/lib/types/db";
@@ -130,63 +131,54 @@ export function ManageDuenos({
                 </p>
                 <p className="text-sm text-slate-500">{d.telefono}</p>
               </div>
-              <div className="flex flex-wrap items-center gap-3 text-xs">
+              <div className="flex items-center gap-1">
                 <Link
                   href={`/pacientes/${pacienteId}/duenos/${d.id}/editar`}
-                  className="inline-flex items-center gap-1 font-medium text-teal-700 hover:underline"
+                  className="inline-flex items-center gap-1 px-2 py-2 text-xs font-medium text-teal-700 hover:underline"
                 >
                   <Icon name="pencil" className="h-3.5 w-3.5" />
                   Editar
                 </Link>
-                {d.usuario_id ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => {
-                      if (window.confirm("¿Revocar el acceso al portal?"))
-                        run(() => revocarAcceso(d.id, pacienteId));
-                    }}
-                    className="text-red-600 hover:underline disabled:opacity-50"
-                  >
-                    Revocar portal
-                  </button>
-                ) : d.email ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => invitar(d.id)}
-                    className="text-blue-700 hover:underline disabled:opacity-50"
-                  >
-                    Invitar al portal
-                  </button>
-                ) : (
-                  <span className="text-slate-400" title="Requiere email">
-                    Sin email
-                  </span>
-                )}
-                {!d.es_principal && (
-                  <>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => run(() => marcarPrincipal(pacienteId, d.id))}
-                      className="text-slate-600 hover:underline disabled:opacity-50"
-                    >
-                      Marcar principal
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        if (window.confirm("¿Desvincular este dueño?"))
-                          run(() => desvincularDueno(pacienteId, d.id));
-                      }}
-                      className="text-red-600 hover:underline disabled:opacity-50"
-                    >
-                      Quitar
-                    </button>
-                  </>
-                )}
+                <ActionMenu
+                  acciones={[
+                    d.usuario_id
+                      ? {
+                          label: "Revocar portal",
+                          danger: true,
+                          disabled: busy,
+                          onClick: () => {
+                            if (window.confirm("¿Revocar el acceso al portal?"))
+                              run(() => revocarAcceso(d.id, pacienteId));
+                          },
+                        }
+                      : d.email
+                        ? {
+                            label: "Invitar al portal",
+                            disabled: busy,
+                            onClick: () => invitar(d.id),
+                          }
+                        : { label: "Invitar (requiere email)", disabled: true },
+                    ...(!d.es_principal
+                      ? [
+                          {
+                            label: "Marcar principal",
+                            disabled: busy,
+                            onClick: () =>
+                              run(() => marcarPrincipal(pacienteId, d.id)),
+                          },
+                          {
+                            label: "Quitar",
+                            danger: true,
+                            disabled: busy,
+                            onClick: () => {
+                              if (window.confirm("¿Desvincular este dueño?"))
+                                run(() => desvincularDueno(pacienteId, d.id));
+                            },
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
               </div>
             </div>
 

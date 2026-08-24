@@ -29,7 +29,7 @@ export function PrintButton({
       }}
       className={
         className ??
-        "text-xs font-medium text-teal-700 hover:underline disabled:opacity-50"
+        "inline-flex items-center px-2 py-2 text-xs font-medium text-teal-700 hover:underline disabled:opacity-50"
       }
     >
       {busy ? "Preparando…" : label}

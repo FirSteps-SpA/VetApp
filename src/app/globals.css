@@ -11,3 +11,37 @@ body {
   color: var(--foreground);
   background: var(--background);
 }
+
+@layer utilities {
+  /* Safe-area (notch / home-indicator) en PWA standalone. En navegador o
+     dispositivo sin muescas, env(...) es 0 y no agrega nada. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  /* Fondo del contenido: mantiene el py-6 y le suma el inset inferior. */
+  .pb-safe {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  /* Oculta la barra de scroll (para la navegación desplazable en móvil). */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Padding inferior del contenido: en móvil deja espacio para la bottom nav
+     fija (alto + safe-area); en escritorio (sin barra) vuelve al espaciado normal. */
+  .pb-bottomnav {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 640px) {
+    .pb-bottomnav {
+      padding-bottom: 1.5rem;
+    }
+  }
+}

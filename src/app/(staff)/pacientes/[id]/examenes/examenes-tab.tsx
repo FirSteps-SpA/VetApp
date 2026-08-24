@@ -282,13 +282,13 @@ export function ExamenesTab({
                       {e.descripcion}
                     </p>
                   )}
-                  <div className="mt-1 flex gap-3 text-xs">
+                  <div className="mt-1 flex gap-1 text-xs">
                     {url && (
                       <a
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-medium text-teal-700 hover:underline"
+                        className="inline-flex items-center px-2 py-2 font-medium text-teal-700 hover:underline"
                       >
                         Abrir / Descargar
                       </a>
@@ -296,7 +296,7 @@ export function ExamenesTab({
                     <button
                       type="button"
                       onClick={() => quitar(e.id)}
-                      className="text-red-600 hover:underline"
+                      className="inline-flex items-center px-2 py-2 text-red-600 hover:underline"
                     >
                       Eliminar
                     </button>

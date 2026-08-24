@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { ActionMenu } from "@/components/action-menu";
 import type { EstadoCita } from "@/lib/types/db";
 
 import { cambiarEstadoCita } from "./actions";
 
 const btn =
-  "rounded-md px-2 py-1 text-xs font-medium transition-colors disabled:opacity-50";
+  "rounded-lg px-3 py-2 text-xs font-medium transition-colors disabled:opacity-50";
 
 export function CitaActions({
   citaId,
@@ -56,16 +57,7 @@ export function CitaActions({
   if (estado === "cancelada" || estado === "no_asistio") return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      {estado === "pendiente" && (
-        <button
-          onClick={() => cambiar("confirmada")}
-          disabled={busy}
-          className={`${btn} text-blue-700 hover:bg-blue-50`}
-        >
-          Confirmar
-        </button>
-      )}
+    <div className="flex items-center gap-1">
       <button
         onClick={iniciar}
         disabled={busy}
@@ -73,20 +65,30 @@ export function CitaActions({
       >
         Iniciar consulta
       </button>
-      <button
-        onClick={() => cambiar("no_asistio")}
-        disabled={busy}
-        className={`${btn} text-slate-600 hover:bg-slate-100`}
-      >
-        No asistió
-      </button>
-      <button
-        onClick={() => cambiar("cancelada")}
-        disabled={busy}
-        className={`${btn} text-red-600 hover:bg-red-50`}
-      >
-        Cancelar
-      </button>
+      <ActionMenu
+        acciones={[
+          ...(estado === "pendiente"
+            ? [
+                {
+                  label: "Confirmar",
+                  disabled: busy,
+                  onClick: () => cambiar("confirmada"),
+                },
+              ]
+            : []),
+          {
+            label: "No asistió",
+            disabled: busy,
+            onClick: () => cambiar("no_asistio"),
+          },
+          {
+            label: "Cancelar",
+            danger: true,
+            disabled: busy,
+            onClick: () => cambiar("cancelada"),
+          },
+        ]}
+      />
     </div>
   );
 }

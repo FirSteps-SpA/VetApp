@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { ActionMenu } from "@/components/action-menu";
 import { Icon } from "@/components/icon";
 
 import type { Sucursal } from "@/lib/types/db";
@@ -144,18 +145,20 @@ export function SucursalesManager({ sucursales }: { sucursales: Sucursal[] }) {
               </div>
               <button
                 onClick={() => abrirEdicion(s)}
-                className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:underline"
+                className="inline-flex items-center gap-1 px-2 py-2 text-xs font-medium text-teal-700 hover:underline"
               >
                 <Icon name="pencil" className="h-3.5 w-3.5" />
                 Editar
               </button>
-              <button
-                onClick={() => toggleActivo(s)}
-                disabled={busy}
-                className="text-xs text-slate-600 hover:underline disabled:opacity-50"
-              >
-                {s.activo ? "Desactivar" : "Activar"}
-              </button>
+              <ActionMenu
+                acciones={[
+                  {
+                    label: s.activo ? "Desactivar" : "Activar",
+                    disabled: busy,
+                    onClick: () => toggleActivo(s),
+                  },
+                ]}
+              />
             </div>
           )}
         </div>

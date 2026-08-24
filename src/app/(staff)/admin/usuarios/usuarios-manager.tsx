@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { ActionMenu } from "@/components/action-menu";
 import { Icon } from "@/components/icon";
 
 import type { Sucursal, UsuarioAdmin } from "@/lib/types/db";
@@ -257,19 +258,22 @@ export function UsuariosManager({
                       activo: u.activo,
                     });
                   }}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:underline"
+                  className="inline-flex items-center gap-1 px-2 py-2 text-xs font-medium text-teal-700 hover:underline"
                 >
                   <Icon name="pencil" className="h-3.5 w-3.5" />
                   Editar
                 </button>
                 {u.id !== miId && (
-                  <button
-                    onClick={() => eliminar(u)}
-                    disabled={busy}
-                    className="text-xs text-red-600 hover:underline disabled:opacity-50"
-                  >
-                    Eliminar
-                  </button>
+                  <ActionMenu
+                    acciones={[
+                      {
+                        label: "Eliminar",
+                        danger: true,
+                        disabled: busy,
+                        onClick: () => eliminar(u),
+                      },
+                    ]}
+                  />
                 )}
               </div>
             )}

@@ -120,32 +120,40 @@ function RecetaItem({
 }) {
   return (
     <div className="rounded-lg border border-slate-200 p-3">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-slate-800">
-          {receta.numero_receta}
-        </span>
-        <span className="text-sm text-slate-500">
-          {formatearFecha(receta.fecha)}
-        </span>
-        <span
-          className={`ml-auto rounded-full px-2 py-0.5 text-xs font-medium ${
-            receta.vigente
-              ? "bg-teal-50 text-teal-700"
-              : "bg-slate-100 text-slate-500"
-          }`}
-        >
-          {receta.vigente ? "Vigente" : "Anulada"}
-        </span>
-        <ImprimirRecetaButton
-          clinica={clinica}
-          paciente={paciente}
-          dueno={dueno}
-          receta={receta}
-          veterinario={veterinario}
-        />
-        {receta.vigente && (
-          <AnularRecetaButton recetaId={receta.id} pacienteId={pacienteId} />
-        )}
+      <div className="flex items-center justify-between gap-2">
+        {/* Identificación: número arriba, fecha + estado debajo */}
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-slate-800">
+            {receta.numero_receta}
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-2">
+            <span className="text-sm text-slate-500">
+              {formatearFecha(receta.fecha)}
+            </span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                receta.vigente
+                  ? "bg-teal-50 text-teal-700"
+                  : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {receta.vigente ? "Vigente" : "Anulada"}
+            </span>
+          </div>
+        </div>
+        {/* Acciones a la derecha, centradas verticalmente */}
+        <div className="flex shrink-0 items-center gap-1">
+          <ImprimirRecetaButton
+            clinica={clinica}
+            paciente={paciente}
+            dueno={dueno}
+            receta={receta}
+            veterinario={veterinario}
+          />
+          {receta.vigente && (
+            <AnularRecetaButton recetaId={receta.id} pacienteId={pacienteId} />
+          )}
+        </div>
       </div>
       <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-slate-700">
         {receta.medicamentos.map((m, i) => (

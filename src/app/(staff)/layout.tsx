@@ -5,6 +5,7 @@ import { getRol } from "@/lib/auth/roles";
 import { countSolicitudesPendientes } from "@/lib/data/citas";
 import { createClient } from "@/lib/supabase/server";
 
+import { BottomNav } from "./bottom-nav";
 import { NavLinks } from "./nav-links";
 
 export default async function StaffLayout({
@@ -24,8 +25,8 @@ export default async function StaffLayout({
   const reservasPendientes = await countSolicitudesPendientes();
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+    <div className="min-h-screen bg-slate-50 px-safe">
+      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white pt-safe">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-2.5">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="font-semibold text-teal-700">
@@ -54,13 +55,12 @@ export default async function StaffLayout({
           </div>
         </div>
 
-        {/* Navegación en móvil */}
-        <div className="border-t border-slate-100 px-2 py-1 sm:hidden">
-          <NavLinks />
-        </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-5xl px-4 pt-6 pb-bottomnav">{children}</main>
+
+      {/* Navegación inferior (solo móvil) */}
+      <BottomNav reservasPendientes={reservasPendientes} esDev={rol === "dev"} />
     </div>
   );
 }

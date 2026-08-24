@@ -32,7 +32,7 @@ export function NavLinks({
           <Link
             key={link.href}
             href={link.href}
-            className={`relative rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`relative shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               active
                 ? "bg-teal-50 text-teal-700"
                 : "text-slate-600 hover:bg-slate-100"

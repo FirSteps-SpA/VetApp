@@ -5,6 +5,8 @@ import { getRol } from "@/lib/auth/roles";
 import { countNotificacionesNoLeidas } from "@/lib/data/portal";
 import { createClient } from "@/lib/supabase/server";
 
+import { BottomNav } from "./bottom-nav";
+
 export default async function PortalLayout({
   children,
 }: {
@@ -26,8 +28,8 @@ export default async function PortalLayout({
   const noLeidas = await countNotificacionesNoLeidas();
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+    <div className="min-h-screen bg-slate-50 px-safe">
+      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white pt-safe">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
           <Link href="/portal" className="font-semibold text-teal-700">
             VetApp · Portal
@@ -58,7 +60,10 @@ export default async function PortalLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-3xl px-4 pt-6 pb-bottomnav">{children}</main>
+
+      {/* Navegación inferior (solo móvil) */}
+      <BottomNav noLeidas={noLeidas} />
     </div>
   );
 }

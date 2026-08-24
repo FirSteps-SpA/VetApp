@@ -95,6 +95,33 @@ export default async function FichaPage({
           }
         : { text: "Sin alertas", class: "bg-slate-100 text-slate-500" };
 
+  // Editar / Exportar: se muestran apilados en el hero card (a la derecha de la
+  // foto en móvil, del encabezado en desktop). Se define una vez y se coloca en
+  // ambos slots; sólo uno es visible por breakpoint.
+  const accionBtn =
+    "inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100";
+  const acciones = (
+    <>
+      <Link href={`/pacientes/${paciente.id}/editar`} className={accionBtn}>
+        <Icon name="pencil" />
+        Editar
+      </Link>
+      <ExportButton
+        className={accionBtn}
+        data={{
+          pacienteId: paciente.id,
+          clinica,
+          paciente,
+          dueno: principal,
+          consultas,
+          recetas,
+          examenes,
+          vacunas,
+        }}
+      />
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-5">
       <RecordVisit
@@ -113,56 +140,43 @@ export default async function FichaPage({
         >
           ← Pacientes
         </Link>
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/pacientes/${paciente.id}/editar`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
-          >
-            <Icon name="pencil" />
-            Editar
-          </Link>
-          <ExportButton
-            data={{
-              pacienteId: paciente.id,
-              clinica,
-              paciente,
-              dueno: principal,
-              consultas,
-              recetas,
-              examenes,
-              vacunas,
-            }}
-          />
-          <NuevaConsultaDrawer
-            pacienteId={paciente.id}
-            citaId={searchParams.cita}
-            autoOpen={!!searchParams.cita}
-          />
-        </div>
+        <NuevaConsultaDrawer
+          pacienteId={paciente.id}
+          citaId={searchParams.cita}
+          autoOpen={!!searchParams.cita}
+        />
       </div>
 
       {/* Hero card */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="flex flex-col gap-5 sm:flex-row">
-          <PhotoUploader
-            pacienteId={paciente.id}
-            especie={paciente.especie}
-            initialUrl={fotoUrl}
-          />
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+          <div className="flex items-start justify-between gap-4 sm:block sm:shrink-0">
+            <PhotoUploader
+              pacienteId={paciente.id}
+              especie={paciente.especie}
+              initialUrl={fotoUrl}
+            />
+            {/* Acciones a la derecha de la foto (sólo móvil) */}
+            <div className="flex w-32 flex-col gap-2 sm:hidden">{acciones}</div>
+          </div>
 
           <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-semibold text-slate-900">
                 {paciente.nombre}
               </h1>
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                 {paciente.numero_ficha}
               </span>
-              {!paciente.activo && (
-                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
-                  Archivado
-                </span>
-              )}
+                {!paciente.activo && (
+                  <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                    Archivado
+                  </span>
+                )}
+              </div>
+              {/* Acciones a la derecha del encabezado (sólo desktop) */}
+              <div className="hidden w-32 flex-col gap-2 sm:flex">{acciones}</div>
             </div>
 
             <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">

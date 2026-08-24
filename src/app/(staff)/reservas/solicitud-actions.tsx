@@ -49,29 +49,31 @@ export function SolicitudActions({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
       <input
         type="datetime-local"
         value={cuando}
         onChange={(e) => setCuando(e.target.value)}
-        className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm"
+        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto"
       />
-      <button
-        type="button"
-        onClick={confirmar}
-        disabled={busy}
-        className="rounded-lg bg-teal-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60"
-      >
-        Confirmar
-      </button>
-      <button
-        type="button"
-        onClick={rechazar}
-        disabled={busy}
-        className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
-      >
-        Rechazar
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={confirmar}
+          disabled={busy}
+          className="flex-1 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60 sm:flex-none"
+        >
+          Confirmar
+        </button>
+        <button
+          type="button"
+          onClick={rechazar}
+          disabled={busy}
+          className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 sm:flex-none"
+        >
+          Rechazar
+        </button>
+      </div>
     </div>
   );
 }
