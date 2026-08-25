@@ -213,24 +213,6 @@ export async function actualizarConsulta(
   return { error: null };
 }
 
-// Guarda en la receta la ruta del PDF generado y subido a Storage.
-export async function setRecetaPdf(
-  recetaId: string,
-  pacienteId: string,
-  path: string,
-): Promise<{ error: string | null }> {
-  const supabase = createClient();
-  const { error } = await supabase
-    .from("recetas")
-    .update({ pdf_url: path })
-    .eq("id", recetaId);
-
-  if (error) return { error: "No se pudo guardar el PDF." };
-
-  revalidatePath(`/pacientes/${pacienteId}`);
-  return { error: null };
-}
-
 // Invalida una receta (no se elimina; queda como histórico anulado).
 export async function anularReceta(
   recetaId: string,

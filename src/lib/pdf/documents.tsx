@@ -217,7 +217,9 @@ function Firma({ veterinario }: { veterinario?: string | null }) {
 // --------------------------------------------------------------------------
 // Receta individual
 // --------------------------------------------------------------------------
-export function RecetaDoc({
+// Una página de receta (sin `<Document>`), reutilizable para combinar varias
+// recetas en un solo PDF y para la impresión contextual de una sola.
+export function RecetaPage({
   clinica,
   paciente,
   dueno,
@@ -231,40 +233,76 @@ export function RecetaDoc({
   veterinario?: string | null;
 }) {
   return (
-    <Document title={`Receta ${receta.numero_receta}`}>
-      <Page size="A4" style={styles.page}>
-        <Header clinica={clinica} />
-        <Text style={styles.docTitle}>Receta médica</Text>
-        <Text style={styles.docMeta}>
-          {receta.numero_receta} · {formatearFecha(receta.fecha)}
-          {!receta.vigente ? " · ANULADA" : ""}
-        </Text>
+    <Page size="A4" style={styles.page}>
+      <Header clinica={clinica} />
+      <Text style={styles.docTitle}>Receta médica</Text>
+      <Text style={styles.docMeta}>
+        {receta.numero_receta} · {formatearFecha(receta.fecha)}
+        {!receta.vigente ? " · ANULADA" : ""}
+      </Text>
 
-        <PacienteInfo paciente={paciente} dueno={dueno} />
+      <PacienteInfo paciente={paciente} dueno={dueno} />
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Indicaciones</Text>
-          {receta.medicamentos.map((m, i) => (
-            <View key={i} style={styles.med}>
-              <Text style={styles.bold}>
-                {m.nombre}
-                {m.presentacion ? ` · ${m.presentacion}` : ""}
-              </Text>
-              <Text>{resumenMedicamento(m)}</Text>
-              {m.duracion ? <Text>Duración: {m.duracion}</Text> : null}
-              {m.instrucciones ? <Text>{m.instrucciones}</Text> : null}
-            </View>
-          ))}
-          {receta.instrucciones_generales ? (
-            <Text style={{ marginTop: 6 }}>
-              {receta.instrucciones_generales}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Indicaciones</Text>
+        {receta.medicamentos.map((m, i) => (
+          <View key={i} style={styles.med}>
+            <Text style={styles.bold}>
+              {m.nombre}
+              {m.presentacion ? ` · ${m.presentacion}` : ""}
             </Text>
-          ) : null}
-        </View>
+            <Text>{resumenMedicamento(m)}</Text>
+            {m.duracion ? <Text>Duración: {m.duracion}</Text> : null}
+            {m.instrucciones ? <Text>{m.instrucciones}</Text> : null}
+          </View>
+        ))}
+        {receta.instrucciones_generales ? (
+          <Text style={{ marginTop: 6 }}>
+            {receta.instrucciones_generales}
+          </Text>
+        ) : null}
+      </View>
 
-        <Firma veterinario={veterinario} />
-        <Footer />
-      </Page>
+      <Firma veterinario={veterinario} />
+      <Footer />
+    </Page>
+  );
+}
+
+export interface RecetaItem {
+  receta: Receta;
+  veterinario?: string | null;
+}
+
+// Documento de una o varias recetas del mismo paciente. Una receta produce el
+// mismo PDF que la impresión contextual; varias se combinan en un solo archivo.
+export function RecetaDoc({
+  clinica,
+  paciente,
+  dueno,
+  items,
+}: {
+  clinica: ClinicaConfig | null;
+  paciente: Paciente;
+  dueno: DuenoDePaciente | null;
+  items: RecetaItem[];
+}) {
+  const title =
+    items.length === 1
+      ? `Receta ${items[0].receta.numero_receta}`
+      : `Recetas ${paciente.nombre}`;
+  return (
+    <Document title={title}>
+      {items.map(({ receta, veterinario }) => (
+        <RecetaPage
+          key={receta.id}
+          clinica={clinica}
+          paciente={paciente}
+          dueno={dueno}
+          receta={receta}
+          veterinario={veterinario}
+        />
+      ))}
     </Document>
   );
 }

@@ -64,8 +64,7 @@ export async function imprimirReceta(d: ImprimirRecetaData): Promise<void> {
       clinica={d.clinica}
       paciente={d.paciente}
       dueno={d.dueno}
-      receta={d.receta}
-      veterinario={d.veterinario}
+      items={[{ receta: d.receta, veterinario: d.veterinario }]}
     />,
   );
 }

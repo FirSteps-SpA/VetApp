@@ -142,6 +142,9 @@ export interface Receta {
   medicamentos: Medicamento[];
   instrucciones_generales: string | null;
   vigente: boolean;
+  // Legado inerte: ya nadie escribe ni lee este campo (el PDF se genera al
+  // vuelo). La columna y el bucket `recetas-pdf` pueden dropearse en una
+  // migración de limpieza aparte. Ver cambio `redesign-export-panel`.
   pdf_url: string | null;
   created_at: string;
 }
