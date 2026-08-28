@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { getCitasPaciente } from "@/lib/data/citas";
 import { getClinicaConfig } from "@/lib/data/clinica";
 import { getConsultas, getRecetas } from "@/lib/data/consultas";
+import { getDocumentosEmitidos } from "@/lib/data/documentos";
 import { getExamenes, getUrlsExamenes } from "@/lib/data/examenes";
 import { getEsquemasVacunacion, getVacunas } from "@/lib/data/vacunas";
 import {
@@ -18,6 +19,7 @@ import { labelEspecie, resumenMedicamento, SEXOS } from "@/lib/types/db";
 import { calcularEdad, formatearFecha, formatearPeso } from "@/lib/utils/format";
 
 import { NuevaConsultaDrawer } from "./consultas/nueva-consulta-drawer";
+import { DocumentosButton } from "./documentos/documentos-button";
 import { ExportButton } from "./export/export-button";
 import { FichaTabs } from "./tabs";
 import { PhotoUploader } from "./photo-uploader";
@@ -61,6 +63,7 @@ export default async function FichaPage({
     vacunas,
     clinica,
     citas,
+    emitidos,
   ] = await Promise.all([
       getDuenosDePaciente(paciente.id),
       getResumenClinico(paciente.id),
@@ -71,6 +74,7 @@ export default async function FichaPage({
       getVacunas(paciente.id),
       getClinicaConfig(),
       getCitasPaciente(paciente.id),
+      getDocumentosEmitidos(paciente.id),
     ]);
   const [urlsExamenes, esquemas] = await Promise.all([
     getUrlsExamenes(examenes),
@@ -117,6 +121,16 @@ export default async function FichaPage({
           recetas,
           examenes,
           vacunas,
+        }}
+      />
+      <DocumentosButton
+        className={accionBtn}
+        data={{
+          pacienteId: paciente.id,
+          clinica,
+          paciente,
+          dueno: principal,
+          emitidos,
         }}
       />
     </>

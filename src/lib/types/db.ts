@@ -268,6 +268,42 @@ export interface EsquemaVacunacion {
 }
 
 // ---------------------------------------------------------------------------
+// Autorizaciones y certificados (documentos legales)
+// ---------------------------------------------------------------------------
+
+export type TipoDocumentoLegal =
+  | "eutanasia"
+  | "cirugia"
+  | "hospitalizacion"
+  | "microchip";
+
+export const TIPOS_DOCUMENTO_LEGAL: {
+  value: TipoDocumentoLegal;
+  label: string;
+}[] = [
+  { value: "eutanasia", label: "Autorización de eutanasia" },
+  { value: "cirugia", label: "Autorización de cirugía" },
+  { value: "hospitalizacion", label: "Autorización de hospitalización" },
+  { value: "microchip", label: "Certificado de microchip" },
+];
+
+export function labelTipoDocumentoLegal(tipo: TipoDocumentoLegal): string {
+  return TIPOS_DOCUMENTO_LEGAL.find((t) => t.value === tipo)?.label ?? tipo;
+}
+
+// Traza de un documento emitido (sin el binario; ver migración
+// documentos_emitidos).
+export interface DocumentoEmitido {
+  id: string;
+  paciente_id: string;
+  dueno_id: string | null;
+  tipo: TipoDocumentoLegal;
+  emitido_por: string | null;
+  emitido_en: string;
+  datos: Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
 // Agenda / citas (Fase 6)
 // ---------------------------------------------------------------------------
 
