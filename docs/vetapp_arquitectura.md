@@ -781,6 +781,24 @@ La app es una PWA construida con Next.js (App Router). El manifiesto y el servic
 
 ---
 
+### 6.6 Modelo responsivo de tres tramos y riel lateral
+
+> Implementado en el cambio `responsive-navigation-overhaul`. Reemplaza el corte binario móvil/escritorio de 6.4 en lo que respecta a la navegación primaria.
+
+**Tramos con nombre** (definidos una sola vez en `tailwind.config.ts` + `globals.css`, consumidos por navegación, contenedor y densidad):
+
+| Tramo | Ancho de viewport | Navegación primaria |
+|---|---|---|
+| teléfono | `< 640px` | Barra inferior (bottom nav) alcanzable con el pulgar; secundarios en menú "Más" |
+| tablet | `640–1024px` | Riel lateral fijo, por defecto colapsado (solo iconos) |
+| escritorio | `≥ 1024px` | Riel lateral fijo, por defecto expandido (icono + etiqueta) |
+
+**Riel lateral** (`src/components/primary-nav/`): un único `<PrimaryNav>` alimentado por la misma lista de destinos (`destinos.ts`) renderiza ambas presentaciones; CSS decide cuál se ve (`tablet:hidden` / `hidden tablet:flex`), garantizando paridad de destinos, badges e indicador de activo entre tramos. Se puede colapsar/expandir; el estado persiste en la cookie `rail` (`SameSite=Lax`, 1 año), legible por el layout en el servidor para reservar el ancho (`--rail-w`) sin salto. La apariencia colapsado/expandido la resuelve una container query sobre el propio ancho del riel, no estado JS. Aplica tanto a la app del staff como al portal del cliente.
+
+**Sistema de tokens** (`ui-design-system`): roles de color semánticos, escala tipográfica en `rem` (respeta el tamaño de fuente del sistema), escalas de espaciado/radio/elevación y tokens de área táctil (`--tap-min: 2.75rem`), más primitivas base (`Button`, `Card`, `Field`, `ActionMenu`). El contenedor de contenido deja de usar un `max-w` fijo pensado para móvil: en tablet/escritorio aprovecha el ancho junto al riel (con un tope amplio), y las vistas de texto largo se envuelven en `ReadingContainer` (~72ch).
+
+---
+
 ### 6.5 Estrategia de Caché Offline
 
 **Funciona sin conexión:**

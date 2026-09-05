@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { Icon } from "@/components/icon";
 import type { Metadata } from "next";
 
+import { ButtonLink } from "@/components/button";
 import { buscarPacientes } from "@/lib/data/pacientes";
 
 import { PacienteCard } from "./paciente-card";
@@ -24,14 +24,11 @@ export default async function PacientesPage({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-slate-900">Pacientes</h1>
-        <Link
-          href="/pacientes/nuevo"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700"
-        >
+        <h1 className="text-page font-semibold text-text">Pacientes</h1>
+        <ButtonLink href="/pacientes/nuevo" size="sm">
           <Icon name="plus" />
           Nuevo
-        </Link>
+        </ButtonLink>
       </div>
 
       <SearchBar initial={q} />
@@ -39,18 +36,18 @@ export default async function PacientesPage({
       {!buscando && <Recientes />}
 
       <section>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
           {buscando ? `Resultados (${pacientes.length})` : "Todos los pacientes"}
         </h2>
 
         {pacientes.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+          <div className="rounded-card border border-dashed border-border bg-surface-raised p-8 text-center text-body text-text-muted">
             {buscando
               ? "Sin coincidencias para tu búsqueda."
               : "Aún no hay pacientes registrados."}
           </div>
         ) : (
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 tablet:grid-cols-2 tablet:gap-3 desktop:grid-cols-3">
             {pacientes.map((p) => (
               <PacienteCard key={p.id} paciente={p} />
             ))}

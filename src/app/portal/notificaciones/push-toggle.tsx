@@ -14,7 +14,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 const btn =
-  "rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60";
+  "inline-flex min-h-tap items-center justify-center rounded-control border border-border px-4 text-body font-medium text-text hover:bg-surface-sunken disabled:opacity-60";
 
 export function PushToggle() {
   const [soportado, setSoportado] = useState(false);

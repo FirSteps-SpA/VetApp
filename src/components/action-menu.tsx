@@ -24,7 +24,7 @@ export function ActionMenu({ acciones }: { acciones: Accion[] }) {
         type="button"
         aria-label="Más acciones"
         onClick={() => setOpen((v) => !v)}
-        className="grid h-11 w-11 place-items-center rounded-lg text-lg leading-none text-slate-500 hover:bg-slate-100"
+        className="grid h-tap w-tap place-items-center rounded-control text-lg leading-none text-text-muted hover:bg-surface-sunken"
       >
         ⋯
       </button>
@@ -36,11 +36,11 @@ export function ActionMenu({ acciones }: { acciones: Accion[] }) {
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <div className="absolute right-0 z-30 mt-1 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+          <div className="absolute right-0 z-30 mt-1 w-44 overflow-hidden rounded-card border border-border bg-surface-raised shadow-overlay">
             {items.map((a, i) => {
-              const clase = `block w-full px-4 py-3 text-left text-sm ${
-                a.danger ? "text-red-600" : "text-slate-700"
-              } hover:bg-slate-50 disabled:opacity-50`;
+              const clase = `block w-full px-4 py-3 text-left text-body ${
+                a.danger ? "text-danger" : "text-text"
+              } hover:bg-surface-sunken disabled:opacity-50`;
               if (a.href) {
                 return (
                   <Link

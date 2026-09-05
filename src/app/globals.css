@@ -5,6 +5,40 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+
+  /* Roles de color semánticos. Valores = paleta actual (teal/slate), para
+     que introducir los tokens no cambie ni un pixel. Un ajuste global de
+     color se hace aquí, en un solo lugar. */
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f8fafc; /* slate-50 */
+  --color-border: #e2e8f0; /* slate-200 */
+  --color-text: #0f172a; /* slate-900 */
+  --color-text-muted: #64748b; /* slate-500 */
+  --color-accent: #0f766e; /* teal-700 */
+  --color-accent-subtle: #f0fdfa; /* teal-50 */
+  --color-on-accent: #ffffff;
+  --color-danger: #dc2626; /* red-600 */
+  --color-badge: #ef4444; /* red-500 */
+  --color-on-badge: #ffffff;
+
+  /* Escala de radios. */
+  --radius-control: 0.5rem; /* rounded-lg */
+  --radius-card: 0.75rem; /* rounded-xl */
+  --radius-pill: 9999px;
+
+  /* Escala de elevación. */
+  --elevation-raised: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  --elevation-overlay: 0 10px 15px -3px rgb(15 23 42 / 0.1),
+    0 4px 6px -4px rgb(15 23 42 / 0.1); /* shadow-lg */
+
+  /* Área táctil. Ningún control accionable baja de --tap-min en ningún tramo. */
+  --tap-min: 2.75rem; /* 44px */
+  --tap-comfortable: 3rem; /* 48px */
+
+  /* Ancho del riel lateral. En teléfono no hay riel (0); los layouts lo
+     fijan a expandido/colapsado en tablet y escritorio. */
+  --rail-w: 0px;
 }
 
 body {
@@ -43,5 +77,55 @@ body {
     .pb-bottomnav {
       padding-bottom: 1.5rem;
     }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Riel lateral de navegación (tablet / escritorio)                          */
+/* -------------------------------------------------------------------------- */
+
+/* Ancho reservado por defecto (sin cookie `rail`): colapsado en tablet,
+   expandido en escritorio. La cookie, cuando existe, la fija el layout como
+   estilo inline en #app-shell y gana sobre estas reglas. En teléfono el riel
+   está oculto y --rail-w no se consume. */
+@media (min-width: 640px) {
+  #app-shell {
+    --rail-w: 3.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  #app-shell {
+    --rail-w: 15rem;
+  }
+}
+
+/* La apariencia colapsado/expandido del riel sigue su propio ancho, no estado
+   JS: así no hay salto al hidratar ni al navegar. */
+.rail-nav {
+  container-type: inline-size;
+}
+.rail-nav .rail-icon {
+  display: none;
+}
+@container (max-width: 8rem) {
+  .rail-nav .rail-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .rail-nav .rail-icon {
+    display: inline;
+  }
+  .rail-nav .rail-item {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 0;
   }
 }

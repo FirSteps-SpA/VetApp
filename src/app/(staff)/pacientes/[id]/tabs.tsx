@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Icon } from "@/components/icon";
 import Link from "next/link";
 
+import { ButtonLink } from "@/components/button";
+
 import {
   colorEstadoCita,
   labelEstadoCita,
@@ -49,25 +51,25 @@ function ConsultaItem({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-lg border border-slate-200">
+    <div className="rounded-control border border-border">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
+        className="flex min-h-tap w-full items-center gap-3 px-3 py-2.5 text-left"
       >
-        <span className="text-xs text-slate-400">{open ? "▾" : "▸"}</span>
-        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+        <span className="text-xs text-text-muted">{open ? "▾" : "▸"}</span>
+        <span className="rounded-pill bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">
           {labelTipoConsulta(consulta.tipo)}
         </span>
-        <span className="text-sm text-slate-500">
+        <span className="text-support text-text-muted">
           {formatearFecha(consulta.fecha)}
         </span>
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">
+        <span className="min-w-0 flex-1 truncate text-support font-medium text-text">
           {consulta.diagnostico}
         </span>
       </button>
 
       {open && (
-        <div className="space-y-2 border-t border-slate-100 px-3 py-3 text-sm">
+        <div className="space-y-2 border-t border-border px-3 py-3 text-body">
           <Campo label="Motivo" value={consulta.motivo} />
           <Campo label="Anamnesis" value={consulta.anamnesis} />
           <Campo label="Examen físico" value={consulta.examen_fisico} />
@@ -78,11 +80,11 @@ function ConsultaItem({
           />
           <Campo label="Tratamiento" value={consulta.tratamiento} />
           <Campo label="Notas" value={consulta.notas} />
-          <div className="flex items-center justify-between pt-1 text-xs text-slate-400">
+          <div className="flex items-center justify-between pt-1 text-xs text-text-muted">
             <span>{consulta.veterinario?.nombre ?? "—"}</span>
             <Link
               href={`/pacientes/${pacienteId}/consultas/${consulta.id}`}
-              className="font-medium text-teal-700 hover:underline"
+              className="font-medium text-accent hover:underline"
             >
               Ver completo →
             </Link>
@@ -97,8 +99,8 @@ function Campo({ label, value }: { label: string; value: string | null }) {
   if (!value?.trim()) return null;
   return (
     <p>
-      <span className="text-slate-400">{label}: </span>
-      <span className="whitespace-pre-wrap text-slate-700">{value}</span>
+      <span className="text-text-muted">{label}: </span>
+      <span className="whitespace-pre-wrap text-text">{value}</span>
     </p>
   );
 }
@@ -119,22 +121,22 @@ function RecetaItem({
   veterinario: string | null;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-3">
+    <div className="rounded-control border border-border p-3">
       <div className="flex items-center justify-between gap-2">
         {/* Identificación: número arriba, fecha + estado debajo */}
         <div className="min-w-0">
-          <div className="text-sm font-medium text-slate-800">
+          <div className="text-support font-medium text-text">
             {receta.numero_receta}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-2">
-            <span className="text-sm text-slate-500">
+            <span className="text-support text-text-muted">
               {formatearFecha(receta.fecha)}
             </span>
             <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+              className={`rounded-pill px-2 py-0.5 text-xs font-medium ${
                 receta.vigente
-                  ? "bg-teal-50 text-teal-700"
-                  : "bg-slate-100 text-slate-500"
+                  ? "bg-accent-subtle text-accent"
+                  : "bg-surface-sunken text-text-muted"
               }`}
             >
               {receta.vigente ? "Vigente" : "Anulada"}
@@ -155,7 +157,7 @@ function RecetaItem({
           )}
         </div>
       </div>
-      <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-slate-700">
+      <ul className="mt-2 list-disc space-y-0.5 pl-5 text-support text-text">
         {receta.medicamentos.map((m, i) => (
           <li key={i}>{resumenMedicamento(m)}</li>
         ))}
@@ -166,7 +168,7 @@ function RecetaItem({
 
 function EmptyTab({ label, fase }: { label: string; fase?: number }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+    <div className="rounded-card border border-dashed border-border bg-surface-raised p-8 text-center text-body text-text-muted">
       {fase ? `${label} — se incorpora en la Fase ${fase}.` : `Sin ${label.toLowerCase()}.`}
     </div>
   );
@@ -203,15 +205,15 @@ export function FichaTabs({
 
   return (
     <div>
-      <div className="flex gap-1 overflow-x-auto border-b border-slate-200">
+      <div className="no-scrollbar flex gap-1 overflow-x-auto border-b border-border">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActive(tab.id)}
-            className={`shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+            className={`inline-flex min-h-tap shrink-0 items-center border-b-2 px-3 text-body font-medium transition-colors ${
               active === tab.id
-                ? "border-teal-600 text-teal-700"
-                : "border-transparent text-slate-500 hover:text-slate-700"
+                ? "border-accent text-accent"
+                : "border-transparent text-text-muted hover:text-text"
             }`}
           >
             {tab.label}
@@ -229,7 +231,7 @@ export function FichaTabs({
                           ? citas.length
                           : 0;
               return n > 0 ? (
-                <span className="ml-1 text-xs text-slate-400">{n}</span>
+                <span className="ml-1 text-xs text-text-muted">{n}</span>
               ) : null;
             })()}
           </button>
@@ -239,10 +241,10 @@ export function FichaTabs({
       <div className="py-4">
         {active === "resumen" && (
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-slate-700">
+            <h3 className="text-body font-semibold text-text">
               Observaciones generales
             </h3>
-            <p className="whitespace-pre-wrap text-sm text-slate-600">
+            <p className="whitespace-pre-wrap text-body text-text-muted">
               {notas?.trim() || "Sin observaciones registradas."}
             </p>
           </div>
@@ -300,13 +302,13 @@ export function FichaTabs({
         )}
         {active === "citas" && (
           <div className="space-y-3">
-            <Link
+            <ButtonLink
               href={`/agenda/nueva-cita?paciente=${pacienteId}`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+              size="sm"
             >
               <Icon name="plus" />
               Agendar cita
-            </Link>
+            </ButtonLink>
             {citas.length === 0 ? (
               <EmptyTab label="citas registradas" />
             ) : (
@@ -314,12 +316,12 @@ export function FichaTabs({
                 {citas.map((c) => (
                   <div
                     key={c.id}
-                    className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 p-3"
+                    className="flex flex-wrap items-center gap-2 rounded-control border border-border p-3"
                   >
-                    <span className="text-sm text-slate-600">
+                    <span className="text-support text-text-muted">
                       {formatearFechaHora(c.fecha_hora)}
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
+                    <span className="min-w-0 flex-1 truncate text-support text-text">
                       {c.motivo}
                     </span>
                     <span

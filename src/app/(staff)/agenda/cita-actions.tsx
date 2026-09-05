@@ -1,16 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { ActionMenu } from "@/components/action-menu";
+import { Button, ButtonLink } from "@/components/button";
 import type { EstadoCita } from "@/lib/types/db";
 
 import { cambiarEstadoCita } from "./actions";
-
-const btn =
-  "rounded-lg px-3 py-2 text-xs font-medium transition-colors disabled:opacity-50";
 
 export function CitaActions({
   citaId,
@@ -45,12 +42,14 @@ export function CitaActions({
 
   if (estado === "realizada") {
     return consultaId ? (
-      <Link
+      <ButtonLink
         href={`/pacientes/${pacienteId}/consultas/${consultaId}`}
-        className={`${btn} text-teal-700 hover:bg-teal-50`}
+        variant="ghost"
+        size="sm"
+        className="text-accent"
       >
         Ver consulta
-      </Link>
+      </ButtonLink>
     ) : null;
   }
 
@@ -58,13 +57,9 @@ export function CitaActions({
 
   return (
     <div className="flex items-center gap-1">
-      <button
-        onClick={iniciar}
-        disabled={busy}
-        className={`${btn} bg-teal-600 text-white hover:bg-teal-700`}
-      >
+      <Button size="sm" onClick={iniciar} disabled={busy}>
         Iniciar consulta
-      </button>
+      </Button>
       <ActionMenu
         acciones={[
           ...(estado === "pendiente"

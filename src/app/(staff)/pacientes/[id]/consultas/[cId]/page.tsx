@@ -122,7 +122,7 @@ export default async function ConsultaPage({
   const principal = duenos.find((d) => d.es_principal) ?? duenos[0] ?? null;
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-reading flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
         <Link
           href={`/pacientes/${params.id}`}

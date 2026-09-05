@@ -1,12 +1,18 @@
+import type { CSSProperties } from "react";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import Link from "next/link";
 
 import { getRol } from "@/lib/auth/roles";
 import { countSolicitudesPendientes } from "@/lib/data/citas";
 import { createClient } from "@/lib/supabase/server";
-
-import { BottomNav } from "./bottom-nav";
-import { NavLinks } from "./nav-links";
+import {
+  APP_SHELL_ID,
+  RAIL_COLLAPSED,
+  RAIL_EXPANDED,
+  PrimaryNav,
+} from "@/components/primary-nav/primary-nav";
+import { staffDestinos } from "@/components/primary-nav/destinos";
 
 export default async function StaffLayout({
   children,
@@ -23,47 +29,64 @@ export default async function StaffLayout({
   if (rol === "cliente") redirect("/portal");
 
   const reservasPendientes = await countSolicitudesPendientes();
+  const destinos = staffDestinos({ esDev: rol === "dev" });
+
+  // Estado del riel: cookie -> el layout reserva el ancho correcto desde el
+  // primer render (sin flash). Sin cookie no fijamos nada y el default por
+  // tramo lo pone globals.css (colapsado en tablet, expandido en escritorio).
+  const railCookie = cookies().get("rail")?.value;
+  const shellStyle: CSSProperties | undefined =
+    railCookie === "collapsed"
+      ? ({ "--rail-w": RAIL_COLLAPSED } as CSSProperties)
+      : railCookie === "expanded"
+        ? ({ "--rail-w": RAIL_EXPANDED } as CSSProperties)
+        : undefined;
 
   return (
-    <div className="min-h-screen bg-slate-50 px-safe">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white pt-safe">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-2.5">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="font-semibold text-teal-700">
+    <div
+      id={APP_SHELL_ID}
+      className="min-h-screen bg-surface-sunken px-safe"
+      style={shellStyle}
+    >
+      <div className="transition-[padding] duration-150 tablet:pl-[var(--rail-w)]">
+        <header className="sticky top-0 z-10 border-b border-border bg-surface-raised pt-safe">
+          <div className="flex items-center justify-between gap-4 px-4 py-2.5 tablet:px-6">
+            <Link
+              href="/dashboard"
+              className="font-semibold text-accent tablet:hidden"
+            >
               VetApp
             </Link>
-            <div className="hidden sm:block">
-              <NavLinks
-              reservasPendientes={reservasPendientes}
-              esDev={rol === "dev"}
-            />
+            <div className="flex items-center gap-3">
+              <Link
+                href="/perfil"
+                className="hidden text-support text-text-muted hover:text-text desktop:inline"
+              >
+                {user.email} · {rol ?? "—"}
+              </Link>
+              <form action="/auth/signout" method="post">
+                <button
+                  type="submit"
+                  className="min-h-tap rounded-control border border-border px-3 text-body font-medium text-text transition-colors hover:bg-surface-sunken"
+                >
+                  Salir
+                </button>
+              </form>
             </div>
           </div>
+        </header>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/perfil"
-              className="hidden text-xs text-slate-500 hover:text-slate-700 md:inline"
-            >
-              {user.email} · {rol ?? "—"}
-            </Link>
-            <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
-              >
-                Salir
-              </button>
-            </form>
-          </div>
-        </div>
+        <main className="mx-auto w-full max-w-[96rem] px-4 pb-bottomnav pt-6 tablet:px-6">
+          {children}
+        </main>
+      </div>
 
-      </header>
-
-      <main className="mx-auto max-w-5xl px-4 pt-6 pb-bottomnav">{children}</main>
-
-      {/* Navegación inferior (solo móvil) */}
-      <BottomNav reservasPendientes={reservasPendientes} esDev={rol === "dev"} />
+      <PrimaryNav
+        destinos={destinos}
+        contadores={{ reservas: reservasPendientes }}
+        titulo="VetApp"
+        homeHref="/dashboard"
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import type { Metadata } from "next";
 
+import { ButtonLink } from "@/components/button";
 import { getMisCitas } from "@/lib/data/portal";
 import { colorEstadoCita, labelEstadoCita } from "@/lib/types/db";
 import { formatearFechaHora } from "@/lib/utils/format";
@@ -15,36 +16,38 @@ export default async function MisCitasPage() {
 
   return (
     <div>
-      <Link href="/portal" className="text-sm text-slate-500 hover:text-slate-700">
+      <Link
+        href="/portal"
+        className="text-support text-text-muted hover:text-text"
+      >
         ← Portal
       </Link>
-      <div className="mb-4 mt-2 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Mis citas</h1>
-        <Link
-          href="/portal/citas/solicitar"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
-        >
+      <div className="mb-4 mt-2 flex items-center justify-between gap-3">
+        <h1 className="text-section font-semibold text-text">Mis citas</h1>
+        <ButtonLink href="/portal/citas/solicitar" size="sm">
           <Icon name="plus" />
           Solicitar hora
-        </Link>
+        </ButtonLink>
       </div>
       {citas.length === 0 ? (
-        <p className="text-sm text-slate-500">No tienes citas registradas.</p>
+        <p className="text-body text-text-muted">
+          No tienes citas registradas.
+        </p>
       ) : (
         <div className="space-y-2">
           {citas.map((c) => (
             <div
               key={c.id}
-              className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3"
+              className="flex items-center gap-3 rounded-card border border-border bg-surface-raised p-3"
             >
-              <span className="text-sm text-slate-600">
+              <span className="text-support text-text-muted">
                 {formatearFechaHora(c.fecha_hora)}
               </span>
-              <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
+              <span className="min-w-0 flex-1 truncate text-support text-text">
                 {c.paciente?.nombre} · {c.motivo}
               </span>
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${colorEstadoCita(c.estado)}`}
+                className={`rounded-pill px-2 py-0.5 text-xs font-medium ${colorEstadoCita(c.estado)}`}
               >
                 {labelEstadoCita(c.estado)}
               </span>

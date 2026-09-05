@@ -13,23 +13,23 @@ export default async function MisMascotasPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold text-slate-900">Mis mascotas</h1>
+      <h1 className="mb-4 text-section font-semibold text-text">Mis mascotas</h1>
       {mascotas.length === 0 ? (
-        <p className="text-sm text-slate-500">Sin mascotas asociadas.</p>
+        <p className="text-body text-text-muted">Sin mascotas asociadas.</p>
       ) : (
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-2 tablet:grid-cols-2 tablet:gap-3 desktop:grid-cols-3">
           {mascotas.map((m) => (
             <Link
               key={m.id}
               href={`/portal/mascotas/${m.id}`}
-              className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 hover:border-teal-300"
+              className="flex items-center gap-3 rounded-card border border-border bg-surface-raised p-3 transition-colors hover:border-accent tablet:p-2.5"
             >
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-xl">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-pill bg-surface-sunken text-xl">
                 {iconoEspecie(m.especie)}
               </span>
-              <div>
-                <p className="font-medium text-slate-800">{m.nombre}</p>
-                <p className="text-xs text-slate-500">
+              <div className="min-w-0">
+                <p className="truncate font-medium text-text">{m.nombre}</p>
+                <p className="truncate text-support text-text-muted">
                   {m.raza ?? m.especie} · {m.numero_ficha}
                 </p>
               </div>

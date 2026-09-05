@@ -13,7 +13,7 @@ export function MarcarLeidasButton() {
         await marcarTodasLeidas();
         router.refresh();
       }}
-      className="text-sm font-medium text-teal-700 hover:underline"
+      className="inline-flex min-h-tap items-center text-support font-medium text-accent hover:underline"
     >
       Marcar todas como leídas
     </button>

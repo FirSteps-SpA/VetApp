@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/button";
+import { controlClass } from "@/components/field";
+import { cx } from "@/lib/utils/cx";
+
 import { confirmarSolicitud, rechazarSolicitud } from "./actions";
 
 function toLocalInput(iso: string): string {
@@ -49,30 +53,31 @@ export function SolicitudActions({
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-2 tablet:flex-row tablet:items-center">
       <input
         type="datetime-local"
         value={cuando}
         onChange={(e) => setCuando(e.target.value)}
-        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto"
+        className={cx(controlClass, "tablet:w-auto")}
       />
       <div className="flex gap-2">
-        <button
+        <Button
           type="button"
           onClick={confirmar}
           disabled={busy}
-          className="flex-1 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60 sm:flex-none"
+          className="flex-1 tablet:flex-none"
         >
           Confirmar
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="danger"
           onClick={rechazar}
           disabled={busy}
-          className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 sm:flex-none"
+          className="flex-1 tablet:flex-none"
         >
           Rechazar
-        </button>
+        </Button>
       </div>
     </div>
   );

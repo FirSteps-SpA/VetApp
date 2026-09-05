@@ -6,14 +6,14 @@ export function PacienteCard({ paciente }: { paciente: Paciente }) {
   return (
     <Link
       href={`/pacientes/${paciente.id}`}
-      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-teal-300"
+      className="flex items-center gap-3 rounded-card border border-border bg-surface-raised p-3 transition-colors hover:border-accent tablet:p-2.5"
     >
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-100 text-xl">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-pill bg-surface-sunken text-xl">
         {iconoEspecie(paciente.especie)}
       </span>
       <div className="min-w-0">
-        <p className="truncate font-medium text-slate-900">{paciente.nombre}</p>
-        <p className="truncate text-sm text-slate-500">
+        <p className="truncate font-medium text-text">{paciente.nombre}</p>
+        <p className="truncate text-support text-text-muted">
           {labelEspecie(paciente.especie)}
           {paciente.raza ? ` · ${paciente.raza}` : ""} · {paciente.numero_ficha}
         </p>
