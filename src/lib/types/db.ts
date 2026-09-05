@@ -16,6 +16,46 @@ export type Sexo = "macho" | "hembra" | "desconocido";
 
 export type EstadoAlertaVacuna = "al_dia" | "proxima" | "vencida";
 
+// Datos de tenencia responsable del animal (mismos valores que el certificado
+// oficial de microchip). Se guardan en el paciente para autollenar documentos.
+export type ModoObtencion =
+  | "recogido"
+  | "reubicacion"
+  | "regalo"
+  | "nacido"
+  | "compra";
+
+export type RazonTenencia =
+  | "compania"
+  | "asistencia"
+  | "terapia"
+  | "trabajo"
+  | "seguridad"
+  | "deporte"
+  | "exposicion"
+  | "reproduccion"
+  | "caza";
+
+export const MODOS_OBTENCION: { value: ModoObtencion; label: string }[] = [
+  { value: "recogido", label: "Recogido" },
+  { value: "reubicacion", label: "Reubicación" },
+  { value: "regalo", label: "Regalo" },
+  { value: "nacido", label: "Nacido en casa" },
+  { value: "compra", label: "Compra" },
+];
+
+export const RAZONES_TENENCIA: { value: RazonTenencia; label: string }[] = [
+  { value: "compania", label: "Compañía" },
+  { value: "asistencia", label: "Asistencia" },
+  { value: "terapia", label: "Terapia" },
+  { value: "trabajo", label: "Trabajo" },
+  { value: "seguridad", label: "Seguridad" },
+  { value: "deporte", label: "Deporte" },
+  { value: "exposicion", label: "Exposición" },
+  { value: "reproduccion", label: "Reproducción" },
+  { value: "caza", label: "Caza" },
+];
+
 export interface Paciente {
   id: string;
   nombre: string;
@@ -30,6 +70,11 @@ export interface Paciente {
   numero_ficha: string;
   activo: boolean;
   notas: string | null;
+  // Datos estables para autollenar documentos (ver migración
+  // document_prefill_columns).
+  color: string | null;
+  modo_obtencion: ModoObtencion | null;
+  razon_tenencia: RazonTenencia | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,6 +86,8 @@ export interface Dueno {
   telefono: string;
   email: string | null;
   direccion: string | null;
+  comuna: string | null;
+  sector: string | null;
   usuario_id: string | null;
   notas: string | null;
   created_at: string;
@@ -255,6 +302,33 @@ export interface UsuarioAdmin {
   sucursal_id: string | null;
   created_at: string;
   sucursal: { nombre: string } | null;
+}
+
+// Título profesional del staff. Los valores coinciden 1:1 con el check
+// médico / técnico del certificado oficial de microchip.
+export type TituloProfesional = "medico" | "tecnico";
+
+export const TITULOS_PROFESIONALES: {
+  value: TituloProfesional;
+  label: string;
+}[] = [
+  { value: "medico", label: "Médico Veterinario" },
+  { value: "tecnico", label: "Técnico Veterinario" },
+];
+
+// Registro de staff (fila propia de `usuarios`). `rut` y `titulo_profesional`
+// son la identidad profesional que autollena los documentos legales.
+export interface Usuario {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  activo: boolean;
+  sucursal_id: string | null;
+  rut: string | null;
+  titulo_profesional: TituloProfesional | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface EsquemaVacunacion {

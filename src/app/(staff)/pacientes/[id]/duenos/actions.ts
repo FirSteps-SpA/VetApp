@@ -38,6 +38,8 @@ export async function actualizarDueno(
       telefono,
       email: str(formData, "email") || null,
       direccion: str(formData, "direccion") || null,
+      comuna: str(formData, "comuna") || null,
+      sector: str(formData, "sector") || null,
       notas: str(formData, "notas") || null,
     })
     .eq("id", duenoId);
@@ -112,6 +114,8 @@ export async function crearYVincularDueno(
     rut?: string;
     email?: string;
     direccion?: string;
+    comuna?: string;
+    sector?: string;
   },
 ): Promise<{ error: string | null }> {
   if (!input.nombre?.trim() || !input.telefono?.trim()) {
@@ -127,6 +131,8 @@ export async function crearYVincularDueno(
       rut: input.rut?.trim() || null,
       email: input.email?.trim() || null,
       direccion: input.direccion?.trim() || null,
+      comuna: input.comuna?.trim() || null,
+      sector: input.sector?.trim() || null,
     })
     .select("id")
     .single();

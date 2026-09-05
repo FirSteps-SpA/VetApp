@@ -5,7 +5,16 @@ import { revalidatePath } from "next/cache";
 
 import { tipoConflictoUnico } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
-import { ESPECIES, SEXOS, type Especie, type Sexo } from "@/lib/types/db";
+import {
+  ESPECIES,
+  MODOS_OBTENCION,
+  RAZONES_TENENCIA,
+  SEXOS,
+  type Especie,
+  type ModoObtencion,
+  type RazonTenencia,
+  type Sexo,
+} from "@/lib/types/db";
 
 export interface FormState {
   error: string | null;
@@ -26,11 +35,16 @@ export async function crearPaciente(
   const duenoTelefono = str(formData, "dueno_telefono");
   const duenoEmail = str(formData, "dueno_email");
   const duenoDireccion = str(formData, "dueno_direccion");
+  const duenoComuna = str(formData, "dueno_comuna");
+  const duenoSector = str(formData, "dueno_sector");
 
   // --- Paciente ---
   const nombre = str(formData, "nombre");
   const especie = str(formData, "especie") as Especie;
   const raza = str(formData, "raza");
+  const color = str(formData, "color");
+  const modoObtencion = str(formData, "modo_obtencion") as ModoObtencion | "";
+  const razonTenencia = str(formData, "razon_tenencia") as RazonTenencia | "";
   const fechaNacimiento = str(formData, "fecha_nacimiento");
   const sexo = str(formData, "sexo") as Sexo | "";
   const castrado = formData.get("castrado") === "on";
@@ -55,6 +69,15 @@ export async function crearPaciente(
   if (sexo && !SEXOS.some((s) => s.value === sexo)) {
     return { error: "Sexo inválido." };
   }
+  if (modoObtencion && !MODOS_OBTENCION.some((m) => m.value === modoObtencion)) {
+    return { error: "Modo de obtención inválido." };
+  }
+  if (
+    razonTenencia &&
+    !RAZONES_TENENCIA.some((r) => r.value === razonTenencia)
+  ) {
+    return { error: "Razón de tenencia inválida." };
+  }
   let pesoKg: number | null = null;
   if (pesoRaw) {
     pesoKg = Number(pesoRaw);
@@ -78,6 +101,8 @@ export async function crearPaciente(
         telefono: duenoTelefono,
         email: duenoEmail || null,
         direccion: duenoDireccion || null,
+        comuna: duenoComuna || null,
+        sector: duenoSector || null,
       })
       .select("id")
       .single();
@@ -104,6 +129,9 @@ export async function crearPaciente(
       rut: str(formData, "rut") || null,
       especie,
       raza: raza || null,
+      color: color || null,
+      modo_obtencion: modoObtencion || null,
+      razon_tenencia: razonTenencia || null,
       fecha_nacimiento: fechaNacimiento || null,
       sexo: sexo || null,
       castrado,

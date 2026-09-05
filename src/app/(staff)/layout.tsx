@@ -41,9 +41,12 @@ export default async function StaffLayout({
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-xs text-slate-500 md:inline">
+            <Link
+              href="/perfil"
+              className="hidden text-xs text-slate-500 hover:text-slate-700 md:inline"
+            >
               {user.email} · {rol ?? "—"}
-            </span>
+            </Link>
             <form action="/auth/signout" method="post">
               <button
                 type="submit"

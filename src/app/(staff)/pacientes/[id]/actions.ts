@@ -5,7 +5,16 @@ import { revalidatePath } from "next/cache";
 
 import { tipoConflictoUnico } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
-import { ESPECIES, SEXOS, type Especie, type Sexo } from "@/lib/types/db";
+import {
+  ESPECIES,
+  MODOS_OBTENCION,
+  RAZONES_TENENCIA,
+  SEXOS,
+  type Especie,
+  type ModoObtencion,
+  type RazonTenencia,
+  type Sexo,
+} from "@/lib/types/db";
 
 export interface EditarPacienteState {
   error: string | null;
@@ -24,6 +33,8 @@ export async function actualizarPaciente(
   const nombre = str(formData, "nombre");
   const especie = str(formData, "especie") as Especie;
   const sexo = str(formData, "sexo") as Sexo | "";
+  const modoObtencion = str(formData, "modo_obtencion") as ModoObtencion | "";
+  const razonTenencia = str(formData, "razon_tenencia") as RazonTenencia | "";
   const pesoRaw = str(formData, "peso_kg");
 
   if (!nombre) return { error: "El paciente requiere un nombre." };
@@ -32,6 +43,15 @@ export async function actualizarPaciente(
   }
   if (sexo && !SEXOS.some((s) => s.value === sexo)) {
     return { error: "Sexo inválido." };
+  }
+  if (modoObtencion && !MODOS_OBTENCION.some((m) => m.value === modoObtencion)) {
+    return { error: "Modo de obtención inválido." };
+  }
+  if (
+    razonTenencia &&
+    !RAZONES_TENENCIA.some((r) => r.value === razonTenencia)
+  ) {
+    return { error: "Razón de tenencia inválida." };
   }
   let pesoKg: number | null = null;
   if (pesoRaw) {
@@ -49,6 +69,9 @@ export async function actualizarPaciente(
       rut: str(formData, "rut") || null,
       especie,
       raza: str(formData, "raza") || null,
+      color: str(formData, "color") || null,
+      modo_obtencion: modoObtencion || null,
+      razon_tenencia: razonTenencia || null,
       fecha_nacimiento: str(formData, "fecha_nacimiento") || null,
       sexo: sexo || null,
       castrado: formData.get("castrado") === "on",

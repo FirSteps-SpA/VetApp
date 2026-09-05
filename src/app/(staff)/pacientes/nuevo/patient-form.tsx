@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
-import { ESPECIES, SEXOS, type Dueno } from "@/lib/types/db";
+import {
+  ESPECIES,
+  MODOS_OBTENCION,
+  RAZONES_TENENCIA,
+  SEXOS,
+  type Dueno,
+} from "@/lib/types/db";
 import { buscarDuenos } from "@/app/(staff)/pacientes/[id]/duenos/actions";
 
 import { crearPaciente, type FormState } from "./actions";
@@ -175,6 +181,14 @@ export function PatientForm() {
               Dirección
               <input name="dueno_direccion" className={fieldClass} />
             </label>
+            <label className={labelClass}>
+              Comuna
+              <input name="dueno_comuna" className={fieldClass} />
+            </label>
+            <label className={labelClass}>
+              Sector
+              <input name="dueno_sector" className={fieldClass} />
+            </label>
           </div>
         )}
       </fieldset>
@@ -208,6 +222,32 @@ export function PatientForm() {
           <label className={labelClass}>
             Raza
             <input name="raza" className={fieldClass} />
+          </label>
+          <label className={labelClass}>
+            Color
+            <input name="color" className={fieldClass} />
+          </label>
+          <label className={labelClass}>
+            Modo de obtención
+            <select name="modo_obtencion" defaultValue="" className={fieldClass}>
+              <option value="">Sin especificar</option>
+              {MODOS_OBTENCION.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={labelClass}>
+            Razón de tenencia
+            <select name="razon_tenencia" defaultValue="" className={fieldClass}>
+              <option value="">Sin especificar</option>
+              {RAZONES_TENENCIA.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
           </label>
           <label className={labelClass}>
             Fecha de nacimiento

@@ -50,6 +50,8 @@ export function ManageDuenos({
     rut: "",
     email: "",
     direccion: "",
+    comuna: "",
+    sector: "",
   });
 
   const idsActuales = new Set(duenos.map((d) => d.id));
@@ -91,7 +93,15 @@ export function ManageDuenos({
   async function crear() {
     const ok = await run(() => crearYVincularDueno(pacienteId, nuevo));
     if (ok) {
-      setNuevo({ nombre: "", telefono: "", rut: "", email: "", direccion: "" });
+      setNuevo({
+        nombre: "",
+        telefono: "",
+        rut: "",
+        email: "",
+        direccion: "",
+        comuna: "",
+        sector: "",
+      });
       setMostrarNuevo(false);
     }
   }
@@ -302,6 +312,18 @@ export function ManageDuenos({
                 onChange={(e) =>
                   setNuevo({ ...nuevo, direccion: e.target.value })
                 }
+                className={field}
+              />
+              <input
+                placeholder="Comuna"
+                value={nuevo.comuna}
+                onChange={(e) => setNuevo({ ...nuevo, comuna: e.target.value })}
+                className={field}
+              />
+              <input
+                placeholder="Sector"
+                value={nuevo.sector}
+                onChange={(e) => setNuevo({ ...nuevo, sector: e.target.value })}
                 className={field}
               />
             </div>

@@ -15,6 +15,7 @@ import {
   getPaciente,
   getResumenClinico,
 } from "@/lib/data/pacientes";
+import { getMiPerfil, getVeterinarios } from "@/lib/data/usuarios";
 import { labelEspecie, resumenMedicamento, SEXOS } from "@/lib/types/db";
 import { calcularEdad, formatearFecha, formatearPeso } from "@/lib/utils/format";
 
@@ -64,6 +65,8 @@ export default async function FichaPage({
     clinica,
     citas,
     emitidos,
+    emisor,
+    veterinarios,
   ] = await Promise.all([
       getDuenosDePaciente(paciente.id),
       getResumenClinico(paciente.id),
@@ -75,6 +78,8 @@ export default async function FichaPage({
       getClinicaConfig(),
       getCitasPaciente(paciente.id),
       getDocumentosEmitidos(paciente.id),
+      getMiPerfil(),
+      getVeterinarios(),
     ]);
   const [urlsExamenes, esquemas] = await Promise.all([
     getUrlsExamenes(examenes),
@@ -131,6 +136,15 @@ export default async function FichaPage({
           paciente,
           dueno: principal,
           emitidos,
+          emisor: emisor
+            ? {
+                id: emisor.id,
+                nombre: emisor.nombre,
+                rut: emisor.rut,
+                titulo_profesional: emisor.titulo_profesional,
+              }
+            : null,
+          veterinarios,
         }}
       />
     </>

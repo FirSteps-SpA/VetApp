@@ -36,6 +36,7 @@ export function BottomNav({
 
   const secundarios: Item[] = [
     { href: "/vacunas", emoji: "💉", label: "Vacunas" },
+    { href: "/perfil", emoji: "👤", label: "Mi perfil" },
     ...(esDev ? [{ href: "/admin", emoji: "⚙️", label: "Admin" }] : []),
   ];
   const masActivo = secundarios.some((s) => esActivo(pathname, s.href));

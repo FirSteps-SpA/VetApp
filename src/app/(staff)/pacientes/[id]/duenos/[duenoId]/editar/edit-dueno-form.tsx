@@ -78,6 +78,22 @@ export function EditDuenoForm({
             className={field}
           />
         </label>
+        <label className={label}>
+          Comuna
+          <input
+            name="comuna"
+            defaultValue={dueno.comuna ?? ""}
+            className={field}
+          />
+        </label>
+        <label className={label}>
+          Sector
+          <input
+            name="sector"
+            defaultValue={dueno.sector ?? ""}
+            className={field}
+          />
+        </label>
         <label className={`${label} sm:col-span-2`}>
           Notas internas
           <textarea

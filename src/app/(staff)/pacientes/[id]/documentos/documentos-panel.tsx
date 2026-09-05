@@ -16,16 +16,29 @@ import {
 import {
   labelEspecie,
   labelTipoDocumentoLegal,
+  MODOS_OBTENCION,
+  RAZONES_TENENCIA,
   TIPOS_DOCUMENTO_LEGAL,
   type ClinicaConfig,
   type DocumentoEmitido,
   type DuenoDePaciente,
   type Paciente,
   type TipoDocumentoLegal,
+  type TituloProfesional,
 } from "@/lib/types/db";
 import { formatearFecha } from "@/lib/utils/format";
 
 import { registrarDocumentoEmitido } from "./actions";
+
+// Datos mínimos del veterinario a cargo (una fila de `usuarios`). El emisor es
+// el staff autenticado; `veterinarios` son los elegibles para emitir en nombre
+// de otro.
+export interface EmisorDoc {
+  id: string;
+  nombre: string;
+  rut: string | null;
+  titulo_profesional: TituloProfesional | null;
+}
 
 export interface DocumentosData {
   pacienteId: string;
@@ -33,6 +46,8 @@ export interface DocumentosData {
   paciente: Paciente;
   dueno: DuenoDePaciente | null;
   emitidos: DocumentoEmitido[];
+  emisor: EmisorDoc | null;
+  veterinarios: EmisorDoc[];
 }
 
 const field =
@@ -40,14 +55,47 @@ const field =
 
 const hoy = () => formatearFecha(new Date().toISOString());
 
+// Opciones para el componente `Selecta` (que espera tuplas [valor, etiqueta]).
+const MODO_OBTENCION = MODOS_OBTENCION.map(
+  (m) => [m.value, m.label] as [string, string],
+);
+const RAZON_TENENCIA = RAZONES_TENENCIA.map(
+  (r) => [r.value, r.label] as [string, string],
+);
+
+// "Juan Pablo Pérez Soto" -> nombres: "Juan", apellidos: "Pablo Pérez Soto".
+// El split es aproximado; ambos campos quedan editables en el panel.
+function splitNombre(nombre: string): { nombres: string; apellidos: string } {
+  const partes = nombre.trim().split(/\s+/).filter(Boolean);
+  return {
+    nombres: partes[0] ?? "",
+    apellidos: partes.slice(1).join(" "),
+  };
+}
+
+// Campos del veterinario a cargo a partir de un registro de `usuarios`. El
+// título profesional guardado coincide 1:1 con el check del formulario oficial.
+function vetFields(vet: EmisorDoc | null): Pick<
+  MicrochipData,
+  "vetNombres" | "vetApellidos" | "vetRut" | "tipoProfesional"
+> {
+  const { nombres, apellidos } = splitNombre(vet?.nombre ?? "");
+  return {
+    vetNombres: nombres,
+    vetApellidos: apellidos,
+    vetRut: vet?.rut ?? "",
+    tipoProfesional: vet?.titulo_profesional ?? "",
+  };
+}
+
 function initAuth(data: DocumentosData) {
   const { clinica, paciente, dueno } = data;
   return {
     clinica: clinica?.nombre_clinica ?? "",
     duenoNombre: dueno?.nombre ?? "",
     domicilio: dueno?.direccion ?? "",
-    sector: "",
-    comuna: "",
+    sector: dueno?.sector ?? "",
+    comuna: dueno?.comuna ?? "",
     telefono: dueno?.telefono ?? "",
     duenoRut: dueno?.rut ?? "",
     mascotaNombre: paciente.nombre,
@@ -58,7 +106,7 @@ function initAuth(data: DocumentosData) {
       : "",
     raza: paciente.raza ?? "",
     antecedentes: "",
-    medicoACargo: "",
+    medicoACargo: data.emisor?.nombre ?? "",
     extra: {} as Record<string, string>,
   };
 }
@@ -79,40 +127,18 @@ function initMicro(data: DocumentosData): MicrochipData {
     raza: paciente.raza ?? "",
     esterilizado:
       paciente.castrado === true ? "si" : paciente.castrado === false ? "no" : "",
-    color: "",
+    color: paciente.color ?? "",
     fechaNacimiento: paciente.fecha_nacimiento
       ? formatearFecha(paciente.fecha_nacimiento)
       : "",
     tipoProcedimiento: "",
-    modoObtencion: "",
-    razonTenencia: "",
-    vetNombres: "",
-    vetApellidos: "",
-    vetRut: "",
-    tipoProfesional: "",
+    modoObtencion: paciente.modo_obtencion ?? "",
+    razonTenencia: paciente.razon_tenencia ?? "",
+    ...vetFields(data.emisor),
     comuna: clinica?.ciudad ?? "",
     fechaProcedimiento: hoy(),
   };
 }
-
-const MODO_OBTENCION: [MicrochipData["modoObtencion"], string][] = [
-  ["recogido", "Recogido"],
-  ["reubicacion", "Reubicación"],
-  ["regalo", "Regalo"],
-  ["nacido", "Nacido en casa"],
-  ["compra", "Compra"],
-];
-const RAZON_TENENCIA: [MicrochipData["razonTenencia"], string][] = [
-  ["compania", "Compañía"],
-  ["asistencia", "Asistencia"],
-  ["terapia", "Terapia"],
-  ["trabajo", "Trabajo"],
-  ["seguridad", "Seguridad"],
-  ["deporte", "Deporte"],
-  ["exposicion", "Exposición"],
-  ["reproduccion", "Reproducción"],
-  ["caza", "Caza"],
-];
 
 export default function DocumentosPanel({
   data,
@@ -126,6 +152,23 @@ export default function DocumentosPanel({
   const [micro, setMicro] = useState<MicrochipData>(() => initMicro(data));
   const [generando, setGenerando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Veterinario a cargo: por defecto el emisor, con opción de emitir en nombre
+  // de otro. La lista incluye al emisor aunque no sea veterinario.
+  const vets = useMemo<EmisorDoc[]>(() => {
+    const porId = new Map<string, EmisorDoc>();
+    if (data.emisor) porId.set(data.emisor.id, data.emisor);
+    for (const v of data.veterinarios) porId.set(v.id, v);
+    return Array.from(porId.values());
+  }, [data.emisor, data.veterinarios]);
+  const [vetId, setVetId] = useState(() => data.emisor?.id ?? "");
+
+  function aplicarVet(id: string) {
+    setVetId(id);
+    const vet = vets.find((v) => v.id === id) ?? null;
+    setAuth((s) => ({ ...s, medicoACargo: vet?.nombre ?? "" }));
+    setMicro((s) => ({ ...s, ...vetFields(vet) }));
+  }
 
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -277,6 +320,27 @@ export default function DocumentosPanel({
               </button>
             ))}
           </div>
+
+          {vets.length > 0 && (
+            <label className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+              Veterinario a cargo
+              <select
+                value={vetId}
+                onChange={(e) => aplicarVet(e.target.value)}
+                className={field}
+              >
+                {!vets.some((v) => v.id === vetId) && (
+                  <option value={vetId}>—</option>
+                )}
+                {vets.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.nombre}
+                    {v.id === data.emisor?.id ? " (tú)" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           {!esMicrochip ? (
             <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
