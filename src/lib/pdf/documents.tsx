@@ -67,6 +67,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 4,
   },
+  // Título del bloque de prescripción de la receta. Se muestra literal ("Rp",
+  // símbolo de prescripción), sin la mayúscula que aplica `sectionTitle`.
+  rpTitle: {
+    textTransform: "none",
+    letterSpacing: 0,
+    fontSize: 11,
+    color: SLATE,
+  },
   row: { flexDirection: "row", flexWrap: "wrap" },
   cell: { width: "33%", marginBottom: 4 },
   cellLabel: { fontSize: 7, color: LIGHT },
@@ -102,7 +110,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function Header({ clinica }: { clinica: ClinicaConfig | null }) {
+export function Header({ clinica }: { clinica: ClinicaConfig | null }) {
   return (
     <View style={styles.header}>
       <View>
@@ -244,7 +252,7 @@ export function RecetaPage({
       <PacienteInfo paciente={paciente} dueno={dueno} />
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Indicaciones</Text>
+        <Text style={[styles.sectionTitle, styles.rpTitle]}>Rp</Text>
         {receta.medicamentos.map((m, i) => (
           <View key={i} style={styles.med}>
             <Text style={styles.bold}>
@@ -257,9 +265,10 @@ export function RecetaPage({
           </View>
         ))}
         {receta.instrucciones_generales ? (
-          <Text style={{ marginTop: 6 }}>
-            {receta.instrucciones_generales}
-          </Text>
+          <View style={{ marginTop: 6 }}>
+            <Text style={styles.sectionTitle}>Términos y Condiciones</Text>
+            <Text>{receta.instrucciones_generales}</Text>
+          </View>
         ) : null}
       </View>
 
@@ -577,7 +586,7 @@ export function RecetaClienteDoc({
         </Text>
         <MascotaInfo mascota={mascota} dueno={dueno} />
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Indicaciones</Text>
+          <Text style={[styles.sectionTitle, styles.rpTitle]}>Rp</Text>
           {receta.medicamentos.map((m, i) => (
             <View key={i} style={styles.med}>
               <Text style={styles.bold}>
@@ -590,7 +599,10 @@ export function RecetaClienteDoc({
             </View>
           ))}
           {receta.instrucciones_generales ? (
-            <Text style={{ marginTop: 6 }}>{receta.instrucciones_generales}</Text>
+            <View style={{ marginTop: 6 }}>
+              <Text style={styles.sectionTitle}>Términos y Condiciones</Text>
+              <Text>{receta.instrucciones_generales}</Text>
+            </View>
           ) : null}
         </View>
         <Footer />

@@ -1,5 +1,8 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 
+import type { ClinicaConfig } from "@/lib/types/db";
+import { Header } from "./documents";
+
 // Tipos de autorización que produce este documento (el microchip va por otro
 // pipeline, con overlay sobre el formulario oficial).
 export type TipoAutorizacion = "eutanasia" | "cirugia" | "hospitalizacion";
@@ -8,7 +11,9 @@ export type TipoAutorizacion = "eutanasia" | "cirugia" | "hospitalizacion";
 // formulario; el resto (sector, comuna, campos del caso) se ingresa a mano.
 export interface AutorizacionData {
   tipo: TipoAutorizacion;
-  clinica: string;
+  // Datos completos de la clínica para pintar el encabezado (logo, dirección,
+  // registro). El nombre editado en el panel se refleja en `nombre_clinica`.
+  clinica: ClinicaConfig | null;
   // Dueño / autorizante
   duenoNombre: string;
   domicilio: string;
@@ -38,13 +43,6 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     color: "#111827",
     lineHeight: 1.5,
-  },
-  clinic: {
-    fontSize: 12,
-    fontFamily: "Helvetica-Bold",
-    color: "#0d9488",
-    textAlign: "right",
-    marginBottom: 8,
   },
   title: {
     fontSize: 15,
@@ -107,11 +105,11 @@ function dato(v: string): string {
 
 export function AutorizacionDoc({ data }: { data: AutorizacionData }) {
   const cfg = CONFIG[data.tipo];
-  const c = data.clinica || "________";
+  const c = data.clinica?.nombre_clinica || "________";
   return (
     <Document title={cfg.titulo}>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.clinic}>{c}</Text>
+        <Header clinica={data.clinica} />
         <Text style={styles.title}>{cfg.titulo}</Text>
 
         <Text style={styles.p}>

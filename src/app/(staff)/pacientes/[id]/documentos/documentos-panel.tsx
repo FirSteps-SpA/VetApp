@@ -205,7 +205,11 @@ export default function DocumentosPanel({
   function buildAutorizacionData(): AutorizacionData {
     return {
       tipo: tipoAuth,
-      clinica: auth.clinica,
+      // El encabezado necesita los datos completos de la clínica; el nombre
+      // sigue siendo editable en el panel y se refleja sobre el objeto base.
+      clinica: data.clinica
+        ? { ...data.clinica, nombre_clinica: auth.clinica || data.clinica.nombre_clinica }
+        : null,
       duenoNombre: auth.duenoNombre,
       domicilio: auth.domicilio,
       sector: auth.sector,
