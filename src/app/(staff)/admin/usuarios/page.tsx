@@ -26,10 +26,10 @@ export default async function AdminUsuariosPage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <Link href="/admin" className="text-sm text-slate-500 hover:text-slate-700">
+      <Link href="/admin" className="text-sm text-text-muted hover:text-text">
         ← Admin
       </Link>
-      <h1 className="text-2xl font-semibold text-slate-900">Usuarios</h1>
+      <h1 className="text-2xl font-semibold text-text">Usuarios</h1>
       <UsuariosManager
         usuarios={usuarios}
         sucursales={sucursales}

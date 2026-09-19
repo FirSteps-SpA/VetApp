@@ -27,7 +27,8 @@ export default function GlobalError({
           justifyContent: "center",
           gap: "1rem",
           fontFamily: "system-ui, sans-serif",
-          color: "#0f172a",
+          color: "#23261d",
+          background: "#faf9f6",
         }}
       >
         <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
@@ -37,7 +38,7 @@ export default function GlobalError({
           onClick={reset}
           style={{
             borderRadius: "0.5rem",
-            background: "#0d9488",
+            background: "#586345",
             color: "white",
             padding: "0.5rem 1rem",
             fontWeight: 500,

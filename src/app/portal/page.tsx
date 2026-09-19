@@ -24,11 +24,11 @@ export default async function PortalHome() {
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h1 className="mb-3 text-xl font-semibold text-slate-900">
+        <h1 className="mb-3 text-xl font-semibold text-text">
           Mis mascotas
         </h1>
         {mascotas.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-text-muted">
             Aún no hay mascotas asociadas a tu cuenta.
           </p>
         ) : (
@@ -37,14 +37,14 @@ export default async function PortalHome() {
               <Link
                 key={m.id}
                 href={`/portal/mascotas/${m.id}`}
-                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 hover:border-teal-300"
+                className="flex items-center gap-3 rounded-card border border-border bg-surface p-3 hover:border-accent"
               >
-                <span className="grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-xl">
+                <span className="grid h-11 w-11 place-items-center rounded-pill bg-surface-sunken text-xl">
                   {iconoEspecie(m.especie)}
                 </span>
                 <div>
-                  <p className="font-medium text-slate-800">{m.nombre}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="font-medium text-text">{m.nombre}</p>
+                  <p className="text-xs text-text-muted">
                     {m.raza ?? m.especie} · {m.numero_ficha}
                   </p>
                 </div>
@@ -56,30 +56,30 @@ export default async function PortalHome() {
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-text">
             Próximas citas
           </h2>
-          <Link href="/portal/citas" className="text-sm text-teal-700 hover:underline">
+          <Link href="/portal/citas" className="text-sm text-accent hover:underline">
             Ver todas
           </Link>
         </div>
         {proximas.length === 0 ? (
-          <p className="text-sm text-slate-500">No tienes citas próximas.</p>
+          <p className="text-sm text-text-muted">No tienes citas próximas.</p>
         ) : (
           <div className="space-y-2">
             {proximas.map((c) => (
               <div
                 key={c.id}
-                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3"
+                className="flex items-center gap-3 rounded-card border border-border bg-surface p-3"
               >
-                <span className="text-sm text-slate-600">
+                <span className="text-sm text-text-muted">
                   {formatearFechaHora(c.fecha_hora)}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
+                <span className="min-w-0 flex-1 truncate text-sm text-text">
                   {c.paciente?.nombre} · {c.motivo}
                 </span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${colorEstadoCita(c.estado)}`}
+                  className={`rounded-pill px-2 py-0.5 text-xs font-medium ${colorEstadoCita(c.estado)}`}
                 >
                   {labelEstadoCita(c.estado)}
                 </span>

@@ -18,11 +18,11 @@ export default async function PerfilPage() {
     <div className="mx-auto max-w-2xl">
       <Link
         href="/dashboard"
-        className="text-sm text-slate-500 hover:text-slate-700"
+        className="text-sm text-text-muted hover:text-text"
       >
         ← Dashboard
       </Link>
-      <h1 className="mb-6 mt-2 text-2xl font-semibold text-slate-900">
+      <h1 className="mb-6 mt-2 text-2xl font-semibold text-text">
         Mi perfil
       </h1>
       <PerfilForm perfil={perfil} />

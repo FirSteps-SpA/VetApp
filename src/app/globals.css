@@ -3,23 +3,30 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-
-  /* Roles de color semánticos. Valores = paleta actual (teal/slate), para
-     que introducir los tokens no cambie ni un pixel. Un ajuste global de
-     color se hace aquí, en un solo lugar. */
+  /* Roles de color semánticos. Paleta CSAP Pradera (musgo/tierra/neutro
+     cálido). Un ajuste global de color se hace aquí, en un solo lugar.
+     Secondary y Tertiary NO se usan como relleno sólido con texto blanco
+     encima (no pasan AA a ese tamaño): sirven como color de ícono/borde/
+     acento decorativo sobre su propia variante "subtle", siempre con
+     --color-text (oscuro) como texto real. */
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-surface-sunken: #f8fafc; /* slate-50 */
-  --color-border: #e2e8f0; /* slate-200 */
-  --color-text: #0f172a; /* slate-900 */
-  --color-text-muted: #64748b; /* slate-500 */
-  --color-accent: #0f766e; /* teal-700 */
-  --color-accent-subtle: #f0fdfa; /* teal-50 */
+  --color-surface-sunken: #faf9f6; /* Neutral */
+  --color-border: #e6e3d9; /* derivado de Neutral/Tertiary */
+  --color-text: #23261d; /* casi negro cálido */
+  --color-text-muted: #6f6a5d; /* AA 5.4:1 sobre superficie */
+  --color-accent: #586345; /* Primary */
+  --color-accent-subtle: #edede8; /* tinte de Primary sobre Neutral */
   --color-on-accent: #ffffff;
-  --color-danger: #dc2626; /* red-600 */
-  --color-badge: #ef4444; /* red-500 */
+  --color-accent-secondary: #95714f; /* Secondary / Earth */
+  --color-accent-secondary-subtle: #f2eee9;
+  --color-accent-tertiary: #8c916c; /* Tertiary / Moss */
+  --color-accent-tertiary-subtle: #f1f1eb;
+  --color-warning: #b45309; /* aviso: vencimientos próximos, no urgentes */
+  --color-warning-subtle: #f4ece3;
+  --color-danger: #dc2626; /* red-600, sin cambio: ya coincidía con el mock */
+  --color-danger-subtle: #f8e8e5;
+  --color-badge: #ef4444; /* red-500, tono de badge por defecto (urgente) */
   --color-on-badge: #ffffff;
 
   /* Escala de radios. */
@@ -42,8 +49,24 @@
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--color-text);
+  background: var(--color-surface-sunken);
+  font-family:
+    var(--font-body),
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family:
+    var(--font-display),
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
 }
 
 @layer utilities {

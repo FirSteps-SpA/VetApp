@@ -8,7 +8,7 @@ import type { PortalDownloadsData } from "./portal-downloads";
 const PortalDownloads = dynamic(() => import("./portal-downloads"), {
   ssr: false,
   loading: () => (
-    <p className="text-sm text-slate-400">Cargando descargas…</p>
+    <p className="text-sm text-text-muted">Cargando descargas…</p>
   ),
 });
 

@@ -19,7 +19,7 @@ import { imprimirVacunacion } from "../print/imprimir";
 import { PrintButton } from "../print/print-button";
 
 const field =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
+  "w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
 
 const hoy = () => isoDia(new Date());
 
@@ -30,9 +30,9 @@ function addDias(iso: string, dias: number): string {
 }
 
 const CHIP: Record<EstadoAlertaVacuna, string> = {
-  vencida: "bg-red-50 text-red-700",
-  proxima: "bg-amber-50 text-amber-700",
-  al_dia: "bg-teal-50 text-teal-700",
+  vencida: "bg-danger-subtle text-text",
+  proxima: "bg-warning-subtle text-text",
+  al_dia: "bg-accent-subtle text-accent",
 };
 const CHIP_LABEL: Record<EstadoAlertaVacuna, string> = {
   vencida: "Vencida",
@@ -138,15 +138,15 @@ export function VacunasTab({
         <button
           type="button"
           onClick={() => setAbierto(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+          className="inline-flex items-center gap-1.5 rounded-control bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:opacity-90"
         >
           <Icon name="plus" />
           Registrar vacuna
         </button>
       ) : (
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="space-y-3 rounded-card border border-border bg-surface p-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex flex-col gap-1 text-sm text-slate-700">
+            <label className="flex flex-col gap-1 text-sm text-text">
               Vacuna
               <select
                 value={nombreSel}
@@ -167,7 +167,7 @@ export function VacunasTab({
               </select>
             </label>
             {usaLibre && (
-              <label className="flex flex-col gap-1 text-sm text-slate-700">
+              <label className="flex flex-col gap-1 text-sm text-text">
                 Nombre
                 <input
                   value={nombreLibre}
@@ -176,7 +176,7 @@ export function VacunasTab({
                 />
               </label>
             )}
-            <label className="flex flex-col gap-1 text-sm text-slate-700">
+            <label className="flex flex-col gap-1 text-sm text-text">
               Fecha de aplicación
               <input
                 type="date"
@@ -188,7 +188,7 @@ export function VacunasTab({
                 className={field}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-700">
+            <label className="flex flex-col gap-1 text-sm text-text">
               Próxima dosis
               <input
                 type="date"
@@ -197,7 +197,7 @@ export function VacunasTab({
                 className={field}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-700">
+            <label className="flex flex-col gap-1 text-sm text-text">
               Laboratorio
               <input
                 value={laboratorio}
@@ -205,7 +205,7 @@ export function VacunasTab({
                 className={field}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-700">
+            <label className="flex flex-col gap-1 text-sm text-text">
               Lote
               <input
                 value={lote}
@@ -213,7 +213,7 @@ export function VacunasTab({
                 className={field}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-700 sm:col-span-2">
+            <label className="flex flex-col gap-1 text-sm text-text sm:col-span-2">
               Notas
               <input
                 value={notas}
@@ -224,7 +224,7 @@ export function VacunasTab({
           </div>
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
               {error}
             </p>
           )}
@@ -236,7 +236,7 @@ export function VacunasTab({
                 reset();
                 setAbierto(false);
               }}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-surface-sunken"
             >
               Cancelar
             </button>
@@ -244,7 +244,7 @@ export function VacunasTab({
               type="button"
               onClick={guardar}
               disabled={guardando}
-              className="rounded-lg bg-teal-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+              className="rounded-control bg-accent px-4 py-1.5 text-sm font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
             >
               {guardando ? "Guardando…" : "Registrar"}
             </button>
@@ -254,8 +254,8 @@ export function VacunasTab({
 
       {/* Plan sugerido según el esquema de la especie */}
       {esquemas.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="rounded-card border border-border bg-surface p-4">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
             Plan sugerido ({esquemas[0].especie})
           </h3>
           <div className="space-y-1">
@@ -268,21 +268,21 @@ export function VacunasTab({
               return (
                 <div
                   key={e.id}
-                  className="flex items-center gap-2 text-sm text-slate-700"
+                  className="flex items-center gap-2 text-sm text-text"
                 >
                   <span className="flex-1">
                     {e.nombre_vacuna}
                     {e.es_obligatoria && (
-                      <span className="ml-2 rounded-full bg-slate-100 px-1.5 py-0.5 text-xs text-slate-500">
+                      <span className="ml-2 rounded-pill bg-surface-sunken px-1.5 py-0.5 text-xs text-text-muted">
                         obligatoria
                       </span>
                     )}
                   </span>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-text-muted">
                     cada {e.intervalo_dias} días
                   </span>
                   {aplicada && (
-                    <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700">
+                    <span className="rounded-pill bg-accent-subtle px-2 py-0.5 text-xs text-accent">
                       ✓ registrada
                     </span>
                   )}
@@ -295,7 +295,7 @@ export function VacunasTab({
 
       {/* Timeline */}
       {vacunas.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+        <div className="rounded-card border border-dashed border-border bg-surface p-8 text-center text-sm text-text-muted">
           Sin vacunas registradas.
         </div>
       ) : (
@@ -303,18 +303,18 @@ export function VacunasTab({
           {vacunas.map((v) => (
             <div
               key={v.id}
-              className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3"
+              className="flex items-center gap-3 rounded-control border border-border bg-surface p-3"
             >
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                <p className="flex items-center gap-2 text-sm font-medium text-text">
                   {v.nombre_vacuna}
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${CHIP[v.estado_alerta]}`}
+                    className={`rounded-pill px-2 py-0.5 text-xs font-medium ${CHIP[v.estado_alerta]}`}
                   >
                     {CHIP_LABEL[v.estado_alerta]}
                   </span>
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-text-muted">
                   Aplicada {formatearFecha(v.fecha_aplicacion)}
                   {v.proxima_dosis
                     ? ` · próxima ${formatearFecha(v.proxima_dosis)}`
@@ -326,7 +326,7 @@ export function VacunasTab({
               <button
                 type="button"
                 onClick={() => quitar(v.id)}
-                className="text-xs text-red-600 hover:underline"
+                className="text-xs text-danger hover:underline"
               >
                 Eliminar
               </button>

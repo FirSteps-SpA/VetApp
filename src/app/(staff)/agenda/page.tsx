@@ -4,12 +4,7 @@ import type { Metadata } from "next";
 
 import { ButtonLink } from "@/components/button";
 import { getCitasRango } from "@/lib/data/citas";
-import {
-  colorEstadoCita,
-  iconoEspecie,
-  labelEstadoCita,
-  type CitaConRel,
-} from "@/lib/types/db";
+import { colorEstadoCita } from "@/lib/types/db";
 import {
   etiquetaDia,
   formatearHora,
@@ -17,7 +12,7 @@ import {
   isoDia,
 } from "@/lib/utils/format";
 
-import { CitaActions } from "./cita-actions";
+import { DiaConDetalle } from "./dia-con-detalle";
 
 export const metadata: Metadata = {
   title: "Agenda",
@@ -33,42 +28,6 @@ function parseFecha(s?: string): Date {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   return hoy;
-}
-
-function CitaCard({ cita }: { cita: CitaConRel }) {
-  return (
-    <div className="flex flex-wrap items-center gap-3 rounded-card border border-border bg-surface-raised p-3 tablet:p-2.5">
-      <div className="w-12 shrink-0 text-support font-semibold text-text">
-        {formatearHora(cita.fecha_hora)}
-      </div>
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-pill bg-surface-sunken">
-        {cita.paciente ? iconoEspecie(cita.paciente.especie) : "🐾"}
-      </span>
-      <div className="min-w-0 flex-1">
-        <Link
-          href={`/pacientes/${cita.paciente_id}`}
-          className="text-support font-medium text-text hover:underline"
-        >
-          {cita.paciente?.nombre ?? "—"}
-        </Link>
-        <p className="truncate text-xs text-text-muted">
-          {cita.motivo}
-          {cita.dueno ? ` · ${cita.dueno.nombre}` : ""}
-        </p>
-      </div>
-      <span
-        className={`rounded-full px-2 py-0.5 text-xs font-medium ${colorEstadoCita(cita.estado)}`}
-      >
-        {labelEstadoCita(cita.estado)}
-      </span>
-      <CitaActions
-        citaId={cita.id}
-        pacienteId={cita.paciente_id}
-        estado={cita.estado}
-        consultaId={cita.consulta_id}
-      />
-    </div>
-  );
 }
 
 export default async function AgendaPage({
@@ -147,17 +106,7 @@ export default async function AgendaPage({
       </div>
 
       {vista === "dia" ? (
-        citas.length === 0 ? (
-          <div className="rounded-card border border-dashed border-border bg-surface-raised p-8 text-center text-body text-text-muted">
-            Sin citas este día.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {citas.map((c) => (
-              <CitaCard key={c.id} cita={c} />
-            ))}
-          </div>
-        )
+        <DiaConDetalle citas={citas} />
       ) : (
         <div className="grid grid-cols-1 gap-3 tablet:grid-cols-2 desktop:grid-cols-7">
           {Array.from({ length: 7 }).map((_, i) => {

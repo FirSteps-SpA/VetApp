@@ -17,8 +17,8 @@ import { crearPaciente, type FormState } from "./actions";
 const initialState: FormState = { error: null };
 
 const fieldClass =
-  "rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
-const labelClass = "flex flex-col gap-1 text-sm font-medium text-slate-700";
+  "rounded-control border border-border bg-surface px-3 py-2 text-base text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
+const labelClass = "flex flex-col gap-1 text-sm font-medium text-text";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -26,7 +26,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-teal-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-60"
+      className="rounded-control bg-accent px-5 py-2.5 font-medium text-on-accent transition-colors hover:opacity-90 disabled:opacity-60"
     >
       {pending ? "Guardando…" : "Registrar paciente"}
     </button>
@@ -52,17 +52,17 @@ function DuenoExistente({
 
   if (seleccionado) {
     return (
-      <div className="flex items-center justify-between rounded-lg border border-teal-200 bg-teal-50 p-3">
+      <div className="flex items-center justify-between rounded-control border border-accent bg-accent-subtle p-3">
         <div>
-          <p className="text-sm font-medium text-slate-800">
+          <p className="text-sm font-medium text-text">
             {seleccionado.nombre}
           </p>
-          <p className="text-xs text-slate-500">{seleccionado.telefono}</p>
+          <p className="text-xs text-text-muted">{seleccionado.telefono}</p>
         </div>
         <button
           type="button"
           onClick={() => onSelect(null)}
-          className="text-xs font-medium text-teal-700 hover:underline"
+          className="text-xs font-medium text-accent hover:underline"
         >
           Cambiar
         </button>
@@ -89,13 +89,13 @@ function DuenoExistente({
           type="button"
           onClick={buscar}
           disabled={buscando || !query.trim()}
-          className="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+          className="shrink-0 rounded-control border border-border px-3 py-2 text-sm font-medium text-text hover:bg-surface-sunken disabled:opacity-50"
         >
           Buscar
         </button>
       </div>
       {resultados && resultados.length === 0 && (
-        <p className="text-sm text-slate-500">Sin coincidencias.</p>
+        <p className="text-sm text-text-muted">Sin coincidencias.</p>
       )}
       {resultados && resultados.length > 0 && (
         <div className="space-y-1">
@@ -104,12 +104,12 @@ function DuenoExistente({
               key={d.id}
               type="button"
               onClick={() => onSelect(d)}
-              className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white p-2 text-left hover:border-teal-300"
+              className="flex w-full items-center justify-between rounded-control border border-border bg-surface p-2 text-left hover:border-accent"
             >
-              <span className="text-sm font-medium text-slate-800">
+              <span className="text-sm font-medium text-text">
                 {d.nombre}
               </span>
-              <span className="text-xs text-slate-500">{d.telefono}</span>
+              <span className="text-xs text-text-muted">{d.telefono}</span>
             </button>
           ))}
         </div>
@@ -128,8 +128,8 @@ export function PatientForm() {
       <input type="hidden" name="dueno_modo" value={modo} />
       <input type="hidden" name="dueno_id" value={seleccionado?.id ?? ""} />
 
-      <fieldset className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4">
-        <legend className="px-1 text-sm font-semibold text-slate-900">
+      <fieldset className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4">
+        <legend className="px-1 text-sm font-semibold text-text">
           Dueño
         </legend>
 
@@ -139,10 +139,10 @@ export function PatientForm() {
               key={m}
               type="button"
               onClick={() => setModo(m)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-control px-3 py-1.5 text-sm font-medium transition-colors ${
                 modo === m
-                  ? "bg-teal-50 text-teal-700"
-                  : "text-slate-600 hover:bg-slate-100"
+                  ? "bg-accent-subtle text-accent"
+                  : "text-text-muted hover:bg-surface-sunken"
               }`}
             >
               {m === "nuevo" ? "Dueño nuevo" : "Dueño existente"}
@@ -193,8 +193,8 @@ export function PatientForm() {
         )}
       </fieldset>
 
-      <fieldset className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4">
-        <legend className="px-1 text-sm font-semibold text-slate-900">
+      <fieldset className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4">
+        <legend className="px-1 text-sm font-semibold text-text">
           Paciente
         </legend>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -278,7 +278,7 @@ export function PatientForm() {
               className={fieldClass}
             />
           </label>
-          <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+          <label className="flex items-center gap-2 text-sm font-medium text-text">
             <input name="castrado" type="checkbox" className="h-4 w-4" />
             Castrado / esterilizado
           </label>
@@ -290,7 +290,7 @@ export function PatientForm() {
       </fieldset>
 
       {state.error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
           {state.error}
         </p>
       )}

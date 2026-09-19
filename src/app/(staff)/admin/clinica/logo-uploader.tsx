@@ -52,7 +52,7 @@ export function LogoUploader({ actualUrl }: { actualUrl: string | null }) {
 
   return (
     <div className="flex items-center gap-4">
-      <div className="grid h-20 w-32 place-items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+      <div className="grid h-20 w-32 place-items-center overflow-hidden rounded-control border border-border bg-surface-sunken">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -61,7 +61,7 @@ export function LogoUploader({ actualUrl }: { actualUrl: string | null }) {
             className="max-h-full max-w-full object-contain"
           />
         ) : (
-          <span className="text-xs text-slate-400">Sin logo</span>
+          <span className="text-xs text-text-muted">Sin logo</span>
         )}
       </div>
       <div>
@@ -69,11 +69,11 @@ export function LogoUploader({ actualUrl }: { actualUrl: string | null }) {
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={subiendo}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+          className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-surface-sunken disabled:opacity-60"
         >
           {subiendo ? "Subiendo…" : "Cambiar logo"}
         </button>
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-1 text-xs text-danger">{error}</p>}
       </div>
       <input
         ref={inputRef}

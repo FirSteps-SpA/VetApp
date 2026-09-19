@@ -15,9 +15,7 @@ const config: Config = {
         desktop: "1024px",
       },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        // Roles de color semánticos. La paleta concreta (teal/slate) vive
+        // Roles de color semánticos. La paleta concreta (CSAP Pradera) vive
         // detrás de estas variables en globals.css.
         surface: "var(--color-surface)",
         "surface-raised": "var(--color-surface-raised)",
@@ -28,7 +26,17 @@ const config: Config = {
         accent: "var(--color-accent)",
         "accent-subtle": "var(--color-accent-subtle)",
         "on-accent": "var(--color-on-accent)",
+        // Secondary/tertiary: no usar como relleno sólido con texto encima
+        // (no pasan AA a texto normal). Sirven de color de ícono/borde/acento
+        // decorativo sobre su propia variante "subtle", con `text` como texto.
+        "accent-secondary": "var(--color-accent-secondary)",
+        "accent-secondary-subtle": "var(--color-accent-secondary-subtle)",
+        "accent-tertiary": "var(--color-accent-tertiary)",
+        "accent-tertiary-subtle": "var(--color-accent-tertiary-subtle)",
+        warning: "var(--color-warning)",
+        "warning-subtle": "var(--color-warning-subtle)",
         danger: "var(--color-danger)",
+        "danger-subtle": "var(--color-danger-subtle)",
         badge: "var(--color-badge)",
         "on-badge": "var(--color-on-badge)",
       },
@@ -60,6 +68,22 @@ const config: Config = {
       },
       maxWidth: {
         reading: "72ch",
+      },
+      fontFamily: {
+        // Pareja tipográfica con nombre: titular (Manrope) y cuerpo (Plus
+        // Jakarta Sans), cada una con una pila de resguardo real.
+        display: [
+          "var(--font-display)",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
+        body: [
+          "var(--font-body)",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
       },
     },
   },

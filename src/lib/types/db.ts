@@ -394,12 +394,12 @@ export const ESTADOS_CITA: {
   label: string;
   color: string;
 }[] = [
-  { value: "pendiente", label: "Pendiente", color: "bg-amber-100 text-amber-700" },
-  { value: "confirmada", label: "Confirmada", color: "bg-blue-100 text-blue-700" },
-  { value: "en_consulta", label: "En consulta", color: "bg-violet-100 text-violet-700" },
-  { value: "realizada", label: "Realizada", color: "bg-teal-100 text-teal-700" },
-  { value: "cancelada", label: "Cancelada", color: "bg-slate-200 text-slate-600" },
-  { value: "no_asistio", label: "No asistió", color: "bg-red-100 text-red-700" },
+  { value: "pendiente", label: "Pendiente", color: "bg-warning-subtle text-text" },
+  { value: "confirmada", label: "Confirmada", color: "bg-accent-subtle text-text" },
+  { value: "en_consulta", label: "En consulta", color: "bg-accent-secondary-subtle text-text" },
+  { value: "realizada", label: "Realizada", color: "bg-accent-tertiary-subtle text-text" },
+  { value: "cancelada", label: "Cancelada", color: "bg-surface-sunken text-text-muted" },
+  { value: "no_asistio", label: "No asistió", color: "bg-danger-subtle text-text" },
 ];
 
 export function labelEstadoCita(estado: EstadoCita): string {
@@ -409,7 +409,7 @@ export function labelEstadoCita(estado: EstadoCita): string {
 export function colorEstadoCita(estado: EstadoCita): string {
   return (
     ESTADOS_CITA.find((e) => e.value === estado)?.color ??
-    "bg-slate-100 text-slate-600"
+    "bg-surface-sunken text-text-muted"
   );
 }
 

@@ -52,6 +52,23 @@ export async function getSolicitudesPendientes(): Promise<CitaConRel[]> {
   return ((data as unknown as Row[]) ?? []).map(mapRow);
 }
 
+// Todas las solicitudes hechas por clientes, cualquier estado (para las
+// pestañas de Reservas: pendientes/confirmadas/canceladas/no asistió).
+export async function getSolicitudes(): Promise<CitaConRel[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("citas")
+    .select(SELECT)
+    .eq("creado_por_cliente", true)
+    .order("fecha_hora", { ascending: false });
+
+  if (error) {
+    console.error("getSolicitudes:", error.message);
+    return [];
+  }
+  return ((data as unknown as Row[]) ?? []).map(mapRow);
+}
+
 export async function countSolicitudesPendientes(): Promise<number> {
   const supabase = createClient();
   const { count } = await supabase

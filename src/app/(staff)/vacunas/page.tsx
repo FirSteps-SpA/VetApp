@@ -11,27 +11,27 @@ export const metadata: Metadata = {
 
 function Fila({ alerta }: { alerta: AlertaVacuna }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-100 text-lg">
+    <div className="flex items-center gap-3 rounded-card border border-border bg-surface p-3">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-sunken text-lg">
         {alerta.paciente ? iconoEspecie(alerta.paciente.especie) : "🐾"}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-slate-800">
+        <p className="truncate text-body font-medium text-text">
           {alerta.paciente?.nombre ?? "—"}{" "}
-          <span className="text-slate-400">
+          <span className="text-text-muted">
             {alerta.paciente?.numero_ficha}
           </span>
         </p>
-        <p className="truncate text-xs text-slate-500">
+        <p className="truncate text-support text-text-muted">
           {alerta.nombre_vacuna} · prevista{" "}
           {formatearFecha(alerta.proxima_dosis)}
         </p>
         {alerta.dueno && (
-          <p className="truncate text-xs text-slate-500">
+          <p className="truncate text-support text-text-muted">
             {alerta.dueno.nombre} ·{" "}
             <a
               href={`tel:${alerta.dueno.telefono}`}
-              className="text-teal-700 hover:underline"
+              className="text-accent hover:underline"
             >
               {alerta.dueno.telefono}
             </a>
@@ -40,7 +40,7 @@ function Fila({ alerta }: { alerta: AlertaVacuna }) {
       </div>
       <Link
         href={`/pacientes/${alerta.paciente_id}`}
-        className="shrink-0 text-xs font-medium text-teal-700 hover:underline"
+        className="shrink-0 text-support font-medium text-accent hover:underline"
       >
         Ver ficha
       </Link>
@@ -55,25 +55,25 @@ export default async function VacunasPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold text-slate-900">Vacunas</h1>
+      <h1 className="text-page font-semibold text-text">Vacunas</h1>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-red-700">
+        <h2 className="text-body font-semibold text-danger">
           Vencidas ({vencidas.length})
         </h2>
         {vencidas.length === 0 ? (
-          <p className="text-sm text-slate-500">Sin vacunas vencidas.</p>
+          <p className="text-body text-text-muted">Sin vacunas vencidas.</p>
         ) : (
           vencidas.map((a) => <Fila key={a.id} alerta={a} />)
         )}
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-amber-700">
+        <h2 className="text-body font-semibold text-warning">
           Próximas 30 días ({proximas.length})
         </h2>
         {proximas.length === 0 ? (
-          <p className="text-sm text-slate-500">Sin vacunas próximas.</p>
+          <p className="text-body text-text-muted">Sin vacunas próximas.</p>
         ) : (
           proximas.map((a) => <Fila key={a.id} alerta={a} />)
         )}

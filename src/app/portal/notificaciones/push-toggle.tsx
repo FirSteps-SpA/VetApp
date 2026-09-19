@@ -91,7 +91,7 @@ export function PushToggle() {
 
   if (!soportado) {
     return (
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-text-muted">
         Tu navegador no soporta notificaciones push.
       </p>
     );
@@ -108,7 +108,7 @@ export function PushToggle() {
           Activar notificaciones push
         </button>
       )}
-      {msg && <p className="text-xs text-red-600">{msg}</p>}
+      {msg && <p className="text-xs text-danger">{msg}</p>}
     </div>
   );
 }

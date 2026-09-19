@@ -325,7 +325,7 @@ export function FichaTabs({
                       {c.motivo}
                     </span>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${colorEstadoCita(c.estado)}`}
+                      className={`rounded-pill px-2 py-0.5 text-xs font-medium ${colorEstadoCita(c.estado)}`}
                     >
                       {labelEstadoCita(c.estado)}
                     </span>

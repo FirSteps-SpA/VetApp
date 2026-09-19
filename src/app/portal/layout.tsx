@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 
 import { getRol } from "@/lib/auth/roles";
+import { getClinicaConfig } from "@/lib/data/clinica";
 import { countNotificacionesNoLeidas } from "@/lib/data/portal";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -26,13 +27,12 @@ export default async function PortalLayout({
   if (!user) redirect("/login");
   if (getRol(user) !== "cliente") redirect("/");
 
-  const { data: perfil } = await supabase
-    .from("usuarios")
-    .select("nombre")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const noLeidas = await countNotificacionesNoLeidas();
+  const [{ data: perfil }, noLeidas, clinicaConfig] = await Promise.all([
+    supabase.from("usuarios").select("nombre").eq("id", user.id).maybeSingle(),
+    countNotificacionesNoLeidas(),
+    getClinicaConfig(),
+  ]);
+  const nombreClinica = clinicaConfig?.nombre_clinica || "VetApp";
 
   const railCookie = cookies().get("rail")?.value;
   const shellStyle: CSSProperties | undefined =
@@ -55,7 +55,7 @@ export default async function PortalLayout({
               href="/portal"
               className="font-semibold text-accent tablet:hidden"
             >
-              VetApp · Portal
+              {nombreClinica} · Portal
             </Link>
             <div className="flex items-center gap-3">
               <span className="hidden text-support text-text-muted tablet:inline">
@@ -81,7 +81,7 @@ export default async function PortalLayout({
       <PrimaryNav
         destinos={portalDestinos()}
         contadores={{ noLeidas }}
-        titulo="Portal"
+        titulo={nombreClinica}
         homeHref="/portal"
       />
     </div>

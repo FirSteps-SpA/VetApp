@@ -22,11 +22,11 @@ export default async function EditarDuenoPage({
     <div className="mx-auto max-w-2xl">
       <Link
         href={`/pacientes/${params.id}`}
-        className="text-sm text-slate-500 hover:text-slate-700"
+        className="text-sm text-text-muted hover:text-text"
       >
         ← Ficha del paciente
       </Link>
-      <h1 className="mb-6 mt-2 text-2xl font-semibold text-slate-900">
+      <h1 className="mb-6 mt-2 text-2xl font-semibold text-text">
         Editar dueño
       </h1>
       <EditDuenoForm dueno={dueno} pacienteId={params.id} />

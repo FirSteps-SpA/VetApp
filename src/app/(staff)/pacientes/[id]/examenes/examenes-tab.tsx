@@ -22,7 +22,7 @@ import { formatearFecha } from "@/lib/utils/format";
 import { crearExamen, eliminarExamen } from "./actions";
 
 const field =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
+  "w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
 
 const hoy = () => new Date().toISOString().slice(0, 10);
 
@@ -125,7 +125,7 @@ export function ExamenesTab({
   return (
     <div className="space-y-5">
       {/* Subida */}
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="space-y-3 rounded-card border border-border bg-surface p-4">
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
@@ -134,10 +134,10 @@ export function ExamenesTab({
             if (f) tomarArchivo(f);
           }}
           onClick={() => inputRef.current?.click()}
-          className="cursor-pointer rounded-lg border-2 border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 hover:border-teal-300"
+          className="cursor-pointer rounded-control border-2 border-dashed border-border px-4 py-6 text-center text-sm text-text-muted hover:border-accent"
         >
           {file ? (
-            <span className="font-medium text-slate-700">{file.name}</span>
+            <span className="font-medium text-text">{file.name}</span>
           ) : (
             <>Arrastra un archivo aquí o haz clic para seleccionar (JPG, PNG, WEBP, PDF)</>
           )}
@@ -188,13 +188,13 @@ export function ExamenesTab({
         )}
 
         {subiendo && (
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full w-1/3 animate-pulse rounded-full bg-teal-500" />
+          <div className="h-1.5 w-full overflow-hidden rounded-pill bg-surface-sunken">
+            <div className="h-full w-1/3 animate-pulse rounded-pill bg-accent-subtle0" />
           </div>
         )}
 
         {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
             {error}
           </p>
         )}
@@ -205,7 +205,7 @@ export function ExamenesTab({
               type="button"
               onClick={resetForm}
               disabled={subiendo}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+              className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-surface-sunken disabled:opacity-60"
             >
               Cancelar
             </button>
@@ -213,7 +213,7 @@ export function ExamenesTab({
               type="button"
               onClick={agregar}
               disabled={subiendo}
-              className="rounded-lg bg-teal-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+              className="rounded-control bg-accent px-4 py-1.5 text-sm font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
             >
               {subiendo ? "Subiendo…" : "Agregar examen"}
             </button>
@@ -223,11 +223,11 @@ export function ExamenesTab({
 
       {/* Filtro */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-400">Filtrar:</span>
+        <span className="text-xs text-text-muted">Filtrar:</span>
         <select
           value={filtro}
           onChange={(e) => setFiltro(e.target.value as TipoExamen | "todos")}
-          className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm"
+          className="rounded-control border border-border bg-surface px-2 py-1 text-sm"
         >
           <option value="todos">Todos</option>
           {TIPOS_EXAMEN.map((t) => (
@@ -240,7 +240,7 @@ export function ExamenesTab({
 
       {/* Grid */}
       {visibles.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+        <div className="rounded-card border border-dashed border-border bg-surface p-8 text-center text-sm text-text-muted">
           {examenes.length === 0
             ? "Sin exámenes adjuntos."
             : "Sin exámenes de este tipo."}
@@ -252,9 +252,9 @@ export function ExamenesTab({
             return (
               <div
                 key={e.id}
-                className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3"
+                className="flex gap-3 rounded-card border border-border bg-surface p-3"
               >
-                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-slate-100">
+                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-control bg-surface-sunken">
                   {url && esImagen(e.archivo_tipo) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -271,14 +271,14 @@ export function ExamenesTab({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-800">
+                  <p className="truncate text-sm font-medium text-text">
                     {e.nombre}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-text-muted">
                     {labelTipoExamen(e.tipo)} · {formatearFecha(e.fecha)}
                   </p>
                   {e.descripcion && (
-                    <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">
+                    <p className="mt-0.5 line-clamp-2 text-xs text-text-muted">
                       {e.descripcion}
                     </p>
                   )}
@@ -288,7 +288,7 @@ export function ExamenesTab({
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center px-2 py-2 font-medium text-teal-700 hover:underline"
+                        className="inline-flex items-center px-2 py-2 font-medium text-accent hover:underline"
                       >
                         Abrir / Descargar
                       </a>
@@ -296,7 +296,7 @@ export function ExamenesTab({
                     <button
                       type="button"
                       onClick={() => quitar(e.id)}
-                      className="inline-flex items-center px-2 py-2 text-red-600 hover:underline"
+                      className="inline-flex items-center px-2 py-2 text-danger hover:underline"
                     >
                       Eliminar
                     </button>
@@ -318,7 +318,7 @@ export function ExamenesTab({
           <img
             src={modalUrl}
             alt="Vista del examen"
-            className="max-h-full max-w-full rounded-lg object-contain"
+            className="max-h-full max-w-full rounded-control object-contain"
           />
         </div>
       )}

@@ -11,7 +11,7 @@ import type { Sucursal } from "@/lib/types/db";
 import { actualizarSucursal, crearSucursal } from "./actions";
 
 const field =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
+  "w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
 
 interface Draft {
   nombre: string;
@@ -78,13 +78,13 @@ export function SucursalesManager({ sucursales }: { sucursales: Sucursal[] }) {
   return (
     <div className="space-y-3">
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
           {error}
         </p>
       )}
 
       {sucursales.map((s) => (
-        <div key={s.id} className="rounded-xl border border-slate-200 p-3">
+        <div key={s.id} className="rounded-card border border-border p-3">
           {editId === s.id ? (
             <div className="grid gap-2 sm:grid-cols-2">
               <input
@@ -115,13 +115,13 @@ export function SucursalesManager({ sucursales }: { sucursales: Sucursal[] }) {
                 <button
                   onClick={() => guardarEdicion(s)}
                   disabled={busy}
-                  className="rounded-lg bg-teal-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+                  className="rounded-control bg-accent px-3 py-1.5 text-sm font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
                 >
                   Guardar
                 </button>
                 <button
                   onClick={() => setEditId(null)}
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                  className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-surface-sunken"
                 >
                   Cancelar
                 </button>
@@ -130,22 +130,22 @@ export function SucursalesManager({ sucursales }: { sucursales: Sucursal[] }) {
           ) : (
             <div className="flex flex-wrap items-center gap-2">
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                <p className="flex items-center gap-2 text-sm font-medium text-text">
                   {s.nombre}
                   {!s.activo && (
-                    <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-600">
+                    <span className="rounded-pill bg-border px-2 py-0.5 text-xs text-text-muted">
                       Inactiva
                     </span>
                   )}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-text-muted">
                   {[s.direccion, s.telefono, s.email].filter(Boolean).join(" · ") ||
                     "—"}
                 </p>
               </div>
               <button
                 onClick={() => abrirEdicion(s)}
-                className="inline-flex items-center gap-1 px-2 py-2 text-xs font-medium text-teal-700 hover:underline"
+                className="inline-flex items-center gap-1 px-2 py-2 text-xs font-medium text-accent hover:underline"
               >
                 <Icon name="pencil" className="h-3.5 w-3.5" />
                 Editar
@@ -165,7 +165,7 @@ export function SucursalesManager({ sucursales }: { sucursales: Sucursal[] }) {
       ))}
 
       {creando ? (
-        <div className="grid gap-2 rounded-xl border border-slate-200 p-3 sm:grid-cols-2">
+        <div className="grid gap-2 rounded-card border border-border p-3 sm:grid-cols-2">
           <input
             value={nueva.nombre}
             onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
@@ -194,13 +194,13 @@ export function SucursalesManager({ sucursales }: { sucursales: Sucursal[] }) {
             <button
               onClick={crear}
               disabled={busy}
-              className="rounded-lg bg-teal-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+              className="rounded-control bg-accent px-3 py-1.5 text-sm font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
             >
               Crear
             </button>
             <button
               onClick={() => setCreando(false)}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-surface-sunken"
             >
               Cancelar
             </button>
@@ -209,7 +209,7 @@ export function SucursalesManager({ sucursales }: { sucursales: Sucursal[] }) {
       ) : (
         <button
           onClick={() => setCreando(true)}
-          className="inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
         >
           <Icon name="plus" className="h-3.5 w-3.5" />
           Agregar sucursal

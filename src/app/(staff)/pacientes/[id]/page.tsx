@@ -22,6 +22,7 @@ import { calcularEdad, formatearFecha, formatearPeso } from "@/lib/utils/format"
 import { NuevaConsultaDrawer } from "./consultas/nueva-consulta-drawer";
 import { DocumentosButton } from "./documentos/documentos-button";
 import { ExportButton } from "./export/export-button";
+import { ResumenLateral } from "./resumen-lateral";
 import { FichaTabs } from "./tabs";
 import { PhotoUploader } from "./photo-uploader";
 import { RecordVisit } from "./record-visit";
@@ -38,8 +39,8 @@ export async function generateMetadata({
 function Dato({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-slate-400">{label}</dt>
-      <dd className="text-sm text-slate-800">{value}</dd>
+      <dt className="text-xs text-text-muted">{label}</dt>
+      <dd className="text-sm text-text">{value}</dd>
     </div>
   );
 }
@@ -95,20 +96,20 @@ export default async function FichaPage({
     resumen.vacunasVencidas > 0
       ? {
           text: `${resumen.vacunasVencidas} vencida(s)`,
-          class: "bg-red-50 text-red-700",
+          class: "bg-danger-subtle text-text",
         }
       : resumen.vacunasProximas > 0
         ? {
             text: `${resumen.vacunasProximas} próxima(s)`,
-            class: "bg-amber-50 text-amber-700",
+            class: "bg-warning-subtle text-text",
           }
-        : { text: "Sin alertas", class: "bg-slate-100 text-slate-500" };
+        : { text: "Sin alertas", class: "bg-surface-sunken text-text-muted" };
 
   // Editar / Exportar: se muestran apilados en el hero card (a la derecha de la
   // foto en móvil, del encabezado en desktop). Se define una vez y se coloca en
   // ambos slots; sólo uno es visible por breakpoint.
   const accionBtn =
-    "inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100";
+    "inline-flex w-full items-center justify-center gap-1.5 rounded-control border border-border px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-sunken";
   const acciones = (
     <>
       <Link href={`/pacientes/${paciente.id}/editar`} className={accionBtn}>
@@ -164,7 +165,7 @@ export default async function FichaPage({
       <div className="flex items-center justify-between gap-3">
         <Link
           href="/pacientes"
-          className="text-sm text-slate-500 hover:text-slate-700"
+          className="text-sm text-text-muted hover:text-text"
         >
           ← Pacientes
         </Link>
@@ -175,8 +176,10 @@ export default async function FichaPage({
         />
       </div>
 
+      <div className="grid gap-5 desktop:grid-cols-[minmax(0,1fr)_20rem] desktop:items-start">
+      <div className="flex flex-col gap-5">
       {/* Hero card */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+      <section className="rounded-card border border-border bg-surface p-5">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
           <div className="flex items-start justify-between gap-4 sm:block sm:shrink-0">
             <PhotoUploader
@@ -191,14 +194,14 @@ export default async function FichaPage({
           <div className="flex-1">
             <div className="flex items-start justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold text-slate-900">
+              <h1 className="text-2xl font-semibold text-text">
                 {paciente.nombre}
               </h1>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+              <span className="rounded-pill bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">
                 {paciente.numero_ficha}
               </span>
                 {!paciente.activo && (
-                  <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  <span className="rounded-pill bg-border px-2 py-0.5 text-xs font-medium text-text-muted">
                     Archivado
                   </span>
                 )}
@@ -231,57 +234,57 @@ export default async function FichaPage({
         </div>
 
         {/* Dueño principal + resumen clínico */}
-        <div className="mt-5 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-3">
+        <div className="mt-5 grid gap-3 border-t border-border pt-4 sm:grid-cols-3">
           <div>
             <div className="flex items-center gap-2">
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-text-muted">
                 {duenos.length > 1 ? "Dueños" : "Dueño principal"}
               </p>
               <Link
                 href={`/pacientes/${paciente.id}/duenos`}
-                className="text-xs font-medium text-teal-700 hover:underline"
+                className="text-xs font-medium text-accent hover:underline"
               >
                 Gestionar{duenos.length > 1 ? ` (${duenos.length})` : ""}
               </Link>
             </div>
             {principal ? (
               <>
-                <p className="text-sm font-medium text-slate-800">
+                <p className="text-sm font-medium text-text">
                   {principal.nombre}
                   {principal.rut ? (
-                    <span className="ml-1 text-xs font-normal text-slate-400">
+                    <span className="ml-1 text-xs font-normal text-text-muted">
                       · {principal.rut}
                     </span>
                   ) : null}
                 </p>
                 <a
                   href={`tel:${principal.telefono}`}
-                  className="text-sm text-teal-700 hover:underline"
+                  className="text-sm text-accent hover:underline"
                 >
                   {principal.telefono}
                 </a>
               </>
             ) : (
-              <p className="text-sm text-slate-500">—</p>
+              <p className="text-sm text-text-muted">—</p>
             )}
           </div>
 
           <div>
-            <p className="text-xs text-slate-400">Última consulta</p>
+            <p className="text-xs text-text-muted">Última consulta</p>
             {resumen.ultimaConsulta ? (
-              <p className="text-sm text-slate-800">
+              <p className="text-sm text-text">
                 {formatearFecha(resumen.ultimaConsulta.fecha)} ·{" "}
                 {resumen.ultimaConsulta.diagnostico}
               </p>
             ) : (
-              <p className="text-sm text-slate-500">Sin consultas</p>
+              <p className="text-sm text-text-muted">Sin consultas</p>
             )}
           </div>
 
           <div>
-            <p className="text-xs text-slate-400">Estado vacunal</p>
+            <p className="text-xs text-text-muted">Estado vacunal</p>
             <span
-              className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${vacunaChip.class}`}
+              className={`mt-0.5 inline-block rounded-pill px-2 py-0.5 text-xs font-medium ${vacunaChip.class}`}
             >
               {vacunaChip.text}
             </span>
@@ -289,26 +292,29 @@ export default async function FichaPage({
         </div>
 
         {/* Medicamentos activos (última receta vigente) */}
-        <div className="mt-3 border-t border-slate-100 pt-3">
-          <p className="text-xs text-slate-400">Medicamentos activos</p>
+        <div className="mt-3 border-t border-border pt-3">
+          <p className="text-xs text-text-muted">Medicamentos activos</p>
           {resumen.medicamentosActivos.length > 0 ? (
             <ul className="mt-1 flex flex-wrap gap-1.5">
               {resumen.medicamentosActivos.map((m, i) => (
                 <li
                   key={i}
-                  className="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700"
+                  className="rounded-pill bg-accent-subtle px-2 py-0.5 text-xs text-accent"
                 >
                   {resumenMedicamento(m)}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-slate-500">Sin medicamentos vigentes</p>
+            <p className="text-sm text-text-muted">Sin medicamentos vigentes</p>
           )}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white px-5 py-2">
+      <section
+        id="historial"
+        className="rounded-card border border-border bg-surface px-5 py-2"
+      >
         <FichaTabs
           pacienteId={paciente.id}
           notas={paciente.notas}
@@ -324,6 +330,14 @@ export default async function FichaPage({
           dueno={principal}
         />
       </section>
+      </div>
+
+      <ResumenLateral
+        consultas={consultas}
+        vacunas={vacunas}
+        pacienteId={paciente.id}
+      />
+      </div>
     </div>
   );
 }

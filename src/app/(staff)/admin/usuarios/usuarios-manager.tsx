@@ -11,7 +11,7 @@ import type { Sucursal, UsuarioAdmin } from "@/lib/types/db";
 import { actualizarUsuario, crearUsuario, eliminarUsuario } from "./actions";
 
 const field =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
+  "w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
 
 const ROLES_STAFF = ["veterinario", "recepcionista", "dev"];
 const ROLES_EDIT = ["veterinario", "recepcionista", "dev", "cliente"];
@@ -96,14 +96,14 @@ export function UsuariosManager({
   return (
     <div className="space-y-6">
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
           {error}
         </p>
       )}
 
       {/* Crear */}
-      <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-semibold text-slate-700">Nuevo usuario staff</h2>
+      <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
+        <h2 className="text-sm font-semibold text-text">Nuevo usuario staff</h2>
         <div className="grid gap-2 sm:grid-cols-2">
           <input
             value={nuevo.nombre}
@@ -145,15 +145,15 @@ export function UsuariosManager({
         <button
           onClick={crear}
           disabled={busy}
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+          className="rounded-control bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
         >
           Crear y generar enlace
         </button>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-text-muted">
           Los clientes se invitan desde la ficha de su dueño, no aquí.
         </p>
         {enlace && (
-          <div className="rounded-lg bg-blue-50 p-3">
+          <div className="rounded-control bg-blue-50 p-3">
             <p className="text-xs font-medium text-blue-800">
               Enlace de acceso (compártelo con el usuario):
             </p>
@@ -161,7 +161,7 @@ export function UsuariosManager({
               readOnly
               value={enlace}
               onFocus={(e) => e.target.select()}
-              className="mt-1 w-full rounded border border-blue-200 bg-white px-2 py-1 text-xs"
+              className="mt-1 w-full rounded border border-blue-200 bg-surface px-2 py-1 text-xs"
             />
           </div>
         )}
@@ -170,7 +170,7 @@ export function UsuariosManager({
       {/* Listado */}
       <section className="space-y-2">
         {usuarios.map((u) => (
-          <div key={u.id} className="rounded-xl border border-slate-200 bg-white p-3">
+          <div key={u.id} className="rounded-card border border-border bg-surface p-3">
             {editId === u.id ? (
               <div className="grid gap-2 sm:grid-cols-2">
                 <input
@@ -203,7 +203,7 @@ export function UsuariosManager({
                     </option>
                   ))}
                 </select>
-                <label className="flex items-center gap-2 text-sm text-slate-700">
+                <label className="flex items-center gap-2 text-sm text-text">
                   <input
                     type="checkbox"
                     checked={draft.activo}
@@ -218,13 +218,13 @@ export function UsuariosManager({
                   <button
                     onClick={() => guardar(u.id)}
                     disabled={busy}
-                    className="rounded-lg bg-teal-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+                    className="rounded-control bg-accent px-3 py-1.5 text-sm font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
                   >
                     Guardar
                   </button>
                   <button
                     onClick={() => setEditId(null)}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                    className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-surface-sunken"
                   >
                     Cancelar
                   </button>
@@ -233,18 +233,18 @@ export function UsuariosManager({
             ) : (
               <div className="flex flex-wrap items-center gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                  <p className="flex items-center gap-2 text-sm font-medium text-text">
                     {u.nombre}
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                    <span className="rounded-pill bg-surface-sunken px-2 py-0.5 text-xs text-text-muted">
                       {u.rol}
                     </span>
                     {!u.activo && (
-                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-600">
+                      <span className="rounded-pill bg-border px-2 py-0.5 text-xs text-text-muted">
                         Inactivo
                       </span>
                     )}
                   </p>
-                  <p className="truncate text-xs text-slate-500">
+                  <p className="truncate text-xs text-text-muted">
                     {u.email} · {nombreSucursal(u.sucursal_id)}
                   </p>
                 </div>
@@ -258,7 +258,7 @@ export function UsuariosManager({
                       activo: u.activo,
                     });
                   }}
-                  className="inline-flex items-center gap-1 px-2 py-2 text-xs font-medium text-teal-700 hover:underline"
+                  className="inline-flex items-center gap-1 px-2 py-2 text-xs font-medium text-accent hover:underline"
                 >
                   <Icon name="pencil" className="h-3.5 w-3.5" />
                   Editar

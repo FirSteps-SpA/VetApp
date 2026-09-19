@@ -3,15 +3,15 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-2xl font-semibold text-slate-900">
+      <h1 className="text-page font-semibold text-text">
         Página no encontrada
       </h1>
-      <p className="max-w-md text-sm text-slate-500">
+      <p className="max-w-md text-body text-text-muted">
         La página que buscas no existe o no tienes acceso a ella.
       </p>
       <Link
         href="/"
-        className="rounded-lg bg-teal-600 px-4 py-2 font-medium text-white hover:bg-teal-700"
+        className="inline-flex min-h-tap items-center justify-center rounded-control bg-accent px-4 font-medium text-on-accent hover:opacity-90"
       >
         Volver al inicio
       </Link>

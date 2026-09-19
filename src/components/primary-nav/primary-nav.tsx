@@ -3,13 +3,41 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  Bell,
+  CalendarDays,
+  Home,
+  PawPrint,
+  Settings,
+  Syringe,
+  User,
+  type LucideIcon,
+} from "lucide-react";
 
 import { cx } from "@/lib/utils/cx";
-import { type Contadores, type NavDestino, esActivo } from "./destinos";
+import {
+  type BadgeTone,
+  type Contadores,
+  type IconName,
+  type NavDestino,
+  esActivo,
+} from "./destinos";
 
 const APP_SHELL_ID = "app-shell";
 const RAIL_EXPANDED = "15rem";
 const RAIL_COLLAPSED = "3.5rem";
+
+// Resuelve el nombre de ícono (serializable, cruza el borde Server/Client) al
+// componente real de lucide-react.
+const ICONS: Record<IconName, LucideIcon> = {
+  home: Home,
+  "paw-print": PawPrint,
+  "calendar-days": CalendarDays,
+  bell: Bell,
+  syringe: Syringe,
+  user: User,
+  settings: Settings,
+};
 
 function contadorDe(d: NavDestino, c: Contadores): number {
   return d.badge ? (c[d.badge] ?? 0) : 0;
@@ -78,15 +106,16 @@ function BottomBar({
         {primarios.map((d) => {
           const activo = esActivo(pathname, d);
           const n = contadorDe(d, contadores);
+          const Icon = ICONS[d.icon];
           return (
             <Link
               key={d.href}
               href={d.href}
               className={cx(celda, activo ? "text-accent" : "text-text-muted")}
             >
-              <span className="relative text-lg leading-none">
-                {d.emoji}
-                {n > 0 && <Dot>{n}</Dot>}
+              <span className="relative leading-none">
+                <Icon className="h-5 w-5" aria-hidden />
+                {n > 0 && <Dot tone={d.badgeTone}>{n}</Dot>}
               </span>
               {d.label}
             </Link>
@@ -118,6 +147,7 @@ function BottomBar({
                 <div className="absolute bottom-full right-2 z-30 mb-1 w-44 overflow-hidden rounded-card border border-border bg-surface-raised shadow-overlay">
                   {secundarios.map((d) => {
                     const n = contadorDe(d, contadores);
+                    const Icon = ICONS[d.icon];
                     return (
                       <Link
                         key={d.href}
@@ -125,9 +155,9 @@ function BottomBar({
                         onClick={() => setMasOpen(false)}
                         className="flex min-h-tap items-center gap-2 px-4 py-2.5 text-body text-text hover:bg-surface-sunken"
                       >
-                        <span className="relative text-base">
-                          {d.emoji}
-                          {n > 0 && <Dot>{n}</Dot>}
+                        <span className="relative leading-none">
+                          <Icon className="h-4 w-4" aria-hidden />
+                          {n > 0 && <Dot tone={d.badgeTone}>{n}</Dot>}
                         </span>
                         {d.label}
                       </Link>
@@ -184,13 +214,11 @@ function Rail({
       <div className="rail-item flex min-h-tap items-center gap-2 border-b border-border px-3">
         <Link
           href={homeHref}
-          className="truncate font-semibold text-accent"
+          className="flex items-center gap-2 truncate font-semibold text-accent"
           title={titulo}
         >
+          <PawPrint className="rail-icon h-5 w-5 shrink-0" aria-hidden />
           <span className="rail-label">{titulo}</span>
-          <span className="rail-icon" aria-hidden>
-            🐾
-          </span>
         </Link>
       </div>
 
@@ -198,6 +226,7 @@ function Rail({
         {destinos.map((d) => {
           const activo = esActivo(pathname, d);
           const n = contadorDe(d, contadores);
+          const Icon = ICONS[d.icon];
           return (
             <Link
               key={d.href}
@@ -210,9 +239,9 @@ function Rail({
                   : "text-text-muted hover:bg-surface-sunken",
               )}
             >
-              <span className="relative shrink-0 text-lg leading-none">
-                {d.emoji}
-                {n > 0 && <Dot>{n}</Dot>}
+              <span className="relative shrink-0 leading-none">
+                <Icon className="h-5 w-5" aria-hidden />
+                {n > 0 && <Dot tone={d.badgeTone}>{n}</Dot>}
               </span>
               <span className="rail-label truncate">{d.label}</span>
             </Link>
@@ -238,9 +267,20 @@ function Rail({
 
 /* --------------------------------- Badge ---------------------------------- */
 
-function Dot({ children }: { children: React.ReactNode }) {
+function Dot({
+  tone = "danger",
+  children,
+}: {
+  tone?: BadgeTone;
+  children: React.ReactNode;
+}) {
   return (
-    <span className="absolute -right-2 -top-1 rounded-pill bg-badge px-1 text-[0.625rem] font-semibold leading-none text-on-badge">
+    <span
+      className={cx(
+        "absolute -right-2 -top-1 rounded-pill px-1 text-[0.625rem] font-semibold leading-none text-on-badge",
+        tone === "warning" ? "bg-warning" : "bg-badge",
+      )}
+    >
       {children}
     </span>
   );

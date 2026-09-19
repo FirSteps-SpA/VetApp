@@ -23,7 +23,7 @@ export function SearchBar({ initial }: { initial: string }) {
       value={value}
       onChange={(e) => handleChange(e.target.value)}
       placeholder="Buscar por nombre, número de ficha o teléfono del dueño…"
-      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+      className="min-h-tap w-full rounded-control border border-border bg-surface px-3 text-body text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle"
     />
   );
 }

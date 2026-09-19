@@ -7,8 +7,8 @@ import type { ClinicaConfig } from "@/lib/types/db";
 import { guardarClinica } from "./actions";
 
 const field =
-  "rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
-const label = "flex flex-col gap-1 text-sm font-medium text-slate-700";
+  "rounded-control border border-border bg-surface px-3 py-2 text-base text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
+const label = "flex flex-col gap-1 text-sm font-medium text-text";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -16,7 +16,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-teal-600 px-5 py-2.5 font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+      className="rounded-control bg-accent px-5 py-2.5 font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
     >
       {pending ? "Guardando…" : "Guardar datos"}
     </button>
@@ -82,7 +82,7 @@ export function ClinicaForm({ config }: { config: ClinicaConfig }) {
       </div>
 
       {state.error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
           {state.error}
         </p>
       )}

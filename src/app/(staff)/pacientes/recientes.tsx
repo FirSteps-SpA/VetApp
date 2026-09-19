@@ -17,7 +17,7 @@ export function Recientes() {
 
   return (
     <section>
-      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <h2 className="mb-2 text-support font-semibold uppercase tracking-wide text-text-muted">
         Vistos recientemente
       </h2>
       <div className="flex gap-2 overflow-x-auto pb-1">
@@ -25,11 +25,11 @@ export function Recientes() {
           <Link
             key={p.id}
             href={`/pacientes/${p.id}`}
-            className="flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm transition-colors hover:border-teal-300"
+            className="flex min-h-tap shrink-0 items-center gap-2 rounded-pill border border-border bg-surface px-3 text-body transition-colors hover:border-accent"
           >
             <span>{iconoEspecie(p.especie)}</span>
-            <span className="font-medium text-slate-700">{p.nombre}</span>
-            <span className="text-slate-400">{p.numero_ficha}</span>
+            <span className="font-medium text-text">{p.nombre}</span>
+            <span className="text-text-muted">{p.numero_ficha}</span>
           </Link>
         ))}
       </div>

@@ -1,13 +1,13 @@
 {
-  "name": "VetApp — Gestión Clínica Veterinaria",
-  "short_name": "VetApp",
+  "name": "Clínica Salud Animal Pradera",
+  "short_name": "CSAP Pradera",
   "description": "Gestión clínica veterinaria: pacientes, consultas, recetas, exámenes, agenda y vacunas.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f8fafc",
-  "theme_color": "#0d9488",
+  "background_color": "#faf9f6",
+  "theme_color": "#586345",
   "lang": "es",
   "dir": "ltr",
   "icons": [

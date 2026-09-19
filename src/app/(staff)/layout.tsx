@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { getRol } from "@/lib/auth/roles";
 import { countSolicitudesPendientes } from "@/lib/data/citas";
+import { getClinicaConfig } from "@/lib/data/clinica";
 import { createClient } from "@/lib/supabase/server";
 import {
   APP_SHELL_ID,
@@ -28,8 +29,12 @@ export default async function StaffLayout({
   const rol = getRol(user);
   if (rol === "cliente") redirect("/portal");
 
-  const reservasPendientes = await countSolicitudesPendientes();
+  const [reservasPendientes, clinicaConfig] = await Promise.all([
+    countSolicitudesPendientes(),
+    getClinicaConfig(),
+  ]);
   const destinos = staffDestinos({ esDev: rol === "dev" });
+  const nombreClinica = clinicaConfig?.nombre_clinica || "VetApp";
 
   // Estado del riel: cookie -> el layout reserva el ancho correcto desde el
   // primer render (sin flash). Sin cookie no fijamos nada y el default por
@@ -55,7 +60,7 @@ export default async function StaffLayout({
               href="/dashboard"
               className="font-semibold text-accent tablet:hidden"
             >
-              VetApp
+              {nombreClinica}
             </Link>
             <div className="flex items-center gap-3">
               <Link
@@ -84,7 +89,7 @@ export default async function StaffLayout({
       <PrimaryNav
         destinos={destinos}
         contadores={{ reservas: reservasPendientes }}
-        titulo="VetApp"
+        titulo={nombreClinica}
         homeHref="/dashboard"
       />
     </div>

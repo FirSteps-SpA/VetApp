@@ -9,8 +9,8 @@ import { isoDia } from "@/lib/utils/format";
 import { buscarPacientesAgenda, crearCita } from "../actions";
 
 const field =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
-const label = "flex flex-col gap-1 text-sm font-medium text-slate-700";
+  "w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
+const label = "flex flex-col gap-1 text-sm font-medium text-text";
 
 export function NuevaCitaForm({
   preseleccionado,
@@ -73,18 +73,18 @@ export function NuevaCitaForm({
   return (
     <div className="flex flex-col gap-4">
       {/* Paciente */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <p className="mb-2 text-sm font-semibold text-slate-900">Paciente</p>
+      <div className="rounded-card border border-border bg-surface p-4">
+        <p className="mb-2 text-sm font-semibold text-text">Paciente</p>
         {paciente ? (
-          <div className="flex items-center justify-between rounded-lg border border-teal-200 bg-teal-50 p-2">
-            <span className="text-sm font-medium text-slate-800">
+          <div className="flex items-center justify-between rounded-control border border-accent bg-accent-subtle p-2">
+            <span className="text-sm font-medium text-text">
               {paciente.nombre}
             </span>
             {!preseleccionado && (
               <button
                 type="button"
                 onClick={() => setPaciente(null)}
-                className="text-xs font-medium text-teal-700 hover:underline"
+                className="text-xs font-medium text-accent hover:underline"
               >
                 Cambiar
               </button>
@@ -108,7 +108,7 @@ export function NuevaCitaForm({
               <button
                 type="button"
                 onClick={buscar}
-                className="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                className="shrink-0 rounded-control border border-border px-3 py-2 text-sm font-medium text-text hover:bg-surface-sunken"
               >
                 Buscar
               </button>
@@ -118,23 +118,23 @@ export function NuevaCitaForm({
                 key={p.id}
                 type="button"
                 onClick={() => setPaciente({ id: p.id, nombre: p.nombre })}
-                className="flex w-full items-center justify-between rounded-lg border border-slate-200 p-2 text-left hover:border-teal-300"
+                className="flex w-full items-center justify-between rounded-control border border-border p-2 text-left hover:border-accent"
               >
-                <span className="text-sm font-medium text-slate-800">
+                <span className="text-sm font-medium text-text">
                   {p.nombre}
                 </span>
-                <span className="text-xs text-slate-500">{p.numero_ficha}</span>
+                <span className="text-xs text-text-muted">{p.numero_ficha}</span>
               </button>
             ))}
             {resultados && resultados.length === 0 && (
-              <p className="text-sm text-slate-500">Sin coincidencias.</p>
+              <p className="text-sm text-text-muted">Sin coincidencias.</p>
             )}
           </div>
         )}
       </div>
 
       {/* Datos de la cita */}
-      <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
+      <div className="grid gap-3 rounded-card border border-border bg-surface p-4 sm:grid-cols-2">
         <label className={label}>
           Fecha
           <input
@@ -184,7 +184,7 @@ export function NuevaCitaForm({
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
           {error}
         </p>
       )}
@@ -194,7 +194,7 @@ export function NuevaCitaForm({
           type="button"
           onClick={guardar}
           disabled={guardando}
-          className="rounded-lg bg-teal-600 px-5 py-2.5 font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+          className="rounded-control bg-accent px-5 py-2.5 font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
         >
           {guardando ? "Guardando…" : "Agendar cita"}
         </button>

@@ -1,6 +1,8 @@
 // Genera íconos PWA placeholder (PNG) sin dependencias externas.
-// Fondo teal con un círculo blanco centrado. Reemplazar por el branding real
-// de la clínica cuando esté disponible. Uso: `npm run gen:icons`.
+// Fondo del acento de marca con un círculo blanco centrado. Placeholder de
+// color: para usar el logo real (ref/logo.jpeg / clinica_config.logo_url)
+// hace falta una librería de imágenes (redimensionar + máscara "maskable"),
+// fuera del alcance de este script. Uso: `npm run gen:icons`.
 import { deflateSync } from "node:zlib";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -9,7 +11,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(__dirname, "..", "public", "icons");
 
-const BG = [13, 148, 136]; // #0d9488 (teal-600)
+const BG = [88, 99, 69]; // #586345 (Primary / acento CSAP Pradera)
 const FG = [255, 255, 255];
 
 // CRC32 (PNG usa el polinomio estándar IEEE).

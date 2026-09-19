@@ -30,7 +30,7 @@ export function PreferenciasForm({ inicial }: { inicial: Preferencias }) {
         {OPCIONES.map((o) => (
           <label
             key={o.key}
-            className="flex items-center gap-2 text-sm text-slate-700"
+            className="flex items-center gap-2 text-sm text-text"
           >
             <input
               type="checkbox"
@@ -50,11 +50,11 @@ export function PreferenciasForm({ inicial }: { inicial: Preferencias }) {
           type="button"
           onClick={guardar}
           disabled={guardando}
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+          className="rounded-control bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
         >
           {guardando ? "Guardando…" : "Guardar preferencias"}
         </button>
-        {ok && <span className="text-xs text-teal-700">Guardado ✓</span>}
+        {ok && <span className="text-xs text-accent">Guardado ✓</span>}
       </div>
     </div>
   );

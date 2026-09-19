@@ -17,14 +17,14 @@ export default function Error({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-2xl font-semibold text-slate-900">Algo salió mal</h1>
-      <p className="max-w-md text-sm text-slate-500">
+      <h1 className="text-page font-semibold text-text">Algo salió mal</h1>
+      <p className="max-w-md text-body text-text-muted">
         Ocurrió un error inesperado. Puedes reintentar; si persiste, contacta al
         administrador.
       </p>
       <button
         onClick={reset}
-        className="rounded-lg bg-teal-600 px-4 py-2 font-medium text-white hover:bg-teal-700"
+        className="min-h-tap rounded-control bg-accent px-4 font-medium text-on-accent hover:opacity-90"
       >
         Reintentar
       </button>

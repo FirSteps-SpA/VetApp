@@ -20,33 +20,33 @@ export default async function AdminClinicaPage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <Link href="/admin" className="text-sm text-slate-500 hover:text-slate-700">
+      <Link href="/admin" className="text-sm text-text-muted hover:text-text">
         ← Admin
       </Link>
-      <h1 className="text-2xl font-semibold text-slate-900">Clínica</h1>
+      <h1 className="text-2xl font-semibold text-text">Clínica</h1>
 
       {config ? (
         <>
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="mb-3 text-sm font-semibold text-slate-700">Logo</h2>
+          <section className="rounded-2xl border border-border bg-surface p-5">
+            <h2 className="mb-3 text-sm font-semibold text-text">Logo</h2>
             <LogoUploader actualUrl={logoPublicUrl(config.logo_url)} />
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="mb-3 text-sm font-semibold text-slate-700">
+          <section className="rounded-2xl border border-border bg-surface p-5">
+            <h2 className="mb-3 text-sm font-semibold text-text">
               Datos de la clínica
             </h2>
             <ClinicaForm config={config} />
           </section>
         </>
       ) : (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-text-muted">
           No existe la fila de configuración (id=1). Aplica el seed.
         </p>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">Sucursales</h2>
+      <section className="rounded-2xl border border-border bg-surface p-5">
+        <h2 className="mb-3 text-sm font-semibold text-text">Sucursales</h2>
         <SucursalesManager sucursales={sucursales} />
       </section>
     </div>

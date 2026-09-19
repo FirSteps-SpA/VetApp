@@ -51,7 +51,7 @@ export interface DocumentosData {
 }
 
 const field =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
+  "w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
 
 const hoy = () => formatearFecha(new Date().toISOString());
 
@@ -289,17 +289,17 @@ export default function DocumentosPanel({
         aria-modal="true"
         aria-label="Autorizaciones y certificados"
         tabIndex={-1}
-        className="relative flex h-full w-full flex-col bg-slate-50 shadow-xl outline-none sm:max-w-3xl"
+        className="relative flex h-full w-full flex-col bg-surface-sunken shadow-xl outline-none sm:max-w-3xl"
       >
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3">
-          <h2 className="text-lg font-semibold text-slate-900">
+        <header className="flex items-center justify-between border-b border-border bg-surface px-5 py-3">
+          <h2 className="text-lg font-semibold text-text">
             Autorizaciones y certificados
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
-            className="rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-control px-2 py-1 text-text-muted hover:bg-surface-sunken hover:text-text-muted"
           >
             ✕
           </button>
@@ -314,10 +314,10 @@ export default function DocumentosPanel({
                 type="button"
                 onClick={() => setTipo(value)}
                 aria-pressed={tipo === value}
-                className={`rounded-xl border px-3 py-3 text-sm font-semibold transition-colors ${
+                className={`rounded-card border px-3 py-3 text-sm font-semibold transition-colors ${
                   tipo === value
-                    ? "border-teal-600 bg-teal-600 text-white"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                    ? "border-accent bg-accent text-on-accent"
+                    : "border-border bg-surface text-text hover:bg-surface-sunken"
                 }`}
               >
                 {label}
@@ -326,7 +326,7 @@ export default function DocumentosPanel({
           </div>
 
           {vets.length > 0 && (
-            <label className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+            <label className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 text-sm text-text">
               Veterinario a cargo
               <select
                 value={vetId}
@@ -347,8 +347,8 @@ export default function DocumentosPanel({
           )}
 
           {!esMicrochip ? (
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-xs text-slate-400">
+            <div className="space-y-3 rounded-card border border-border bg-surface p-4">
+              <p className="text-xs text-text-muted">
                 Datos precargados desde la ficha — editá lo que haga falta.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -385,8 +385,8 @@ export default function DocumentosPanel({
               ))}
             </div>
           ) : (
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-xs text-slate-400">
+            <div className="space-y-3 rounded-card border border-border bg-surface p-4">
+              <p className="text-xs text-text-muted">
                 Se imprime sobre el certificado oficial. Datos del animal
                 precargados; completá procedimiento y datos del profesional.
               </p>
@@ -412,27 +412,27 @@ export default function DocumentosPanel({
           )}
 
           {motivoInvalido && (
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            <p className="rounded-control bg-warning-subtle px-3 py-2 text-sm text-text">
               {motivoInvalido}
             </p>
           )}
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
               {error}
             </p>
           )}
 
           {/* Historial de documentos emitidos */}
           {data.emitidos.length > 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="rounded-card border border-border bg-surface p-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
                 Documentos emitidos
               </p>
-              <ul className="space-y-1 text-sm text-slate-700">
+              <ul className="space-y-1 text-sm text-text">
                 {data.emitidos.map((d) => (
                   <li key={d.id} className="flex justify-between gap-2">
                     <span>{labelTipoDocumentoLegal(d.tipo)}</span>
-                    <span className="text-slate-400">
+                    <span className="text-text-muted">
                       {formatearFecha(d.emitido_en)}
                     </span>
                   </li>
@@ -442,12 +442,12 @@ export default function DocumentosPanel({
           )}
         </div>
 
-        <footer className="flex justify-end gap-2 border-t border-slate-200 bg-white px-5 py-3">
+        <footer className="flex justify-end gap-2 border-t border-border bg-surface px-5 py-3">
           <button
             type="button"
             onClick={() => emitir("imprimir")}
             disabled={generando || motivoInvalido !== null}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+            className="rounded-control border border-border px-4 py-2 text-sm font-medium text-text hover:bg-surface-sunken disabled:opacity-50"
           >
             {generando ? "Generando…" : "Imprimir"}
           </button>
@@ -455,7 +455,7 @@ export default function DocumentosPanel({
             type="button"
             onClick={() => emitir("descargar")}
             disabled={generando || motivoInvalido !== null}
-            className="rounded-lg bg-teal-600 px-5 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
+            className="rounded-control bg-accent px-5 py-2 text-sm font-medium text-on-accent hover:opacity-90 disabled:opacity-50"
           >
             Descargar PDF
           </button>
@@ -477,7 +477,7 @@ function Campo({
   textarea?: boolean;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm text-slate-700">
+    <label className="flex flex-col gap-1 text-sm text-text">
       {label}
       {textarea ? (
         <textarea
@@ -509,7 +509,7 @@ function Selecta({
   options: [string, string][];
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm text-slate-700">
+    <label className="flex flex-col gap-1 text-sm text-text">
       {label}
       <select
         value={value}

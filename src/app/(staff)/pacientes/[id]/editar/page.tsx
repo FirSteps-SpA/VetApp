@@ -22,11 +22,11 @@ export default async function EditarPacientePage({
     <div className="mx-auto max-w-2xl">
       <Link
         href={`/pacientes/${paciente.id}`}
-        className="text-sm text-slate-500 hover:text-slate-700"
+        className="text-sm text-text-muted hover:text-text"
       >
         ← {paciente.nombre}
       </Link>
-      <h1 className="mb-6 mt-2 text-2xl font-semibold text-slate-900">
+      <h1 className="mb-6 mt-2 text-2xl font-semibold text-text">
         Editar paciente
       </h1>
       <EditForm paciente={paciente} />

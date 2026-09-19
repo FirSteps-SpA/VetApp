@@ -9,8 +9,8 @@ import { isoDia } from "@/lib/utils/format";
 import { solicitarCita } from "../actions";
 
 const field =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
-const label = "flex flex-col gap-1 text-sm font-medium text-slate-700";
+  "w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
+const label = "flex flex-col gap-1 text-sm font-medium text-text";
 
 export function SolicitarForm({ mascotas }: { mascotas: MascotaPortal[] }) {
   const router = useRouter();
@@ -37,7 +37,7 @@ export function SolicitarForm({ mascotas }: { mascotas: MascotaPortal[] }) {
 
   if (mascotas.length === 0) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-text-muted">
         No tienes mascotas asociadas para solicitar una hora.
       </p>
     );
@@ -45,7 +45,7 @@ export function SolicitarForm({ mascotas }: { mascotas: MascotaPortal[] }) {
 
   if (ok) {
     return (
-      <div className="rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm text-teal-800">
+      <div className="rounded-card border border-accent bg-accent-subtle p-4 text-sm text-accent">
         ¡Solicitud enviada! El veterinario la revisará y confirmará el horario.
       </div>
     );
@@ -53,7 +53,7 @@ export function SolicitarForm({ mascotas }: { mascotas: MascotaPortal[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="grid gap-3 rounded-card border border-border bg-surface p-4">
         <label className={label}>
           Mascota
           <select
@@ -97,14 +97,14 @@ export function SolicitarForm({ mascotas }: { mascotas: MascotaPortal[] }) {
             className={field}
           />
         </label>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-text-muted">
           La fecha y hora son una preferencia; el veterinario confirmará el
           horario definitivo.
         </p>
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
           {error}
         </p>
       )}
@@ -114,7 +114,7 @@ export function SolicitarForm({ mascotas }: { mascotas: MascotaPortal[] }) {
           type="button"
           onClick={enviar}
           disabled={enviando}
-          className="rounded-lg bg-teal-600 px-5 py-2.5 font-medium text-white hover:bg-teal-700 disabled:opacity-60"
+          className="rounded-control bg-accent px-5 py-2.5 font-medium text-on-accent hover:opacity-90 disabled:opacity-60"
         >
           {enviando ? "Enviando…" : "Solicitar hora"}
         </button>

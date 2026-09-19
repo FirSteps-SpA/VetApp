@@ -1,26 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { Manrope, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+// Pareja tipográfica con nombre (ui-design-system): titular y cuerpo, cada
+// una con su propia pila de resguardo declarada en tailwind.config.ts.
+const fontDisplay = Manrope({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-display",
+  display: "swap",
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const fontBody = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-body",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   ),
-  applicationName: "VetApp",
+  applicationName: "CSAP Pradera",
   title: {
-    default: "VetApp",
-    template: "%s · VetApp",
+    default: "Clínica Salud Animal Pradera",
+    template: "%s · CSAP Pradera",
   },
   description: "Gestión clínica veterinaria",
   manifest: "/manifest.json",
@@ -32,12 +36,12 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "VetApp",
+    title: "CSAP Pradera",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0d9488",
+  themeColor: "#586345",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -52,7 +56,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${fontDisplay.variable} ${fontBody.variable} antialiased`}
       >
         {children}
       </body>

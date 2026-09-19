@@ -82,41 +82,41 @@ export default function PortalDownloads({
         type="button"
         onClick={historial}
         disabled={busy}
-        className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+        className="rounded-control border border-border px-4 py-2 text-sm font-medium text-text hover:bg-surface-sunken disabled:opacity-60"
       >
         {busy ? "Generando…" : "Descargar historial (PDF)"}
       </button>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold text-slate-700">
+        <h2 className="mb-2 text-sm font-semibold text-text">
           Recetas vigentes
         </h2>
         {recetas.length === 0 ? (
-          <p className="text-sm text-slate-500">Sin recetas vigentes.</p>
+          <p className="text-sm text-text-muted">Sin recetas vigentes.</p>
         ) : (
           <div className="space-y-2">
             {recetas.map((r) => (
               <div
                 key={r.id}
-                className="rounded-lg border border-slate-200 bg-white p-3"
+                className="rounded-control border border-border bg-surface p-3"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-slate-800">
+                  <span className="text-sm font-medium text-text">
                     {r.numero_receta}
                   </span>
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-text-muted">
                     {formatearFecha(r.fecha)}
                   </span>
                   <button
                     type="button"
                     onClick={() => receta(r)}
                     disabled={busy}
-                    className="ml-auto text-xs font-medium text-teal-700 hover:underline disabled:opacity-60"
+                    className="ml-auto text-xs font-medium text-accent hover:underline disabled:opacity-60"
                   >
                     Descargar PDF
                   </button>
                 </div>
-                <ul className="mt-1 list-disc pl-5 text-sm text-slate-600">
+                <ul className="mt-1 list-disc pl-5 text-sm text-text-muted">
                   {r.medicamentos.map((m, i) => (
                     <li key={i}>{resumenMedicamento(m)}</li>
                   ))}

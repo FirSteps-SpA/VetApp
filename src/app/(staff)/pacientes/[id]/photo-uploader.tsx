@@ -68,7 +68,7 @@ export function PhotoUploader({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-full bg-slate-100 text-4xl">
+      <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-pill bg-surface-sunken text-4xl">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -85,7 +85,7 @@ export function PhotoUploader({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={subiendo}
-        className="text-xs font-medium text-teal-700 hover:underline disabled:opacity-60"
+        className="text-xs font-medium text-accent hover:underline disabled:opacity-60"
       >
         {subiendo ? "Subiendo…" : preview ? "Cambiar foto" : "Agregar foto"}
       </button>
@@ -102,7 +102,7 @@ export function PhotoUploader({
         }}
       />
 
-      {error && <p className="text-center text-xs text-red-600">{error}</p>}
+      {error && <p className="text-center text-xs text-danger">{error}</p>}
     </div>
   );
 }

@@ -37,7 +37,7 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
+      <label className="flex flex-col gap-1 text-body font-medium text-text">
         Email
         <input
           type="email"
@@ -45,11 +45,11 @@ export function LoginForm() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-base text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+          className="min-h-tap rounded-control border border-border px-3 text-body text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle"
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
+      <label className="flex flex-col gap-1 text-body font-medium text-text">
         Contraseña
         <input
           type="password"
@@ -57,12 +57,12 @@ export function LoginForm() {
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-base text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+          className="min-h-tap rounded-control border border-border px-3 text-body text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle"
         />
       </label>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-control border border-danger px-3 py-2 text-body text-danger">
           {error}
         </p>
       )}
@@ -70,7 +70,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="mt-2 rounded-lg bg-teal-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-60"
+        className="mt-2 min-h-tap rounded-control bg-accent px-4 font-medium text-on-accent transition-colors hover:opacity-90 disabled:opacity-60"
       >
         {loading ? "Ingresando…" : "Ingresar"}
       </button>

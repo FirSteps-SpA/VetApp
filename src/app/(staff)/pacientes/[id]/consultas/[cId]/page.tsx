@@ -27,10 +27,10 @@ function Bloque({ label, value }: { label: string; value: string | null }) {
   if (!value?.trim()) return null;
   return (
     <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-text-muted">
         {label}
       </h3>
-      <p className="mt-0.5 whitespace-pre-wrap text-sm text-slate-800">{value}</p>
+      <p className="mt-0.5 whitespace-pre-wrap text-sm text-text">{value}</p>
     </div>
   );
 }
@@ -51,17 +51,17 @@ function RecetaBloque({
   veterinario: string | null;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-card border border-border bg-surface p-4">
       <div className="flex items-center gap-2">
-        <span className="font-medium text-slate-800">{receta.numero_receta}</span>
-        <span className="text-sm text-slate-500">
+        <span className="font-medium text-text">{receta.numero_receta}</span>
+        <span className="text-sm text-text-muted">
           {formatearFecha(receta.fecha)}
         </span>
         <span
-          className={`ml-auto rounded-full px-2 py-0.5 text-xs font-medium ${
+          className={`ml-auto rounded-pill px-2 py-0.5 text-xs font-medium ${
             receta.vigente
-              ? "bg-teal-50 text-teal-700"
-              : "bg-slate-100 text-slate-500"
+              ? "bg-accent-subtle text-accent"
+              : "bg-surface-sunken text-text-muted"
           }`}
         >
           {receta.vigente ? "Vigente" : "Anulada"}
@@ -79,20 +79,20 @@ function RecetaBloque({
           <AnularRecetaButton recetaId={receta.id} pacienteId={pacienteId} />
         )}
       </div>
-      <ul className="mt-2 space-y-1 text-sm text-slate-700">
+      <ul className="mt-2 space-y-1 text-sm text-text">
         {receta.medicamentos.map((m, i) => (
-          <li key={i} className="border-l-2 border-teal-200 pl-2">
+          <li key={i} className="border-l-2 border-accent pl-2">
             <span className="font-medium">{m.nombre}</span>
             {m.presentacion ? ` · ${m.presentacion}` : ""}
-            <div className="text-slate-500">{resumenMedicamento(m)}</div>
+            <div className="text-text-muted">{resumenMedicamento(m)}</div>
             {m.instrucciones ? (
-              <div className="text-slate-500">{m.instrucciones}</div>
+              <div className="text-text-muted">{m.instrucciones}</div>
             ) : null}
           </li>
         ))}
       </ul>
       {receta.instrucciones_generales && (
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-text-muted">
           {receta.instrucciones_generales}
         </p>
       )}
@@ -126,13 +126,13 @@ export default async function ConsultaPage({
       <div className="flex items-center justify-between gap-3">
         <Link
           href={`/pacientes/${params.id}`}
-          className="text-sm text-slate-500 hover:text-slate-700"
+          className="text-sm text-text-muted hover:text-text"
         >
           ← Ficha del paciente
         </Link>
         <Link
           href={`/pacientes/${params.id}/consultas/${params.cId}/editar`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          className="inline-flex items-center gap-1.5 rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-surface-sunken"
         >
           <Icon name="pencil" />
           Editar
@@ -140,18 +140,18 @@ export default async function ConsultaPage({
       </div>
 
       <header className="flex flex-wrap items-center gap-2">
-        <h1 className="text-2xl font-semibold text-slate-900">
+        <h1 className="text-2xl font-semibold text-text">
           {labelTipoConsulta(consulta.tipo)}
         </h1>
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-text-muted">
           {formatearFecha(consulta.fecha)}
         </span>
-        <span className="text-sm text-slate-400">
+        <span className="text-sm text-text-muted">
           · {consulta.veterinario?.nombre ?? "—"}
         </span>
       </header>
 
-      <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
+      <section className="space-y-4 rounded-2xl border border-border bg-surface p-5">
         <Bloque label="Motivo" value={consulta.motivo} />
         <Bloque label="Anamnesis" value={consulta.anamnesis} />
         <Bloque label="Examen físico" value={consulta.examen_fisico} />
@@ -174,7 +174,7 @@ export default async function ConsultaPage({
 
       {recetas.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-slate-700">Recetas</h2>
+          <h2 className="text-sm font-semibold text-text">Recetas</h2>
           {recetas.map((r) => (
             <RecetaBloque
               key={r.id}

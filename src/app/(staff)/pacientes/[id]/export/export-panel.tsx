@@ -44,7 +44,7 @@ const TIPOS: [TipoDoc, string][] = [
 ];
 
 const field =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
+  "w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
 
 export default function ExportPanel({
   data,
@@ -353,17 +353,17 @@ export default function ExportPanel({
         aria-modal="true"
         aria-label="Exportar documento"
         tabIndex={-1}
-        className="relative flex h-full w-full flex-col bg-slate-50 shadow-xl outline-none sm:max-w-3xl"
+        className="relative flex h-full w-full flex-col bg-surface-sunken shadow-xl outline-none sm:max-w-3xl"
       >
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3">
-          <h2 className="text-lg font-semibold text-slate-900">
+        <header className="flex items-center justify-between border-b border-border bg-surface px-5 py-3">
+          <h2 className="text-lg font-semibold text-text">
             Exportar documento
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
-            className="rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-control px-2 py-1 text-text-muted hover:bg-surface-sunken hover:text-text-muted"
           >
             ✕
           </button>
@@ -378,10 +378,10 @@ export default function ExportPanel({
                 type="button"
                 onClick={() => cambiarTipo(value)}
                 aria-pressed={tipo === value}
-                className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-colors ${
+                className={`rounded-card border px-4 py-3 text-sm font-semibold transition-colors ${
                   tipo === value
-                    ? "border-teal-600 bg-teal-600 text-white"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                    ? "border-accent bg-accent text-on-accent"
+                    : "border-border bg-surface text-text hover:bg-surface-sunken"
                 }`}
               >
                 {label}
@@ -391,8 +391,8 @@ export default function ExportPanel({
 
           {/* Opciones por tipo */}
           {tipo === "historial" && (
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-              <div className="flex flex-wrap gap-4 text-sm text-slate-700">
+            <div className="space-y-3 rounded-card border border-border bg-surface p-4">
+              <div className="flex flex-wrap gap-4 text-sm text-text">
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
@@ -423,7 +423,7 @@ export default function ExportPanel({
 
               {alcance === "rango" && (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="flex flex-col gap-1 text-sm text-slate-700">
+                  <label className="flex flex-col gap-1 text-sm text-text">
                     Desde
                     <input
                       type="date"
@@ -435,7 +435,7 @@ export default function ExportPanel({
                       className={field}
                     />
                   </label>
-                  <label className="flex flex-col gap-1 text-sm text-slate-700">
+                  <label className="flex flex-col gap-1 text-sm text-text">
                     Hasta
                     <input
                       type="date"
@@ -450,7 +450,7 @@ export default function ExportPanel({
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-slate-700 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-text sm:grid-cols-2">
                 {(
                   [
                     ["incluirRecetas", "Incluir recetas"],
@@ -477,21 +477,21 @@ export default function ExportPanel({
           )}
 
           {tipo === "receta" && (
-            <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
+            <div className="space-y-2 rounded-card border border-border bg-surface p-4">
               {recetas.length === 0 ? (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-text-muted">
                   Este paciente no tiene recetas.
                 </p>
               ) : (
                 <>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-text-muted">
                     Marca las recetas a incluir (se combinan en un PDF)
                   </p>
                   <div className="max-h-60 space-y-1 overflow-y-auto">
                     {recetas.map((r) => (
                       <label
                         key={r.id}
-                        className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                        className="flex items-center gap-2 rounded-control px-1 py-1.5 text-sm text-text hover:bg-surface-sunken"
                       >
                         <input
                           type="checkbox"
@@ -505,14 +505,14 @@ export default function ExportPanel({
                           }}
                           className="h-4 w-4"
                         />
-                        <span className="font-medium text-slate-800">
+                        <span className="font-medium text-text">
                           {r.numero_receta}
                         </span>
-                        <span className="text-slate-500">
+                        <span className="text-text-muted">
                           {formatearFecha(r.fecha)}
                         </span>
                         {!r.vigente && (
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-text-muted">
                             (anulada)
                           </span>
                         )}
@@ -525,8 +525,8 @@ export default function ExportPanel({
           )}
 
           {tipo === "derivacion" && (
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-              <label className="flex flex-col gap-1 text-sm text-slate-700">
+            <div className="space-y-3 rounded-card border border-border bg-surface p-4">
+              <label className="flex flex-col gap-1 text-sm text-text">
                 Destino (especialista / clínica)
                 <input
                   value={destino}
@@ -537,7 +537,7 @@ export default function ExportPanel({
                   className={field}
                 />
               </label>
-              <label className="flex flex-col gap-1 text-sm text-slate-700">
+              <label className="flex flex-col gap-1 text-sm text-text">
                 Motivo de derivación
                 <textarea
                   value={motivo}
@@ -550,17 +550,17 @@ export default function ExportPanel({
                 />
               </label>
               <div>
-                <p className="mb-1 text-xs text-slate-400">
+                <p className="mb-1 text-xs text-text-muted">
                   Consultas a incluir
                 </p>
                 {consultas.length === 0 ? (
-                  <p className="text-sm text-slate-500">Sin consultas.</p>
+                  <p className="text-sm text-text-muted">Sin consultas.</p>
                 ) : (
                   <div className="max-h-40 space-y-1 overflow-y-auto">
                     {consultas.map((c) => (
                       <label
                         key={c.id}
-                        className="flex items-center gap-2 text-sm text-slate-700"
+                        className="flex items-center gap-2 text-sm text-text"
                       >
                         <input
                           type="checkbox"
@@ -584,26 +584,26 @@ export default function ExportPanel({
           )}
 
           {tipo === "vacunacion" && (
-            <p className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+            <p className="rounded-card border border-border bg-surface p-4 text-sm text-text-muted">
               Genera la ficha con todas las vacunas registradas
               {vacunas.length === 0 ? " (actualmente no hay vacunas)." : "."}
             </p>
           )}
 
           {/* Resumen del contenido */}
-          <p className="text-sm text-slate-500">
-            <span className="text-slate-400">Incluye:</span> {resumen}
+          <p className="text-sm text-text-muted">
+            <span className="text-text-muted">Incluye:</span> {resumen}
           </p>
 
           {/* Motivo por el que no se puede generar */}
           {motivoInvalido && (
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            <p className="rounded-control bg-warning-subtle px-3 py-2 text-sm text-text">
               {motivoInvalido}
             </p>
           )}
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="rounded-control bg-danger-subtle px-3 py-2 text-sm text-text">
               {error}
             </p>
           )}
@@ -611,14 +611,14 @@ export default function ExportPanel({
           {previewUrl && (
             <div className="relative">
               {previewStale && (
-                <div className="absolute right-2 top-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 shadow">
+                <div className="absolute right-2 top-2 rounded-pill bg-warning-subtle px-3 py-1 text-xs font-medium text-text shadow">
                   Vista previa desactualizada · vuelve a generarla
                 </div>
               )}
               <iframe
                 src={previewUrl}
                 title="Vista previa"
-                className={`h-[60vh] w-full rounded-lg border border-slate-200 ${
+                className={`h-[60vh] w-full rounded-control border border-border ${
                   previewStale ? "opacity-50" : ""
                 }`}
               />
@@ -626,12 +626,12 @@ export default function ExportPanel({
           )}
         </div>
 
-        <footer className="flex justify-end gap-2 border-t border-slate-200 bg-white px-5 py-3">
+        <footer className="flex justify-end gap-2 border-t border-border bg-surface px-5 py-3">
           <button
             type="button"
             onClick={vistaPrevia}
             disabled={acciones_off}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+            className="rounded-control border border-border px-4 py-2 text-sm font-medium text-text hover:bg-surface-sunken disabled:opacity-50"
           >
             {generando ? "Generando…" : "Vista previa"}
           </button>
@@ -639,7 +639,7 @@ export default function ExportPanel({
             type="button"
             onClick={descargar}
             disabled={acciones_off}
-            className="rounded-lg bg-teal-600 px-5 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
+            className="rounded-control bg-accent px-5 py-2 text-sm font-medium text-on-accent hover:opacity-90 disabled:opacity-50"
           >
             Descargar PDF
           </button>
