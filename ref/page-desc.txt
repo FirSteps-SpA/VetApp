@@ -1,0 +1,44 @@
+Qué es
+
+VetApp es una PWA (instalable, sin app store) para la gestión clínica de una veterinaria. Reemplaza registros manuales y documentación dispersa por WhatsApp, centralizando pacientes, consultas, recetas, exámenes, vacunas y agenda en un solo lugar. Nace como herramienta interna para el staff, pero está diseñada desde el inicio para crecer hacia un portal de dueños de mascotas (Fase II) sin refactorizar el modelo de datos ni el sistema de roles.
+
+Stack: Next.js 14 (App Router) + TypeScript, Supabase (Auth, Postgres con RLS, Storage), PDFs con @react-pdf/renderer, Tailwind.
+
+Las dos superficies de la app
+
+La app tiene dos grupos de rutas con navegación propia pero un mismo sistema visual:
+
+1. Staff — (staff) (uso interno de la clínica)
+
+- Dashboard (/dashboard): resumen del día — accesos a pacientes/alta rápida y contador de vacunas vencidas/próximas.
+- Pacientes (/pacientes): buscador y listado, alta de paciente (/nuevo), y la ficha clínica (/pacientes/[id]) como eje central de la app, con tabs para:
+  - Consultas (registro + edición, recetas asociadas, anulación de receta)
+  - Exámenes adjuntos
+  - Vacunas
+  - Dueños (múltiples dueños por paciente, edición)
+  - Documentos (panel de exportación de documentos compuestos)
+  - Exportación e impresión de recetas/fichas a PDF, con logo de la clínica
+- Agenda (/agenda): calendario de citas y alta de nueva cita.
+- Reservas (/reservas): solicitudes de hora entrantes desde el portal, con acciones de aceptar/rechazar.
+- Vacunas (/vacunas): panel de alertas (vencidas / próximas a vencer).
+- Perfil (/perfil): datos del usuario staff, incluida identidad profesional (RUT, título) que se autocompleta en documentos legales.
+- Admin (/admin, solo dev): datos de la clínica, sucursales, logo, gestión de usuarios.
+
+2. Portal — /portal (dueños de mascotas, Fase II)
+
+- Inicio: resumen de "mis mascotas" y próximas citas.
+- Mascotas (/portal/mascotas/[id]): historial de cada mascota y descarga de documentos.
+- Citas (/portal/citas): ver citas y solicitar hora.
+- Notificaciones (/portal/notificaciones): alertas, preferencias y push (web-push/VAPID).
+
+Diseño y sistema visual
+
+Documentado formalmente en openspec/specs/ui-design-system (en español, con requisitos tipo "SHALL/escenario"):
+
+- Tramos responsivos con nombre y límite fijo, usados en toda la app: teléfono (<640px), tablet (640–1024px), escritorio (≥1024px).
+- Navegación adaptativa desde un único modelo de destinos (src/components/primary-nav/destinos.ts): la misma lista de rutas alimenta la barra inferior en teléfono y el riel lateral colapsable en tablet/escritorio, garantizando paridad de destinos por construcción. Cada superficie (staff/portal) tiene su propia lista de destinos con emoji + label, agrupados en "primario"/"secundario", con badges de contador (reservas pendientes, notificaciones no leídas).
+- Tokens semánticos de color en globals.css (no colores sueltos): superficie, superficie elevada, borde, texto primario/secundario, acento (teal-700), texto-sobre-acento, peligro (rojo), badge. Cambiar el acento en un solo lugar recolorea toda la app.
+- Escalas con nombre para radio (control 0.5rem, card 0.75rem, pill), elevación (raised, overlay) y tipografía en rem (respeta el tamaño de fuente del sistema/navegador).
+- Área táctil mínima de 44px (--tap-min) garantizada en todos los controles interactivos en cualquier tramo.
+- Soporte PWA standalone: respeto del área segura (notch, home indicator) vía env(safe-area-inset-*), con utilidades pt-safe/pb-safe/px-safe.
+- Estética general: fondo slate-50, cards blancas con borde slate-200 y radio xl, acento teal, tipografía slate para texto, con estados hover sutiles (borde teal al pasar el mouse) — un look limpio, clínico, de baja saturación.
