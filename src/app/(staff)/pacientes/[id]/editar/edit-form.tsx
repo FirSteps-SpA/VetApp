@@ -48,7 +48,7 @@ export function EditForm({ paciente }: { paciente: Paciente }) {
           />
         </label>
         <label className={label}>
-          RUT
+          N.º de microchip
           <input name="rut" defaultValue={paciente.rut ?? ""} className={field} />
         </label>
         <label className={label}>

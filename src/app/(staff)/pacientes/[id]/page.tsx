@@ -217,7 +217,7 @@ export default async function FichaPage({
                   paciente.raza ? ` · ${paciente.raza}` : ""
                 }`}
               />
-              <Dato label="RUT" value={paciente.rut ?? "—"} />
+              <Dato label="N.º de microchip" value={paciente.rut ?? "—"} />
               <Dato label="Edad" value={edad ?? "—"} />
               <Dato label="Peso" value={formatearPeso(paciente.peso_kg)} />
               <Dato label="Sexo" value={sexoLabel} />

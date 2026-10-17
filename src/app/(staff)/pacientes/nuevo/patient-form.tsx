@@ -203,7 +203,7 @@ export function PatientForm() {
             <input name="nombre" required className={fieldClass} />
           </label>
           <label className={labelClass}>
-            RUT
+            N.º de microchip
             <input name="rut" className={fieldClass} />
           </label>
           <label className={labelClass}>

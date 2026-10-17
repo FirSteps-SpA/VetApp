@@ -149,7 +149,7 @@ export async function crearPaciente(
     return {
       error:
         tipoConflictoUnico(pacienteError) === "rut"
-          ? "El RUT ya está registrado en otro paciente."
+          ? "El número de microchip ya está registrado en otro paciente."
           : "No se pudo crear el paciente. Intenta nuevamente.",
     };
   }

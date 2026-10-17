@@ -85,7 +85,7 @@ export async function actualizarPaciente(
     return {
       error:
         tipoConflictoUnico(error) === "rut"
-          ? "El RUT ya está registrado en otro paciente."
+          ? "El número de microchip ya está registrado en otro paciente."
           : "No se pudo actualizar el paciente.",
     };
   }

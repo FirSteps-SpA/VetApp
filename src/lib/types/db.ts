@@ -59,7 +59,7 @@ export const RAZONES_TENENCIA: { value: RazonTenencia; label: string }[] = [
 export interface Paciente {
   id: string;
   nombre: string;
-  rut: string | null;
+  rut: string | null; // se muestra al staff como "N.º de microchip"
   especie: Especie;
   raza: string | null;
   fecha_nacimiento: string | null;

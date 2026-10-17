@@ -174,7 +174,7 @@ function PacienteInfo({
           <Text style={styles.cellValue}>{paciente.numero_ficha}</Text>
         </View>
         <View style={styles.cell}>
-          <Text style={styles.cellLabel}>RUT</Text>
+          <Text style={styles.cellLabel}>N.º de microchip</Text>
           <Text style={styles.cellValue}>{paciente.rut ?? "—"}</Text>
         </View>
         <View style={styles.cell}>
