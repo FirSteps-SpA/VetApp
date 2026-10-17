@@ -7,8 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export interface SolicitarCitaInput {
   pacienteId: string;
-  fecha: string;
-  hora: string;
+  fechaHora: string; // ISO 8601, calculado en el navegador del cliente
   motivo: string;
 }
 
@@ -18,7 +17,7 @@ export async function solicitarCita(
   input: SolicitarCitaInput,
 ): Promise<{ error: string | null }> {
   if (!input.motivo?.trim()) return { error: "Indica el motivo." };
-  if (!input.fecha || !input.hora) return { error: "Indica fecha y hora." };
+  if (!input.fechaHora) return { error: "Indica fecha y hora." };
 
   const supabase = createClient();
   const {
@@ -51,7 +50,7 @@ export async function solicitarCita(
     .maybeSingle();
   if (!vet) return { error: "No hay veterinario disponible." };
 
-  const fechaHora = new Date(`${input.fecha}T${input.hora}:00`);
+  const fechaHora = new Date(input.fechaHora);
   if (Number.isNaN(fechaHora.getTime())) return { error: "Fecha/hora inválida." };
 
   const { error } = await admin.from("citas").insert({

@@ -52,8 +52,26 @@ export async function invitarCliente(
     return { ok: false, error: "El dueño necesita un email para ser invitado." };
   }
 
-  // Si ya tiene usuario, solo generamos un enlace nuevo (reenvío).
-  if (!dueno.usuario_id) {
+  // Email de la cuenta a la que se emite el enlace. En un reenvío se toma de la
+  // cuenta ya vinculada (no de `duenos.email`, que staff y el propio cliente
+  // pueden editar) y se exige que sea una cuenta cliente: así el enlace nunca
+  // puede abrir la sesión de otra persona.
+  let emailCuenta = dueno.email;
+
+  if (dueno.usuario_id) {
+    const { data: usuario } = await admin
+      .from("usuarios")
+      .select("rol")
+      .eq("id", dueno.usuario_id)
+      .maybeSingle();
+    const { data: authUser } = await admin.auth.admin.getUserById(
+      dueno.usuario_id,
+    );
+    if (usuario?.rol !== "cliente" || !authUser.user?.email) {
+      return { ok: false, error: "La cuenta vinculada no es una cuenta de cliente." };
+    }
+    emailCuenta = authUser.user.email;
+  } else {
     const { data: created, error: createError } =
       await admin.auth.admin.createUser({
         email: dueno.email,
@@ -88,7 +106,7 @@ export async function invitarCliente(
   const { data: link, error: linkError } =
     await admin.auth.admin.generateLink({
       type: "magiclink",
-      email: dueno.email,
+      email: emailCuenta,
     });
 
   if (linkError || !link.properties?.hashed_token) {

@@ -25,7 +25,19 @@ export function SolicitarForm({ mascotas }: { mascotas: MascotaPortal[] }) {
   async function enviar() {
     setEnviando(true);
     setError(null);
-    const res = await solicitarCita({ pacienteId, fecha, hora, motivo });
+    // La hora se interpreta en la zona del navegador (como en la agenda staff);
+    // en el servidor (UTC en Vercel) quedaría desplazada.
+    const fechaHora = new Date(`${fecha}T${hora}:00`);
+    if (!fecha || !hora || Number.isNaN(fechaHora.getTime())) {
+      setEnviando(false);
+      setError("Fecha/hora inválida.");
+      return;
+    }
+    const res = await solicitarCita({
+      pacienteId,
+      fechaHora: fechaHora.toISOString(),
+      motivo,
+    });
     setEnviando(false);
     if (res.error) {
       setError(res.error);
