@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
+import { noStoreFetch } from "./no-store-fetch";
+
 // Cliente de Supabase para Server Components, Server Actions y Route Handlers.
 export function createClient() {
   const cookieStore = cookies();
@@ -10,6 +12,7 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      global: { fetch: noStoreFetch },
       cookies: {
         getAll() {
           return cookieStore.getAll();

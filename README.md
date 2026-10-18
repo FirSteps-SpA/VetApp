@@ -116,12 +116,11 @@ Recomendado: **Vercel** (Next.js) + un **proyecto Supabase separado** para produ
    - `supabase link --project-ref <ref>` y `supabase db push` (migraciones); luego ejecuta `supabase/seed.sql` en el SQL Editor.
    - Habilita **Point-in-Time Recovery** (backups) en *Database → Backups*.
    - Crea el primer usuario staff (ver "Puesta en marcha", paso 4).
-   - (Opcional) Habilita `pg_cron` si quieres el recálculo nocturno de vacunas.
 
 2. **Vercel**
    - Importa el repositorio. Framework: Next.js (autodetectado).
    - Configura las **variables de entorno** (ver matriz abajo) apuntando al proyecto Supabase de producción.
-   - El cron de recordatorios ya está declarado en [`vercel.json`](vercel.json) (`/api/cron/notificaciones`, diario 08:00). Vercel inyecta `CRON_SECRET` como `Authorization: Bearer` automáticamente, así que basta definir esa variable.
+   - El cron de recordatorios ya está declarado en [`vercel.json`](vercel.json) (`/api/cron/notificaciones`, diario 08:00): recalcula el estado de las vacunas y envía recordatorios. Vercel inyecta `CRON_SECRET` como `Authorization: Bearer` automáticamente, así que basta definir esa variable.
 
 3. **Verificación post-deploy**
    - Lighthouse (móvil): PWA instalable y Performance aceptable.

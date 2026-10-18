@@ -215,6 +215,9 @@ r = await http("POST", "/rest/v1/citas", {
 });
 check("A no inserta citas directamente, ni de su mascota (#6)", r.status === 403, `HTTP ${r.status}`);
 
+r = await http("POST", "/rest/v1/rpc/recalcular_alertas_vacunas", { token: tA, body: {} });
+check("A no ejecuta recalcular_alertas_vacunas (solo el cron)", r.status === 403 || r.status === 404, `HTTP ${r.status}`);
+
 // --- El cliente gestiona sus preferencias (política vía es_mi_dueno) ---
 r = await http("POST", "/rest/v1/notificaciones_config?on_conflict=dueno_id", {
   token: tA,
