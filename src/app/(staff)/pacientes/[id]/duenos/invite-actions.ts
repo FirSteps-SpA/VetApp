@@ -72,34 +72,63 @@ export async function invitarCliente(
     }
     emailCuenta = authUser.user.email;
   } else {
-    const { data: created, error: createError } =
-      await admin.auth.admin.createUser({
+    // ¿Ya existe una cuenta con este email? Ocurre al re-invitar a un dueño
+    // revocado: `revocarAcceso` desvincula y desactiva, pero conserva la cuenta.
+    // Sin distinguir mayúsculas (Auth guarda los emails en minúsculas); se
+    // escapan los comodines de LIKE para que `_` o `%` no coincidan con otro email.
+    const emailLike = String(dueno.email).trim().replace(/[\\%_]/g, (c: string) => `\\${c}`);
+    const { data: existente } = await admin
+      .from("usuarios")
+      .select("id, rol")
+      .ilike("email", emailLike)
+      .maybeSingle();
+
+    let userId: string;
+    if (existente) {
+      if (existente.rol !== "cliente") {
+        return { ok: false, error: "Ese email pertenece a una cuenta del equipo." };
+      }
+      // Solo se reutiliza una cuenta huérfana: si ya está vinculada a otro
+      // dueño, re-vincularla le daría acceso a las mascotas de este.
+      const { data: otroDueno } = await admin
+        .from("duenos")
+        .select("id")
+        .eq("usuario_id", existente.id)
+        .maybeSingle();
+      if (otroDueno) {
+        return { ok: false, error: "Ese email ya tiene acceso al portal con otra ficha de dueño." };
+      }
+      userId = existente.id;
+    } else {
+      const { data: created, error: createError } =
+        await admin.auth.admin.createUser({
+          email: dueno.email,
+          email_confirm: true,
+        });
+
+      if (createError || !created.user) {
+        return {
+          ok: false,
+          error:
+            "No se pudo crear el acceso (¿el email ya está registrado?).",
+        };
+      }
+
+      userId = created.user.id;
+
+      const { error: usuarioError } = await admin.from("usuarios").insert({
+        id: userId,
+        nombre: dueno.nombre,
         email: dueno.email,
-        email_confirm: true,
+        rol: "cliente",
       });
-
-    if (createError || !created.user) {
-      return {
-        ok: false,
-        error:
-          "No se pudo crear el acceso (¿el email ya está registrado?).",
-      };
-    }
-
-    const userId = created.user.id;
-
-    const { error: usuarioError } = await admin.from("usuarios").insert({
-      id: userId,
-      nombre: dueno.nombre,
-      email: dueno.email,
-      rol: "cliente",
-    });
-    if (usuarioError) {
-      return { ok: false, error: "No se pudo registrar el usuario cliente." };
+      if (usuarioError) {
+        return { ok: false, error: "No se pudo registrar el usuario cliente." };
+      }
     }
 
     await admin.from("duenos").update({ usuario_id: userId }).eq("id", duenoId);
-    // Reactivar por si estaba desactivado en una invitación previa.
+    // Reactiva la cuenta si venía de una revocación (vuelve el rol al JWT).
     await admin.from("usuarios").update({ activo: true }).eq("id", userId);
   }
 

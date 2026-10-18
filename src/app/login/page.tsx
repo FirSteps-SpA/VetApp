@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "Ingresar",
 };
 
+// El nombre y logo de la clínica se leen en cada request: prerenderizada, la
+// página congelaba el branding del momento del build hasta el siguiente deploy.
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage() {
   const branding = await getClinicaBrandingPublica();
   const nombreClinica = branding?.nombre_clinica || "VetApp";
