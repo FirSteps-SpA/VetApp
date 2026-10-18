@@ -73,11 +73,11 @@ function ConsultaItem({
           <Campo label="Motivo" value={consulta.motivo} />
           <Campo label="Anamnesis" value={consulta.anamnesis} />
           <Campo label="Examen físico" value={consulta.examen_fisico} />
-          <Campo label="Diagnóstico" value={consulta.diagnostico} />
           <Campo
             label="Diagnóstico diferencial"
             value={consulta.diagnostico_diferencial}
           />
+          <Campo label="Diagnóstico" value={consulta.diagnostico} />
           <Campo label="Tratamiento" value={consulta.tratamiento} />
           <Campo label="Notas" value={consulta.notas} />
           <div className="flex items-center justify-between pt-1 text-xs text-text-muted">

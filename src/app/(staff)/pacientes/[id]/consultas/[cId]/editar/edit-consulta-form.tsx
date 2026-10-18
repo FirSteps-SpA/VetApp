@@ -99,12 +99,12 @@ export function EditConsultaForm({
           <input type="number" step="0.1" value={temperatura} onChange={(e) => setTemperatura(e.target.value)} className={field} />
         </label>
         <label className={`${label} sm:col-span-2`}>
-          Diagnóstico *
-          <textarea value={diagnostico} onChange={(e) => setDiagnostico(e.target.value)} rows={2} className={field} />
-        </label>
-        <label className={`${label} sm:col-span-2`}>
           Diagnóstico diferencial
           <textarea value={diagDiferencial} onChange={(e) => setDiagDiferencial(e.target.value)} rows={2} className={field} />
+        </label>
+        <label className={`${label} sm:col-span-2`}>
+          Diagnóstico *
+          <textarea value={diagnostico} onChange={(e) => setDiagnostico(e.target.value)} rows={2} className={field} />
         </label>
         <label className={`${label} sm:col-span-2`}>
           Tratamiento *

@@ -163,11 +163,11 @@ export default async function ConsultaPage({
             <Bloque label="Temperatura" value={`${consulta.temperatura_c} °C`} />
           )}
         </div>
-        <Bloque label="Diagnóstico" value={consulta.diagnostico} />
         <Bloque
           label="Diagnóstico diferencial"
           value={consulta.diagnostico_diferencial}
         />
+        <Bloque label="Diagnóstico" value={consulta.diagnostico} />
         <Bloque label="Tratamiento" value={consulta.tratamiento} />
         <Bloque label="Notas" value={consulta.notas} />
       </section>

@@ -286,19 +286,19 @@ export function NuevaConsultaDrawer({
               {/* Diagnóstico y tratamiento */}
               <section className="space-y-3 rounded-card border border-border bg-surface p-4">
                 <label className={label}>
-                  Diagnóstico *
+                  Diagnóstico diferencial
                   <textarea
-                    value={diagnostico}
-                    onChange={(e) => setDiagnostico(e.target.value)}
+                    value={diagDiferencial}
+                    onChange={(e) => setDiagDiferencial(e.target.value)}
                     rows={2}
                     className={field}
                   />
                 </label>
                 <label className={label}>
-                  Diagnóstico diferencial
+                  Diagnóstico *
                   <textarea
-                    value={diagDiferencial}
-                    onChange={(e) => setDiagDiferencial(e.target.value)}
+                    value={diagnostico}
+                    onChange={(e) => setDiagnostico(e.target.value)}
                     rows={2}
                     className={field}
                   />
