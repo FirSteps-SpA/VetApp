@@ -9,18 +9,19 @@ import {
 } from "@/lib/pdf/documents";
 import type {
   ConsultaPortal,
+  DuenoPortal,
   ExamenPortal,
   MascotaPortal,
   RecetaPortal,
   VacunaPortal,
 } from "@/lib/data/portal";
-import { resumenMedicamento, type ClinicaConfig, type Dueno } from "@/lib/types/db";
+import { resumenMedicamento, type ClinicaConfig } from "@/lib/types/db";
 import { formatearFecha } from "@/lib/utils/format";
 
 export interface PortalDownloadsData {
   clinica: ClinicaConfig | null;
   mascota: MascotaPortal;
-  dueno: Dueno | null;
+  dueno: DuenoPortal | null;
   consultas: ConsultaPortal[];
   recetas: RecetaPortal[];
   examenes: ExamenPortal[];

@@ -25,19 +25,16 @@ export async function solicitarCita(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sesión no válida." };
 
-  // Verifica que la mascota pertenece al cliente (RLS aplica).
+  // Verifica que la mascota pertenece al cliente (portal_mascotas filtra por dueño).
   const { data: pac } = await supabase
-    .from("pacientes")
-    .select("id")
+    .rpc("portal_mascotas")
     .eq("id", input.pacienteId)
     .maybeSingle();
   if (!pac) return { error: "Mascota no válida." };
 
   const { data: dueno } = await supabase
-    .from("duenos")
-    .select("id")
-    .eq("usuario_id", user.id)
-    .maybeSingle();
+    .rpc("portal_mi_dueno")
+    .maybeSingle<{ id: string }>();
 
   const admin = createAdminClient();
   const { data: vet } = await admin
