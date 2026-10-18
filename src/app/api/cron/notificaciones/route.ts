@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logError } from "@/lib/log";
 import { notificarDueno } from "@/lib/notificaciones/enviar";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatearFecha, formatearFechaHora } from "@/lib/utils/format";
@@ -44,7 +45,11 @@ async function enviarRecordatorios() {
   // recordatorios de abajo dependen de ese estado). Reemplaza el pg_cron opcional.
   const { error: errorRecalculo } = await admin.rpc("recalcular_alertas_vacunas");
   if (errorRecalculo) {
-    console.error("recalcular_alertas_vacunas:", errorRecalculo.message);
+    // A Sentry: el monitor del cron marcaría la corrida como OK aunque el
+    // dashboard y los recordatorios queden con estados desactualizados.
+    logError(new Error(`recalcular_alertas_vacunas: ${errorRecalculo.message}`), {
+      contexto: "cron-notificaciones",
+    });
   }
 
   // --- Citas ~24h adelante (ventana 23–25h) ---
