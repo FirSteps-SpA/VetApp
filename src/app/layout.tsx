@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import type { Metadata, Viewport } from "next";
 import { Manrope, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
@@ -17,28 +18,35 @@ const fontBody = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-  ),
-  applicationName: "CSAP Pradera",
-  title: {
-    default: "Clínica Salud Animal Pradera",
-    template: "%s · CSAP Pradera",
-  },
-  description: "Gestión clínica veterinaria",
-  manifest: "/manifest.json",
-  // App privada con datos clínicos: no indexar.
-  robots: { index: false, follow: false },
-  icons: {
-    apple: "/icons/apple-touch-icon.png",
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "CSAP Pradera",
-  },
-};
+// Incluye los datos de traza de Sentry para enlazar la carga inicial con el
+// trace del servidor.
+export function generateMetadata(): Metadata {
+  return {
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    ),
+    applicationName: "CSAP Pradera",
+    title: {
+      default: "Clínica Salud Animal Pradera",
+      template: "%s · CSAP Pradera",
+    },
+    description: "Gestión clínica veterinaria",
+    manifest: "/manifest.json",
+    // App privada con datos clínicos: no indexar.
+    robots: { index: false, follow: false },
+    icons: {
+      apple: "/icons/apple-touch-icon.png",
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "CSAP Pradera",
+    },
+    other: {
+      ...Sentry.getTraceData(),
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#586345",

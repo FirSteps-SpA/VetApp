@@ -13,6 +13,7 @@
   "dependencies": {
     "@fission-ai/openspec": "^1.13.1",
     "@react-pdf/renderer": "^3.4.5",
+    "@sentry/nextjs": "^11.8.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.45.4",
     "lucide-react": "^1.47.0",
