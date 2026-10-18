@@ -15,6 +15,14 @@ import type {
 } from "@/lib/types/db";
 
 // --- Vistas seguras para el cliente (solo columnas permitidas) ---
+// El rol `cliente` no tiene SELECT directo sobre pacientes/consultas/vacunas/
+// citas/duenos: se leen con las funciones `portal_*` de la BD, que devuelven
+// solo estas columnas y solo de las mascotas del cliente (auditoría #5).
+
+export type DuenoPortal = Pick<
+  Dueno,
+  "id" | "nombre" | "rut" | "telefono" | "email" | "direccion" | "comuna" | "sector"
+>;
 
 export interface MascotaPortal {
   id: string;
@@ -70,18 +78,10 @@ export interface CitaPortal {
 }
 
 // El dueño (registro) asociado al cliente autenticado.
-export async function getMiDueno(): Promise<Dueno | null> {
+export async function getMiDueno(): Promise<DuenoPortal | null> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase
-    .from("duenos")
-    .select("*")
-    .eq("usuario_id", user.id)
-    .maybeSingle();
-  return (data as Dueno | null) ?? null;
+  const { data } = await supabase.rpc("portal_mi_dueno").maybeSingle();
+  return (data as DuenoPortal | null) ?? null;
 }
 
 export async function getMisNotificaciones(): Promise<Notificacion[]> {
@@ -124,15 +124,10 @@ export async function getMiConfig(): Promise<NotificacionesConfig | null> {
   );
 }
 
-// Mascotas del cliente autenticado (RLS filtra a las suyas).
+// Mascotas del cliente autenticado.
 export async function getMisMascotas(): Promise<MascotaPortal[]> {
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from("pacientes")
-    .select(
-      "id, nombre, especie, raza, fecha_nacimiento, sexo, peso_kg, numero_ficha, foto_url",
-    )
-    .order("nombre");
+  const { data, error } = await supabase.rpc("portal_mascotas");
   if (error) {
     console.error("getMisMascotas:", error.message);
     return [];
@@ -143,26 +138,21 @@ export async function getMisMascotas(): Promise<MascotaPortal[]> {
 // Citas del cliente (de sus mascotas).
 export async function getMisCitas(): Promise<CitaPortal[]> {
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from("citas")
-    .select("id, fecha_hora, motivo, estado, pacientes(nombre)")
-    .order("fecha_hora", { ascending: false });
+  const { data, error } = await supabase.rpc("portal_citas");
   if (error) {
     console.error("getMisCitas:", error.message);
     return [];
   }
-  type Row = Omit<CitaPortal, "paciente"> & {
-    pacientes: { nombre: string } | null;
-  };
-  return ((data as unknown as Row[]) ?? []).map((r) => ({
+  type Row = Omit<CitaPortal, "paciente"> & { paciente_nombre: string | null };
+  return ((data as Row[]) ?? []).map(({ paciente_nombre, ...r }) => ({
     ...r,
-    paciente: r.pacientes,
+    paciente: paciente_nombre ? { nombre: paciente_nombre } : null,
   }));
 }
 
 export interface FichaPortal {
   paciente: MascotaPortal;
-  dueno: Dueno | null;
+  dueno: DuenoPortal | null;
   fotoUrl: string | null;
   consultas: ConsultaPortal[];
   recetas: RecetaPortal[];
@@ -186,16 +176,12 @@ async function firmar(
   return out;
 }
 
-// Ficha simplificada de una mascota. Devuelve null si no pertenece al cliente
-// (RLS hace que la lectura del paciente retorne vacío).
+// Ficha simplificada de una mascota. Devuelve null si no pertenece al cliente.
 export async function getMascotaPortal(id: string): Promise<FichaPortal | null> {
   const supabase = createClient();
 
   const { data: paciente } = await supabase
-    .from("pacientes")
-    .select(
-      "id, nombre, especie, raza, fecha_nacimiento, sexo, peso_kg, numero_ficha, foto_url",
-    )
+    .rpc("portal_mascotas")
     .eq("id", id)
     .maybeSingle();
 
@@ -204,12 +190,8 @@ export async function getMascotaPortal(id: string): Promise<FichaPortal | null> 
 
   const [duenoRes, consultasRes, recetasRes, examenesRes, vacunasRes] =
     await Promise.all([
-      supabase.from("duenos").select("*").not("usuario_id", "is", null).limit(1).maybeSingle(),
-      supabase
-        .from("consultas")
-        .select("id, fecha, tipo, diagnostico, tratamiento")
-        .eq("paciente_id", id)
-        .order("fecha", { ascending: false }),
+      supabase.rpc("portal_mi_dueno").maybeSingle(),
+      supabase.rpc("portal_consultas", { p_paciente: id }),
       supabase
         .from("recetas")
         .select("id, numero_receta, fecha, medicamentos, instrucciones_generales")
@@ -222,11 +204,7 @@ export async function getMascotaPortal(id: string): Promise<FichaPortal | null> 
         .eq("paciente_id", id)
         .eq("interno", false)
         .order("fecha", { ascending: false }),
-      supabase
-        .from("vacunas")
-        .select("id, nombre_vacuna, fecha_aplicacion, proxima_dosis, estado_alerta")
-        .eq("paciente_id", id)
-        .order("fecha_aplicacion", { ascending: false }),
+      supabase.rpc("portal_vacunas", { p_paciente: id }),
     ]);
 
   const examenesRaw =
@@ -243,7 +221,7 @@ export async function getMascotaPortal(id: string): Promise<FichaPortal | null> 
 
   return {
     paciente: p,
-    dueno: (duenoRes.data as Dueno | null) ?? null,
+    dueno: (duenoRes.data as DuenoPortal | null) ?? null,
     fotoUrl: p.foto_url ? (fotoUrls[p.foto_url] ?? null) : null,
     consultas: (consultasRes.data as ConsultaPortal[]) ?? [],
     recetas: (recetasRes.data as unknown as RecetaPortal[]) ?? [],

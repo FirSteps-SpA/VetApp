@@ -14,7 +14,6 @@ import {
   type ClinicaConfig,
   type ConsultaConVet,
   type DuenoDePaciente,
-  type Dueno,
   type Especie,
   type Examen,
   type Paciente,
@@ -23,6 +22,7 @@ import {
 } from "@/lib/types/db";
 import type {
   ConsultaPortal,
+  DuenoPortal,
   ExamenPortal,
   MascotaPortal,
   RecetaPortal,
@@ -521,7 +521,7 @@ function MascotaInfo({
   dueno,
 }: {
   mascota: MascotaPortal;
-  dueno: Dueno | null;
+  dueno: DuenoPortal | null;
 }) {
   const edad = calcularEdad(mascota.fecha_nacimiento);
   return (
@@ -573,7 +573,7 @@ export function RecetaClienteDoc({
 }: {
   clinica: ClinicaConfig | null;
   mascota: MascotaPortal;
-  dueno: Dueno | null;
+  dueno: DuenoPortal | null;
   receta: RecetaPortal;
 }) {
   return (
@@ -622,7 +622,7 @@ export function HistorialClienteDoc({
 }: {
   clinica: ClinicaConfig | null;
   mascota: MascotaPortal;
-  dueno: Dueno | null;
+  dueno: DuenoPortal | null;
   consultas: ConsultaPortal[];
   recetas: RecetaPortal[];
   examenes: ExamenPortal[];
