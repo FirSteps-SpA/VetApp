@@ -22,7 +22,9 @@ La aplicación nace como herramienta de uso interno para el veterinario y está 
 
 ## Puesta en marcha (desarrollo)
 
-Requisitos: Node.js 18.17+ (recomendado 20+) y un proyecto Supabase.
+Requisitos: Node.js 20+ (recomendado 24), Docker y la
+[Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started).
+El desarrollo se hace contra un **Supabase local** (Docker), nunca contra producción.
 
 1. **Instalar dependencias**
 
@@ -30,39 +32,45 @@ Requisitos: Node.js 18.17+ (recomendado 20+) y un proyecto Supabase.
    npm install
    ```
 
-2. **Variables de entorno**
-
-   Copia `.env.example` a `.env.local` y completa los valores desde
-   *Project Settings → API* en el dashboard de Supabase:
+2. **Levantar Supabase local**
 
    ```bash
-   cp .env.example .env.local
+   supabase start
    ```
 
-3. **Aplicar el esquema de base de datos**
+   Aplica todas las migraciones de [`supabase/migrations/`](supabase/migrations) y el
+   seed [`supabase/seed.sql`](supabase/seed.sql) sobre una base vacía: tablas, RLS,
+   triggers, buckets de Storage, esquemas de vacunación, configuración placeholder
+   de la clínica y sucursal principal. Studio queda en `http://127.0.0.1:54323`.
 
-   Las migraciones están en [`supabase/migrations/`](supabase/migrations) y el
-   seed inicial en [`supabase/seed.sql`](supabase/seed.sql). Aplícalas en orden:
+   - `supabase db reset` vuelve a crear la base desde cero (borra los datos locales).
+   - `supabase stop` la detiene conservando los datos. Solo puede haber un stack
+     local corriendo a la vez (DentdeLion usa los mismos puertos).
 
-   - **Opción A — SQL Editor del dashboard:** pega y ejecuta, en orden numérico,
-     todos los archivos de `supabase/migrations/` y luego `supabase/seed.sql`.
-   - **Opción B — Supabase CLI:** `supabase db push` (aplica migraciones) y luego
-     ejecuta el seed.
+3. **Variables de entorno**
 
-   Esto crea todas las tablas, índices, RLS, triggers, buckets de Storage, los
-   esquemas de vacunación por defecto, la configuración placeholder de la clínica
-   y la sucursal principal.
+   Crea `.env.local` (ignorado por git; Next.js lo prioriza sobre `.env`) con los
+   valores que imprime `supabase status`:
+
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<ANON_KEY de supabase status>
+   SUPABASE_SERVICE_ROLE_KEY=<SERVICE_ROLE_KEY de supabase status>
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   ```
+
+   Son claves de demostración del stack local, no secretos de producción.
 
 4. **Crear el primer usuario (veterinario / dev)**
 
    No hay registro abierto. Para el usuario inicial:
 
-   1. *Authentication → Users → Add user* en el dashboard (email + contraseña).
-   2. En el SQL Editor, inserta su fila en `usuarios` con el `id` de ese auth user:
+   1. En Studio local: *Authentication → Users → Add user* (email + contraseña).
+   2. En *SQL Editor*, inserta su fila en `usuarios` con el `id` de ese auth user:
 
       ```sql
       insert into usuarios (id, nombre, email, rol)
-      values ('<auth-user-id>', 'Nombre Apellido', 'vet@ejemplo.com', 'veterinario');
+      values ('<auth-user-id>', 'Nombre Apellido', 'vet@ejemplo.com', 'dev');
       ```
 
    El trigger `sync_usuario_metadata` propaga el `rol` (y `sucursal_id`) al JWT.
@@ -85,7 +93,16 @@ Requisitos: Node.js 18.17+ (recomendado 20+) y un proyecto Supabase.
 | `npm run build` | Build de producción (genera el service worker PWA) |
 | `npm run start` | Sirve el build de producción |
 | `npm run lint` | ESLint |
+| `npm run test:rls` | Pruebas de RLS y aislamiento del portal contra Supabase local (requiere `supabase start`) |
 | `npm run gen:icons` | Regenera los íconos PWA placeholder en `public/icons/` |
+
+### Cambios de esquema
+
+1. `supabase migration new <nombre>` crea el archivo en `supabase/migrations/`.
+2. Escribe el SQL y pruébalo con `supabase db reset` + `npm run test:rls`.
+3. El CI (`.github/workflows/ci.yml`) repite esas pruebas en cada PR a `main`.
+4. Tras el merge, aplícalo a producción con `supabase db push` (proyecto vinculado
+   con `supabase link`). Haz un respaldo antes.
 
 > Los íconos de `public/icons/` son placeholders generados por script. Reemplázalos
 > por el branding real de la clínica cuando esté disponible.
@@ -96,7 +113,7 @@ Recomendado: **Vercel** (Next.js) + un **proyecto Supabase separado** para produ
 
 1. **Supabase producción**
    - Crea un proyecto nuevo (distinto del de desarrollo).
-   - Aplica, en orden, todas las migraciones de `supabase/migrations/` y el `supabase/seed.sql`.
+   - `supabase link --project-ref <ref>` y `supabase db push` (migraciones); luego ejecuta `supabase/seed.sql` en el SQL Editor.
    - Habilita **Point-in-Time Recovery** (backups) en *Database → Backups*.
    - Crea el primer usuario staff (ver "Puesta en marcha", paso 4).
    - (Opcional) Habilita `pg_cron` si quieres el recálculo nocturno de vacunas.
