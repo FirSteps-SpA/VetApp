@@ -1,5 +1,7 @@
-// Logging de errores centralizado. Punto único de integración con un servicio
-// externo (Sentry, LogRocket, etc.): añade aquí la llamada a captureException.
+import * as Sentry from "@sentry/nextjs";
+
+// Logging de errores centralizado: consola + Sentry. Punto único de
+// integración; los error boundaries y el código de servidor llaman aquí.
 export function logError(
   error: unknown,
   context?: Record<string, unknown>,
@@ -7,6 +9,5 @@ export function logError(
   // eslint-disable-next-line no-console
   console.error("[VetApp]", error, context ?? {});
 
-  // Integración opcional (ejemplo):
-  // if (process.env.NEXT_PUBLIC_SENTRY_DSN) Sentry.captureException(error, { extra: context });
+  Sentry.captureException(error, { extra: context });
 }
