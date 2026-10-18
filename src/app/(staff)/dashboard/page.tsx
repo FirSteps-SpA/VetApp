@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 
 import { countSolicitudesPendientes, getCitasRango } from "@/lib/data/citas";
 import { getAlertasVacunas } from "@/lib/data/vacunas";
+import { isoDia } from "@/lib/utils/format";
+import { inicioDelDia, sumarDias } from "@/lib/utils/zona";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -39,14 +41,17 @@ function StatTile({
 }
 
 export default async function DashboardPage() {
-  const hoy = new Date();
-  const manana = new Date(hoy);
-  manana.setDate(manana.getDate() + 1);
+  // "Hoy" es el día calendario de la clínica (el servidor corre en UTC); antes
+  // se contaban las próximas 24 h desde este instante.
+  const hoy = isoDia(new Date());
 
   const [alertas, reservasPendientes, citasHoy] = await Promise.all([
     getAlertasVacunas(),
     countSolicitudesPendientes(),
-    getCitasRango(hoy.toISOString(), manana.toISOString()),
+    getCitasRango(
+      inicioDelDia(hoy).toISOString(),
+      inicioDelDia(sumarDias(hoy, 1)).toISOString(),
+    ),
   ]);
   const vencidas = alertas.filter((a) => a.estado_alerta === "vencida").length;
   const proximas = alertas.filter((a) => a.estado_alerta === "proxima").length;

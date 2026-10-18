@@ -11,6 +11,7 @@ import {
   inicioSemana,
   isoDia,
 } from "@/lib/utils/format";
+import { esFechaCalendario, inicioDelDia, sumarDias } from "@/lib/utils/zona";
 
 import { DiaConDetalle } from "./dia-con-detalle";
 
@@ -20,14 +21,10 @@ export const metadata: Metadata = {
 
 type Vista = "dia" | "semana";
 
-function parseFecha(s?: string): Date {
-  if (s) {
-    const d = new Date(`${s}T00:00:00`);
-    if (!Number.isNaN(d.getTime())) return d;
-  }
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  return hoy;
+// Fechas de calendario (YYYY-MM-DD) en la zona de la clínica: el servidor corre
+// en UTC, así que "hoy" y los límites de día/semana no pueden salir de su reloj.
+function parseFecha(s?: string): string {
+  return s && esFechaCalendario(s) ? s : isoDia(new Date());
 }
 
 export default async function AgendaPage({
@@ -38,34 +35,25 @@ export default async function AgendaPage({
   const vista: Vista = searchParams.vista === "semana" ? "semana" : "dia";
   const fecha = parseFecha(searchParams.fecha);
 
-  let desde: Date;
-  let hasta: Date;
-  if (vista === "semana") {
-    desde = inicioSemana(fecha);
-    hasta = new Date(desde);
-    hasta.setDate(hasta.getDate() + 7);
-  } else {
-    desde = new Date(fecha);
-    hasta = new Date(fecha);
-    hasta.setDate(hasta.getDate() + 1);
-  }
+  const desde = vista === "semana" ? inicioSemana(fecha) : fecha;
+  const hasta = sumarDias(desde, vista === "semana" ? 7 : 1);
 
-  const citas = await getCitasRango(desde.toISOString(), hasta.toISOString());
+  const citas = await getCitasRango(
+    inicioDelDia(desde).toISOString(),
+    inicioDelDia(hasta).toISOString(),
+  );
 
   // Navegación.
   const paso = vista === "semana" ? 7 : 1;
-  const prev = new Date(fecha);
-  prev.setDate(prev.getDate() - paso);
-  const next = new Date(fecha);
-  next.setDate(next.getDate() + paso);
-  const href = (d: Date, v: Vista = vista) =>
-    `/agenda?vista=${v}&fecha=${isoDia(d)}`;
+  const prev = sumarDias(fecha, -paso);
+  const next = sumarDias(fecha, paso);
+  const href = (d: string, v: Vista = vista) => `/agenda?vista=${v}&fecha=${d}`;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-page font-semibold text-text">Agenda</h1>
-        <ButtonLink href={`/agenda/nueva-cita?fecha=${isoDia(fecha)}`} size="sm">
+        <ButtonLink href={`/agenda/nueva-cita?fecha=${fecha}`} size="sm">
           <Icon name="plus" />
           Nueva cita
         </ButtonLink>
@@ -76,7 +64,7 @@ export default async function AgendaPage({
           <Link href={href(prev)} className="inline-flex min-h-tap min-w-tap items-center justify-center rounded-control border border-border text-body hover:bg-surface-sunken">
             ←
           </Link>
-          <Link href={href(new Date())} className="inline-flex min-h-tap items-center justify-center rounded-control border border-border px-4 text-body hover:bg-surface-sunken">
+          <Link href={href(isoDia(new Date()))} className="inline-flex min-h-tap items-center justify-center rounded-control border border-border px-4 text-body hover:bg-surface-sunken">
             Hoy
           </Link>
           <Link href={href(next)} className="inline-flex min-h-tap min-w-tap items-center justify-center rounded-control border border-border text-body hover:bg-surface-sunken">
@@ -110,10 +98,9 @@ export default async function AgendaPage({
       ) : (
         <div className="grid grid-cols-1 gap-3 tablet:grid-cols-2 desktop:grid-cols-7">
           {Array.from({ length: 7 }).map((_, i) => {
-            const dia = new Date(desde);
-            dia.setDate(dia.getDate() + i);
+            const dia = sumarDias(desde, i);
             const delDia = citas.filter(
-              (c) => isoDia(new Date(c.fecha_hora)) === isoDia(dia),
+              (c) => isoDia(new Date(c.fecha_hora)) === dia,
             );
             return (
               <div key={i} className="rounded-card border border-border bg-surface-raised p-2">

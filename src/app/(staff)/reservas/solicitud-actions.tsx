@@ -6,15 +6,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/button";
 import { controlClass } from "@/components/field";
 import { cx } from "@/lib/utils/cx";
+import { instanteEnZona, partesEnZona } from "@/lib/utils/zona";
 
 import { confirmarSolicitud, rechazarSolicitud } from "./actions";
 
+// Valor de <input type="datetime-local"> en hora de la clínica (no del navegador).
 function toLocalInput(iso: string): string {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours(),
-  )}:${pad(d.getMinutes())}`;
+  const { fecha, hora } = partesEnZona(new Date(iso));
+  return `${fecha}T${hora}`;
 }
 
 export function SolicitudActions({
@@ -30,7 +29,8 @@ export function SolicitudActions({
 
   async function confirmar() {
     setBusy(true);
-    const iso = new Date(cuando).toISOString();
+    const [fecha, hora] = cuando.split("T");
+    const iso = instanteEnZona(fecha, hora).toISOString();
     const res = await confirmarSolicitud(citaId, iso);
     setBusy(false);
     if (res.error) {

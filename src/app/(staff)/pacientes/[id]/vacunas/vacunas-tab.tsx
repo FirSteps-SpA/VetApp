@@ -13,6 +13,7 @@ import type {
   Vacuna,
 } from "@/lib/types/db";
 import { formatearFecha, isoDia } from "@/lib/utils/format";
+import { sumarDias } from "@/lib/utils/zona";
 
 import { crearVacuna, eliminarVacuna } from "./actions";
 import { imprimirVacunacion } from "../print/imprimir";
@@ -23,11 +24,9 @@ const field =
 
 const hoy = () => isoDia(new Date());
 
-function addDias(iso: string, dias: number): string {
-  const d = new Date(iso);
-  d.setDate(d.getDate() + dias);
-  return isoDia(d);
-}
+// Aritmética de calendario: `new Date("YYYY-MM-DD")` es medianoche UTC y en
+// Chile caía el día anterior (la próxima dosis sugerida salía un día antes).
+const addDias = sumarDias;
 
 const CHIP: Record<EstadoAlertaVacuna, string> = {
   vencida: "bg-danger-subtle text-text",

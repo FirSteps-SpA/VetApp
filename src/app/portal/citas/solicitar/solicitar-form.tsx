@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import type { MascotaPortal } from "@/lib/data/portal";
 import { isoDia } from "@/lib/utils/format";
+import { instanteEnZona } from "@/lib/utils/zona";
 
 import { solicitarCita } from "../actions";
 
@@ -25,10 +26,10 @@ export function SolicitarForm({ mascotas }: { mascotas: MascotaPortal[] }) {
   async function enviar() {
     setEnviando(true);
     setError(null);
-    // La hora se interpreta en la zona del navegador (como en la agenda staff);
-    // en el servidor (UTC en Vercel) quedaría desplazada.
-    const fechaHora = new Date(`${fecha}T${hora}:00`);
-    if (!fecha || !hora || Number.isNaN(fechaHora.getTime())) {
+    // Hora de la clínica, aunque el navegador tenga otra zona configurada.
+    const fechaHora =
+      fecha && hora ? instanteEnZona(fecha, hora) : new Date(Number.NaN);
+    if (Number.isNaN(fechaHora.getTime())) {
       setEnviando(false);
       setError("Fecha/hora inválida.");
       return;
