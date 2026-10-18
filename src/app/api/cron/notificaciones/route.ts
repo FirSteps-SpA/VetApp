@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { notificarDueno } from "@/lib/notificaciones/enviar";
@@ -15,6 +16,25 @@ export async function GET(request: NextRequest) {
     return new NextResponse("no autorizado", { status: 401 });
   }
 
+  // Sentry Cron Monitor: avisa si el cron no corre a la hora o lanza un error.
+  // La verificación del secreto va afuera para no registrar llamadas ajenas.
+  return Sentry.withMonitor(
+    "cron-notificaciones",
+    enviarRecordatorios,
+    MONITOR_CONFIG,
+  );
+}
+
+// Debe coincidir con `crons` en vercel.json (Vercel Cron corre en UTC).
+const MONITOR_CONFIG = {
+  schedule: { type: "crontab", value: "0 8 * * *" },
+  timezone: "UTC",
+  // Minutos de tolerancia antes de marcar la ejecución como perdida / colgada.
+  checkinMargin: 15,
+  maxRuntime: 10,
+} as const;
+
+async function enviarRecordatorios() {
   const admin = createAdminClient();
   const now = new Date();
 
