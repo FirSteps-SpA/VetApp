@@ -6,7 +6,8 @@ import { formatearFecha, formatearFechaHora } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
-// Recordatorios: citas ~24h antes y vacunas próximas (30 días).
+// Recalcula el estado de las vacunas y envía recordatorios: citas ~24h antes y
+// vacunas próximas (30 días).
 // Protegido por CRON_SECRET (Authorization: Bearer <secret>).
 // Programar con Vercel Cron u otro scheduler apuntando a esta URL.
 export async function GET(request: NextRequest) {
@@ -17,6 +18,14 @@ export async function GET(request: NextRequest) {
 
   const admin = createAdminClient();
   const now = new Date();
+
+  // estado_alerta solo se recalcula al escribir el registro; sin esto, una vacuna
+  // "al_dia" nunca pasaría a "proxima"/"vencida" (dashboard, /vacunas y los
+  // recordatorios de abajo dependen de ese estado). Reemplaza el pg_cron opcional.
+  const { error: errorRecalculo } = await admin.rpc("recalcular_alertas_vacunas");
+  if (errorRecalculo) {
+    console.error("recalcular_alertas_vacunas:", errorRecalculo.message);
+  }
 
   // --- Citas ~24h adelante (ventana 23–25h) ---
   const desde = new Date(now.getTime() + 23 * 3600_000).toISOString();
@@ -85,5 +94,10 @@ export async function GET(request: NextRequest) {
     vacunasNotif++;
   }
 
-  return NextResponse.json({ ok: true, citas: citasNotif, vacunas: vacunasNotif });
+  return NextResponse.json({
+    ok: !errorRecalculo,
+    estadosRecalculados: !errorRecalculo,
+    citas: citasNotif,
+    vacunas: vacunasNotif,
+  });
 }

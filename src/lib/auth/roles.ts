@@ -37,7 +37,10 @@ const ROUTE_ROLES: { prefix: string; roles: Rol[] }[] = [
 ];
 
 // Rutas accesibles sin sesión.
-export const PUBLIC_PREFIXES = ["/login", "/auth", "/unauthorized"];
+// `/api/cron`: lo invoca Vercel Cron sin sesión; cada ruta exige su propio
+// `Authorization: Bearer CRON_SECRET`. Sin esto el middleware lo redirigía a /login
+// y el cron nunca se ejecutaba.
+export const PUBLIC_PREFIXES = ["/login", "/auth", "/unauthorized", "/api/cron"];
 
 export function isPublicRoute(pathname: string): boolean {
   return PUBLIC_PREFIXES.some(
