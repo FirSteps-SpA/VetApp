@@ -1,6 +1,13 @@
-# Configuración mínima del Supabase CLI.
-# Solo necesaria si decides usar el stack local / `supabase db push`.
+# Configuración del Supabase CLI para el stack local (`supabase start`) y
+# `supabase db push`. Solo afecta al entorno local: producción se configura en el
+# panel. Mantener alineado con producción.
 project_id = "vetapp"
 
 [db]
-major_version = 15
+# Producción: Postgres 17.6.
+major_version = 17
+
+[auth]
+# Igual que producción (panel → Authentication → Sign In / Providers → Email).
+minimum_password_length = 10
+password_requirements = "letters_digits"
