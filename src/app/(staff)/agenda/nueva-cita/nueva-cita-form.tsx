@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import type { Paciente } from "@/lib/types/db";
 import { isoDia } from "@/lib/utils/format";
+import { instanteEnZona } from "@/lib/utils/zona";
 
 import { buscarPacientesAgenda, crearCita } from "../actions";
 
@@ -47,7 +48,8 @@ export function NuevaCitaForm({
       setError("El motivo es obligatorio.");
       return;
     }
-    const fechaHora = new Date(`${fecha}T${hora}:00`);
+    // Hora de la clínica, aunque el navegador tenga otra zona configurada.
+    const fechaHora = instanteEnZona(fecha, hora);
     if (Number.isNaN(fechaHora.getTime())) {
       setError("Fecha u hora inválida.");
       return;
