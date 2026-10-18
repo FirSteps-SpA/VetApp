@@ -5,6 +5,9 @@
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
+  // Solo builds de producción: los errores de `next dev` no llegan a Sentry.
+  enabled: process.env.NODE_ENV === "production",
+
   dsn: "https://8decd37933e88f7a518440cb2bd0aef0@o4511622882394112.ingest.us.sentry.io/4512277968715776",
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
