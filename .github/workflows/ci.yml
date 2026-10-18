@@ -25,3 +25,18 @@ jobs:
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npm run build
+
+  rls:
+    # Levanta Supabase local (migraciones + seed) y verifica RLS/aislamiento
+    # del portal con scripts/test-rls.mjs. No usa ningún proyecto remoto.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - run: npm run test:rls
