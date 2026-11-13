@@ -3,9 +3,14 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  VETERINARIO_INVALIDO,
+  esVeterinarioElegible,
+} from "@/lib/data/usuarios";
 
 export interface CrearVacunaInput {
   pacienteId: string;
+  veterinarioId: string;
   consultaId?: string | null;
   nombre_vacuna: string;
   laboratorio?: string;
@@ -24,6 +29,9 @@ export async function crearVacuna(
   if (!input.fecha_aplicacion) {
     return { error: "La fecha de aplicación es obligatoria." };
   }
+  if (!(await esVeterinarioElegible(input.veterinarioId))) {
+    return { error: VETERINARIO_INVALIDO };
+  }
 
   const supabase = createClient();
   const {
@@ -35,7 +43,7 @@ export async function crearVacuna(
   const { error } = await supabase.from("vacunas").insert({
     paciente_id: input.pacienteId,
     consulta_id: input.consultaId ?? null,
-    veterinario_id: user.id,
+    veterinario_id: input.veterinarioId,
     nombre_vacuna: input.nombre_vacuna.trim(),
     laboratorio: input.laboratorio?.trim() || null,
     lote: input.lote?.trim() || null,
@@ -44,7 +52,14 @@ export async function crearVacuna(
     notas: input.notas?.trim() || null,
   });
 
-  if (error) return { error: "No se pudo registrar la vacuna." };
+  if (error) {
+    return {
+      error:
+        error.code === "23514"
+          ? VETERINARIO_INVALIDO
+          : "No se pudo registrar la vacuna.",
+    };
+  }
 
   revalidatePath(`/pacientes/${input.pacienteId}`);
   return { error: null };

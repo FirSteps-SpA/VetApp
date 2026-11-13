@@ -271,6 +271,11 @@ export interface Vacuna {
   created_at: string;
 }
 
+// Vacuna con el nombre del veterinario responsable embebido.
+export interface VacunaConVet extends Vacuna {
+  veterinario: { nombre: string } | null;
+}
+
 export interface ClinicaConfig {
   id: number;
   nombre_clinica: string;

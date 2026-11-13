@@ -5,6 +5,7 @@ import { Icon } from "@/components/icon";
 import Link from "next/link";
 
 import { ButtonLink } from "@/components/button";
+import type { VeterinarioOpcion } from "@/components/selector-veterinario";
 
 import {
   colorEstadoCita,
@@ -19,7 +20,7 @@ import {
   type Examen,
   type Paciente,
   type Receta,
-  type Vacuna,
+  type VacunaConVet,
 } from "@/lib/types/db";
 import { formatearFecha, formatearFechaHora } from "@/lib/utils/format";
 
@@ -187,6 +188,8 @@ export function FichaTabs({
   clinica,
   paciente,
   dueno,
+  veterinarios,
+  usuarioId,
 }: {
   pacienteId: string;
   notas: string | null;
@@ -194,12 +197,14 @@ export function FichaTabs({
   recetas: Receta[];
   examenes: Examen[];
   urlsExamenes: Record<string, string>;
-  vacunas: Vacuna[];
+  vacunas: VacunaConVet[];
   esquemas: EsquemaVacunacion[];
   citas: CitaConRel[];
   clinica: ClinicaConfig | null;
   paciente: Paciente;
   dueno: DuenoDePaciente | null;
+  veterinarios: VeterinarioOpcion[];
+  usuarioId: string | null;
 }) {
   const [active, setActive] = useState<TabId>("resumen");
 
@@ -298,6 +303,8 @@ export function FichaTabs({
             clinica={clinica}
             paciente={paciente}
             dueno={dueno}
+            veterinarios={veterinarios}
+            usuarioId={usuarioId}
           />
         )}
         {active === "citas" && (

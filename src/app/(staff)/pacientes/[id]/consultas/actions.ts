@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import {
+  VETERINARIO_INVALIDO,
+  esVeterinarioElegible,
+} from "@/lib/data/usuarios";
+import {
   TIPOS_CONSULTA,
   type Medicamento,
   type TipoConsulta,
@@ -29,6 +33,7 @@ export interface ExamenPendiente {
 
 export interface CrearConsultaInput {
   pacienteId: string;
+  veterinarioId: string;
   tipo: TipoConsulta;
   motivo: string;
   anamnesis?: string;
@@ -66,6 +71,8 @@ export async function crearConsulta(
     return { ok: false, error: "El diagnóstico es obligatorio." };
   if (!input.tratamiento?.trim())
     return { ok: false, error: "El tratamiento es obligatorio." };
+  if (!(await esVeterinarioElegible(input.veterinarioId)))
+    return { ok: false, error: VETERINARIO_INVALIDO };
 
   const supabase = createClient();
   const {
@@ -73,12 +80,13 @@ export async function crearConsulta(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sesión no válida." };
 
-  // 1) Crear consulta (veterinario = usuario actual).
+  // 1) Crear consulta a nombre del veterinario responsable elegido (audit_log
+  //    registra igual al usuario actual como autor).
   const { data: consulta, error: consultaError } = await supabase
     .from("consultas")
     .insert({
       paciente_id: input.pacienteId,
-      veterinario_id: user.id,
+      veterinario_id: input.veterinarioId,
       tipo: input.tipo,
       motivo: input.motivo.trim(),
       anamnesis: input.anamnesis?.trim() || null,
@@ -94,10 +102,15 @@ export async function crearConsulta(
     .single();
 
   if (consultaError || !consulta) {
-    return { ok: false, error: "No se pudo guardar la consulta." };
+    const error =
+      consultaError?.code === "23514"
+        ? VETERINARIO_INVALIDO
+        : "No se pudo guardar la consulta.";
+    return { ok: false, error };
   }
 
-  // 2) Receta opcional con medicamentos válidos (al menos un nombre).
+  // 2) Receta opcional con medicamentos válidos (al menos un nombre). Hereda el
+  //    veterinario de la consulta.
   const medicamentos = (input.receta?.medicamentos ?? []).filter((m) =>
     m.nombre?.trim(),
   );
@@ -106,7 +119,7 @@ export async function crearConsulta(
     const { error: recetaError } = await supabase.from("recetas").insert({
       consulta_id: consulta.id,
       paciente_id: input.pacienteId,
-      veterinario_id: user.id,
+      veterinario_id: input.veterinarioId,
       medicamentos,
       instrucciones_generales:
         input.receta?.instrucciones_generales?.trim() || null,
@@ -161,6 +174,7 @@ export async function crearConsulta(
 }
 
 export interface ActualizarConsultaInput {
+  veterinarioId: string;
   tipo: TipoConsulta;
   motivo: string;
   anamnesis?: string;
@@ -175,6 +189,8 @@ export interface ActualizarConsultaInput {
 
 // Edita los datos de una consulta. No se eliminan consultas (quedan en audit_log);
 // editar el peso aquí no reescribe pacientes.peso_kg (eso solo ocurre al crear).
+// Cambiar el veterinario lo propaga la BD a las recetas de la consulta; el
+// veterinario solo se valida si cambia (los históricos no elegibles se conservan).
 export async function actualizarConsulta(
   consultaId: string,
   pacienteId: string,
@@ -190,9 +206,23 @@ export async function actualizarConsulta(
     return { error: "El tratamiento es obligatorio." };
 
   const supabase = createClient();
+  const { data: actual } = await supabase
+    .from("consultas")
+    .select("veterinario_id")
+    .eq("id", consultaId)
+    .maybeSingle();
+  if (!actual) return { error: "No se pudo actualizar la consulta." };
+  if (
+    input.veterinarioId !== actual.veterinario_id &&
+    !(await esVeterinarioElegible(input.veterinarioId))
+  ) {
+    return { error: VETERINARIO_INVALIDO };
+  }
+
   const { error } = await supabase
     .from("consultas")
     .update({
+      veterinario_id: input.veterinarioId,
       tipo: input.tipo,
       motivo: input.motivo.trim(),
       anamnesis: input.anamnesis?.trim() || null,
@@ -206,7 +236,14 @@ export async function actualizarConsulta(
     })
     .eq("id", consultaId);
 
-  if (error) return { error: "No se pudo actualizar la consulta." };
+  if (error) {
+    return {
+      error:
+        error.code === "23514"
+          ? VETERINARIO_INVALIDO
+          : "No se pudo actualizar la consulta.",
+    };
+  }
 
   revalidatePath(`/pacientes/${pacienteId}`);
   revalidatePath(`/pacientes/${pacienteId}/consultas/${consultaId}`);

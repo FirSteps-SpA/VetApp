@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { getConsulta } from "@/lib/data/consultas";
+import { getMiPerfil, getVeterinarios } from "@/lib/data/usuarios";
 
 import { EditConsultaForm } from "./edit-consulta-form";
 
@@ -15,7 +16,11 @@ export default async function EditarConsultaPage({
 }: {
   params: { id: string; cId: string };
 }) {
-  const result = await getConsulta(params.cId);
+  const [result, veterinarios, perfil] = await Promise.all([
+    getConsulta(params.cId),
+    getVeterinarios(),
+    getMiPerfil(),
+  ]);
   if (!result || result.consulta.paciente_id !== params.id) notFound();
 
   return (
@@ -29,7 +34,12 @@ export default async function EditarConsultaPage({
       <h1 className="mb-6 mt-2 text-2xl font-semibold text-text">
         Editar consulta
       </h1>
-      <EditConsultaForm pacienteId={params.id} consulta={result.consulta} />
+      <EditConsultaForm
+        pacienteId={params.id}
+        consulta={result.consulta}
+        veterinarios={veterinarios}
+        usuarioId={perfil?.id ?? null}
+      />
     </div>
   );
 }
