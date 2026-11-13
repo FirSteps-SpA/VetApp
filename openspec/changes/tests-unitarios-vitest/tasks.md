@@ -31,7 +31,7 @@
 ## 4. CI
 
 - [x] 4.1 En `.github/workflows/ci.yml`, agregar `develop` a los disparadores `push` y `pull_request`, y el paso `- run: npm run test` en el job `build`, después de `npm ci`. Verificar la sintaxis con `npx --yes yaml-lint .github/workflows/ci.yml`, o revisando el workflow en el PR.
-- [ ] 4.2 Abrir el PR contra `develop` y verificar en GitHub Actions que el job `build` ejecuta el paso de tests en ambas zonas y termina en verde, y que el job `rls` también corre.
+- [x] 4.2 Abrir el PR contra `develop` y verificar en GitHub Actions que el job `build` ejecuta el paso de tests en ambas zonas y termina en verde, y que el job `rls` también corre.
 
 ## Workflow follow-up
 
