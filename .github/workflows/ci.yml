@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   build:
@@ -22,6 +22,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # Tests unitarios, en TZ=UTC y TZ=America/Santiago.
+      - run: npm run test
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npm run build
