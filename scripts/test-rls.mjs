@@ -254,5 +254,50 @@ check("recepcionista lee citas", r.data?.length === 2, `${r.data?.length} filas`
 r = await http("GET", `/rest/v1/consultas?select=id&paciente_id=eq.${A.paciente}`, { token: tR });
 check("recepcionista no lee consultas", same(r.data, []));
 
+// --- Veterinario responsable (spec 3): solo veterinarios activos ---
+const vet2 = await crearUsuario("vet2", "veterinario");
+const dev = await crearUsuario("dev", "dev");
+const vetInactivo = await crearUsuario("vetinactivo", "veterinario");
+const base = { paciente_id: A.paciente, motivo: "control", diagnostico: "dx", tratamiento: "tx" };
+// Consulta histórica a nombre de un veterinario que luego se desactiva.
+const historica = await insert("consultas", { ...base, veterinario_id: vetInactivo.id });
+await http("PATCH", `/rest/v1/usuarios?id=eq.${vetInactivo.id}`, { key: SVC, body: { activo: false } });
+
+const postV = (tabla, body) =>
+  http("POST", `/rest/v1/${tabla}`, { token: tV, body, prefer: "return=representation" });
+const patchV = (path, body) =>
+  http("PATCH", `/rest/v1/${path}`, { token: tV, body, prefer: "return=representation" });
+const rechazado = (r) => r.status === 400 && r.data?.code === "23514";
+
+r = await postV("consultas", { ...base, veterinario_id: vet2.id });
+const consultaVet2 = r.data?.[0]?.id;
+check("veterinario registra una consulta a nombre de otro veterinario", r.status === 201 && r.data?.[0]?.veterinario_id === vet2.id, `HTTP ${r.status}`);
+r = await postV("recetas", { consulta_id: consultaVet2, paciente_id: A.paciente, veterinario_id: vet2.id, medicamentos: [] });
+const recetaVet2 = r.data?.[0]?.id;
+check("receta a nombre de otro veterinario", r.status === 201, `HTTP ${r.status}`);
+
+const hoyIso = new Date().toISOString().slice(0, 10);
+for (const [alias, u] of [["dev", dev], ["recepcionista", recep], ["veterinario inactivo", vetInactivo]]) {
+  r = await postV("consultas", { ...base, veterinario_id: u.id });
+  check(`consulta a nombre de ${alias} rechazada`, rechazado(r), `HTTP ${r.status}`);
+  r = await postV("recetas", { consulta_id: consultaVet2, paciente_id: A.paciente, veterinario_id: u.id, medicamentos: [] });
+  check(`receta a nombre de ${alias} rechazada`, rechazado(r), `HTTP ${r.status}`);
+  r = await postV("vacunas", { paciente_id: A.paciente, veterinario_id: u.id, nombre_vacuna: "Óctuple", fecha_aplicacion: hoyIso });
+  check(`vacuna a nombre de ${alias} rechazada`, rechazado(r), `HTTP ${r.status}`);
+}
+
+r = await patchV(`consultas?id=eq.${consultaVet2}`, { veterinario_id: vet.id });
+check("cambiar el veterinario de la consulta", r.data?.[0]?.veterinario_id === vet.id, `HTTP ${r.status}`);
+r = await getV(`recetas?select=veterinario_id&id=eq.${recetaVet2}`);
+check("el cambio se propaga a su receta", r.data?.[0]?.veterinario_id === vet.id);
+r = await patchV(`consultas?id=eq.${consultaVet2}`, { veterinario_id: dev.id });
+check("no se cambia el veterinario a un dev", rechazado(r), `HTTP ${r.status}`);
+
+r = await patchV(`consultas?id=eq.${historica.id}`, { motivo: "control editado" });
+check("consulta histórica con veterinario inactivo sigue editable", r.data?.[0]?.motivo === "control editado", `HTTP ${r.status}`);
+
+r = await http("GET", `/rest/v1/audit_log?select=usuario_id&tabla=eq.consultas&operacion=eq.INSERT&registro_id=eq.${consultaVet2}`, { key: SVC });
+check("audit_log registra como autor a quien creó, no al responsable", r.data?.[0]?.usuario_id === vet.id);
+
 console.log(`\n${fallas === 0 ? "Todos los controles OK" : `${fallas} control(es) fallaron`}`);
 process.exit(fallas === 0 ? 0 : 1);

@@ -7,6 +7,8 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
+  // tsconfig usa jsx "preserve" (lo exige Next); los tests importan .tsx.
+  oxc: { jsx: { runtime: "automatic" } },
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],

@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import {
+  SelectorVeterinario,
+  type VeterinarioOpcion,
+} from "@/components/selector-veterinario";
 import { TIPOS_CONSULTA, type ConsultaConVet, type TipoConsulta } from "@/lib/types/db";
 
 import { actualizarConsulta } from "../../actions";
@@ -14,11 +18,16 @@ const label = "flex flex-col gap-1 text-sm font-medium text-text";
 export function EditConsultaForm({
   pacienteId,
   consulta,
+  veterinarios,
+  usuarioId,
 }: {
   pacienteId: string;
   consulta: ConsultaConVet;
+  veterinarios: VeterinarioOpcion[];
+  usuarioId: string | null;
 }) {
   const router = useRouter();
+  const [veterinarioId, setVeterinarioId] = useState(consulta.veterinario_id);
   const [tipo, setTipo] = useState<TipoConsulta>(consulta.tipo);
   const [motivo, setMotivo] = useState(consulta.motivo);
   const [anamnesis, setAnamnesis] = useState(consulta.anamnesis ?? "");
@@ -38,9 +47,14 @@ export function EditConsultaForm({
   const [error, setError] = useState<string | null>(null);
 
   async function guardar() {
+    if (!veterinarioId) {
+      setError("Elige el veterinario responsable.");
+      return;
+    }
     setGuardando(true);
     setError(null);
     const res = await actualizarConsulta(consulta.id, pacienteId, {
+      veterinarioId,
       tipo,
       motivo,
       anamnesis,
@@ -64,6 +78,21 @@ export function EditConsultaForm({
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-3 rounded-card border border-border bg-surface p-4 sm:grid-cols-2">
+        <label className={`${label} sm:col-span-2`}>
+          Veterinario responsable *
+          <SelectorVeterinario
+            veterinarios={veterinarios}
+            value={veterinarioId}
+            onChange={setVeterinarioId}
+            usuarioId={usuarioId}
+            actual={{
+              id: consulta.veterinario_id,
+              nombre: consulta.veterinario?.nombre ?? "—",
+            }}
+            required
+            className={field}
+          />
+        </label>
         <label className={label}>
           Tipo
           <select

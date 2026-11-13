@@ -5,14 +5,16 @@ import type {
   EsquemaVacunacion,
   EstadoAlertaVacuna,
   Especie,
-  Vacuna,
+  VacunaConVet,
 } from "@/lib/types/db";
 
-export async function getVacunas(pacienteId: string): Promise<Vacuna[]> {
+export async function getVacunas(
+  pacienteId: string,
+): Promise<VacunaConVet[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("vacunas")
-    .select("*")
+    .select("*, veterinario:usuarios(nombre)")
     .eq("paciente_id", pacienteId)
     .order("fecha_aplicacion", { ascending: false });
 
@@ -20,7 +22,7 @@ export async function getVacunas(pacienteId: string): Promise<Vacuna[]> {
     console.error("getVacunas:", error.message);
     return [];
   }
-  return (data as unknown as Vacuna[]) ?? [];
+  return (data as unknown as VacunaConVet[]) ?? [];
 }
 
 export async function getEsquemasVacunacion(

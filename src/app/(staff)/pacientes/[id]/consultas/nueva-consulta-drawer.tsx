@@ -4,6 +4,11 @@ import { useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 import { useRouter } from "next/navigation";
 
+import {
+  SelectorVeterinario,
+  veterinarioPorDefecto,
+  type VeterinarioOpcion,
+} from "@/components/selector-veterinario";
 import { createClient } from "@/lib/supabase/client";
 import { MIMES_ACEPTADOS, subirExamen } from "@/lib/examenes-upload";
 import {
@@ -42,17 +47,25 @@ export function NuevaConsultaDrawer({
   pacienteId,
   citaId,
   autoOpen,
+  veterinarios,
+  usuarioId,
 }: {
   pacienteId: string;
   citaId?: string;
   autoOpen?: boolean;
+  veterinarios: VeterinarioOpcion[];
+  usuarioId: string | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(!!autoOpen);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Campos de consulta.
+  // Campos de consulta. El veterinario responsable parte en el usuario actual si
+  // es elegible; si no (p. ej. 'dev'), hay que elegirlo.
+  const [veterinarioId, setVeterinarioId] = useState(() =>
+    veterinarioPorDefecto(veterinarios, usuarioId),
+  );
   const [tipo, setTipo] = useState<TipoConsulta>("consulta");
   const [motivo, setMotivo] = useState("");
   const [anamnesis, setAnamnesis] = useState("");
@@ -98,6 +111,7 @@ export function NuevaConsultaDrawer({
   }
 
   function reset() {
+    setVeterinarioId(veterinarioPorDefecto(veterinarios, usuarioId));
     setTipo("consulta");
     setMotivo("");
     setAnamnesis("");
@@ -127,11 +141,16 @@ export function NuevaConsultaDrawer({
   }
 
   async function submit() {
+    if (!veterinarioId) {
+      setError("Elige el veterinario responsable.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
     const result = await crearConsulta({
       pacienteId,
+      veterinarioId,
       tipo,
       motivo,
       anamnesis,
@@ -216,6 +235,17 @@ export function NuevaConsultaDrawer({
             <div className="flex-1 space-y-4 overflow-y-auto p-5">
               {/* Datos clínicos */}
               <section className="space-y-3 rounded-card border border-border bg-surface p-4">
+                <label className={label}>
+                  Veterinario responsable *
+                  <SelectorVeterinario
+                    veterinarios={veterinarios}
+                    value={veterinarioId}
+                    onChange={setVeterinarioId}
+                    usuarioId={usuarioId}
+                    required
+                    className={field}
+                  />
+                </label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className={label}>
                     Tipo
