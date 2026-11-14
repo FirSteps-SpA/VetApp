@@ -4,7 +4,7 @@
 
 ### Requirement: El veterinario a cargo por defecto es el emisor
 
-Al preparar una autorización o el certificado de microchip, el sistema SHALL tomar como veterinario a cargo, por defecto, al integrante del staff autenticado que está emitiendo el documento, usando su nombre e identidad profesional, siempre que sea un veterinario elegible (capacidad `responsible-veterinarian`). El sistema SHALL permitir seleccionar a otro veterinario elegible cuando la emisión se hace en su nombre. El selector SHALL listar solo veterinarios elegibles: no incluye al usuario `dev` ni al emisor cuando no es veterinario.
+Al preparar una autorización o el certificado de microchip, el sistema SHALL tomar como veterinario a cargo, por defecto, al integrante del staff autenticado que está emitiendo el documento, usando su nombre e identidad profesional, siempre que sea un veterinario elegible. El sistema SHALL permitir seleccionar a otro veterinario elegible cuando la emisión se hace en su nombre. El selector SHALL listar solo veterinarios elegibles, sin incluir al emisor si no lo es.
 
 #### Scenario: Emisión por el propio veterinario
 
