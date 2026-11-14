@@ -11,6 +11,7 @@ import {
   type OpcionesHistorial,
   type RecetaItem,
 } from "@/lib/pdf/documents";
+import { agruparControles, contarHistorial } from "@/lib/consultas/agrupar";
 import {
   type ClinicaConfig,
   type ConsultaConVet,
@@ -202,7 +203,13 @@ export default function ExportPanel({
     const plural = (n: number, s: string, p: string) =>
       `${n} ${n === 1 ? s : p}`;
     if (tipo === "historial") {
-      const partes = [plural(historial.consultasInc.length, "consulta", "consultas")];
+      // Controles contados aparte, igual que en el PDF.
+      const conteo = contarHistorial(
+        agruparControles(historial.consultasInc, consultas),
+      );
+      const partes = [plural(conteo.consultas, "consulta", "consultas")];
+      if (conteo.controles > 0)
+        partes.push(plural(conteo.controles, "control", "controles"));
       if (opciones.incluirRecetas)
         partes.push(plural(historial.recetasInc.length, "receta", "recetas"));
       if (opciones.incluirExamenes)
@@ -219,6 +226,7 @@ export default function ExportPanel({
   }, [
     tipo,
     historial,
+    consultas,
     opciones,
     recetasMarcadas,
     consultasSel,
@@ -248,6 +256,7 @@ export default function ExportPanel({
           paciente={paciente}
           dueno={dueno}
           consultas={historial.consultasInc}
+          todasConsultas={consultas}
           recetas={historial.recetasInc}
           examenes={historial.examenesInc}
           vacunas={historial.vacunasInc}
