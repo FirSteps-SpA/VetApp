@@ -150,6 +150,8 @@ export interface Consulta {
   paciente_id: string;
   veterinario_id: string;
   cita_id: string | null;
+  // Solo en controles: consulta a la que da seguimiento (nunca otro control).
+  consulta_origen_id: string | null;
   fecha: string;
   tipo: TipoConsulta;
   motivo: string;
@@ -161,6 +163,7 @@ export interface Consulta {
   peso_kg: number | null;
   temperatura_c: number | null;
   notas: string | null;
+  evolucion: string | null;
   created_at: string;
   updated_at: string;
 }

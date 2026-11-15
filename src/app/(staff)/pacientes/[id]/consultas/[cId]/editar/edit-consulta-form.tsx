@@ -42,6 +42,7 @@ export function EditConsultaForm({
     consulta.temperatura_c?.toString() ?? "",
   );
   const [notas, setNotas] = useState(consulta.notas ?? "");
+  const [evolucion, setEvolucion] = useState(consulta.evolucion ?? "");
 
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +66,7 @@ export function EditConsultaForm({
       peso_kg: pesoKg,
       temperatura_c: temperatura,
       notas,
+      ...(tipo === "control" && { evolucion }),
     });
     setGuardando(false);
     if (res.error) {
@@ -95,9 +97,11 @@ export function EditConsultaForm({
         </label>
         <label className={label}>
           Tipo
+          {/* Un control enlazado a su consulta sigue siendo control. */}
           <select
             value={tipo}
             onChange={(e) => setTipo(e.target.value as TipoConsulta)}
+            disabled={!!consulta.consulta_origen_id}
             className={field}
           >
             {TIPOS_CONSULTA.map((t) => (
@@ -111,6 +115,12 @@ export function EditConsultaForm({
           Motivo *
           <input value={motivo} onChange={(e) => setMotivo(e.target.value)} className={field} />
         </label>
+        {tipo === "control" && (
+          <label className={`${label} sm:col-span-2`}>
+            Evolución
+            <textarea value={evolucion} onChange={(e) => setEvolucion(e.target.value)} rows={3} className={field} />
+          </label>
+        )}
         <label className={`${label} sm:col-span-2`}>
           Anamnesis
           <textarea value={anamnesis} onChange={(e) => setAnamnesis(e.target.value)} rows={2} className={field} />

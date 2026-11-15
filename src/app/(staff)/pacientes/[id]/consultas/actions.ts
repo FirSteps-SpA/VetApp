@@ -13,6 +13,7 @@ import {
   type TipoConsulta,
   type TipoExamen,
 } from "@/lib/types/db";
+import { instanteEnZona } from "@/lib/utils/zona";
 
 export interface RecetaInput {
   instrucciones_generales?: string;
@@ -173,6 +174,130 @@ export async function crearConsulta(
   return { ok: true, consultaId: consulta.id };
 }
 
+export interface CrearControlInput {
+  veterinarioId: string;
+  evolucion: string;
+  motivo: string;
+  diagnostico: string;
+  tratamiento: string;
+  peso_kg?: string;
+  temperatura_c?: string;
+  receta?: RecetaInput | null;
+  // Próximo control (hora de la clínica): si viene la fecha, se agenda una cita.
+  proximoFecha?: string;
+  proximoHora?: string;
+}
+
+export type CrearControlResult =
+  | { ok: true; origenId: string; controlId: string }
+  | { ok: false; error: string };
+
+// Control rápido de una consulta: una consulta de tipo 'control' enlazada a su
+// origen, con receta y próxima cita opcionales. Los controles no se anidan: si
+// `consultaId` es un control, el nuevo se enlaza a su consulta de origen.
+export async function crearControl(
+  consultaId: string,
+  input: CrearControlInput,
+): Promise<CrearControlResult> {
+  if (!input.evolucion?.trim()) return { ok: false, error: "La evolución es obligatoria." };
+  if (!input.motivo?.trim()) return { ok: false, error: "El motivo es obligatorio." };
+  if (!input.diagnostico?.trim())
+    return { ok: false, error: "El diagnóstico es obligatorio." };
+  if (!input.tratamiento?.trim())
+    return { ok: false, error: "El tratamiento es obligatorio." };
+  if (input.proximoFecha && !input.proximoHora)
+    return { ok: false, error: "Indica la hora del próximo control." };
+  if (!(await esVeterinarioElegible(input.veterinarioId)))
+    return { ok: false, error: VETERINARIO_INVALIDO };
+
+  const supabase = createClient();
+  const { data: indicada } = await supabase
+    .from("consultas")
+    .select("id, paciente_id, consulta_origen_id")
+    .eq("id", consultaId)
+    .maybeSingle();
+  if (!indicada) return { ok: false, error: "No se encontró la consulta." };
+  const origenId = indicada.consulta_origen_id ?? indicada.id;
+  const pacienteId = indicada.paciente_id;
+
+  // 1) El control (audit_log registra al usuario actual como autor).
+  const { data: control, error: controlError } = await supabase
+    .from("consultas")
+    .insert({
+      paciente_id: pacienteId,
+      veterinario_id: input.veterinarioId,
+      consulta_origen_id: origenId,
+      tipo: "control",
+      evolucion: input.evolucion.trim(),
+      motivo: input.motivo.trim(),
+      diagnostico: input.diagnostico.trim(),
+      tratamiento: input.tratamiento.trim(),
+      peso_kg: num(input.peso_kg),
+      temperatura_c: num(input.temperatura_c),
+    })
+    .select("id")
+    .single();
+
+  if (controlError || !control) {
+    const error =
+      controlError?.code === "23514"
+        ? "No se pudo enlazar el control a la consulta."
+        : "No se pudo guardar el control.";
+    return { ok: false, error };
+  }
+
+  revalidatePath(`/pacientes/${pacienteId}`);
+  revalidatePath(`/pacientes/${pacienteId}/consultas/${origenId}`);
+
+  // 2) Receta opcional, con el veterinario del control.
+  const medicamentos = (input.receta?.medicamentos ?? []).filter((m) =>
+    m.nombre?.trim(),
+  );
+  if (medicamentos.length > 0) {
+    const { error: recetaError } = await supabase.from("recetas").insert({
+      consulta_id: control.id,
+      paciente_id: pacienteId,
+      veterinario_id: input.veterinarioId,
+      medicamentos,
+      instrucciones_generales:
+        input.receta?.instrucciones_generales?.trim() || null,
+    });
+    if (recetaError) {
+      return {
+        ok: false,
+        error: "Control guardado, pero falló la receta. Revísala en la ficha.",
+      };
+    }
+  }
+
+  // 3) Próximo control: cita pendiente con el mismo veterinario.
+  if (input.proximoFecha) {
+    const { data: link } = await supabase
+      .from("paciente_duenos")
+      .select("dueno_id")
+      .eq("paciente_id", pacienteId)
+      .eq("es_principal", true)
+      .maybeSingle();
+    const { error: citaError } = await supabase.from("citas").insert({
+      paciente_id: pacienteId,
+      dueno_id: link?.dueno_id ?? null,
+      veterinario_id: input.veterinarioId,
+      fecha_hora: instanteEnZona(input.proximoFecha, input.proximoHora).toISOString(),
+      duracion_minutos: 30,
+      motivo: "Control",
+    });
+    if (citaError) {
+      return {
+        ok: false,
+        error: "Control guardado, pero falló agendar el próximo control. Agéndalo desde la agenda.",
+      };
+    }
+    revalidatePath("/agenda");
+  }
+
+  return { ok: true, origenId, controlId: control.id };
+}
+
 export interface ActualizarConsultaInput {
   veterinarioId: string;
   tipo: TipoConsulta;
@@ -185,6 +310,8 @@ export interface ActualizarConsultaInput {
   peso_kg?: string;
   temperatura_c?: string;
   notas?: string;
+  // Solo en controles.
+  evolucion?: string;
 }
 
 // Edita los datos de una consulta. No se eliminan consultas (quedan en audit_log);
@@ -233,6 +360,9 @@ export async function actualizarConsulta(
       peso_kg: num(input.peso_kg),
       temperatura_c: num(input.temperatura_c),
       notas: input.notas?.trim() || null,
+      ...(input.evolucion !== undefined && {
+        evolucion: input.evolucion.trim() || null,
+      }),
     })
     .eq("id", consultaId);
 

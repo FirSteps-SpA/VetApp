@@ -50,6 +50,22 @@ export async function getConsulta(
   };
 }
 
+// Controles enlazados a una consulta (del más antiguo al más reciente).
+export async function getControles(consultaId: string): Promise<ConsultaConVet[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("consultas")
+    .select("*, veterinario:usuarios(nombre)")
+    .eq("consulta_origen_id", consultaId)
+    .order("fecha", { ascending: true });
+
+  if (error) {
+    console.error("getControles:", error.message);
+    return [];
+  }
+  return (data as unknown as ConsultaConVet[]) ?? [];
+}
+
 // Recetas del paciente (más reciente primero).
 export async function getRecetas(pacienteId: string): Promise<Receta[]> {
   const supabase = createClient();

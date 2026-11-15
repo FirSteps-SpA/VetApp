@@ -299,5 +299,20 @@ check("consulta histórica con veterinario inactivo sigue editable", r.data?.[0]
 r = await http("GET", `/rest/v1/audit_log?select=usuario_id&tabla=eq.consultas&operacion=eq.INSERT&registro_id=eq.${consultaVet2}`, { key: SVC });
 check("audit_log registra como autor a quien creó, no al responsable", r.data?.[0]?.usuario_id === vet.id);
 
+// --- Controles enlazados a su consulta de origen (spec 4) ---
+const control = { ...base, tipo: "control", veterinario_id: vet.id, evolucion: "mejor" };
+r = await postV("consultas", { ...control, consulta_origen_id: consultaVet2 });
+const controlId = r.data?.[0]?.id;
+check("veterinario registra un control enlazado a su consulta", r.status === 201 && r.data?.[0]?.consulta_origen_id === consultaVet2, `HTTP ${r.status}`);
+const consultaB = await insert("consultas", { ...base, paciente_id: B.paciente, veterinario_id: vet.id });
+r = await postV("consultas", { ...control, consulta_origen_id: consultaB.id });
+check("control enlazado a una consulta de otro paciente rechazado", rechazado(r), `HTTP ${r.status}`);
+r = await postV("consultas", { ...control, consulta_origen_id: controlId });
+check("control enlazado a otro control rechazado", rechazado(r), `HTTP ${r.status}`);
+r = await postV("consultas", { ...base, veterinario_id: vet.id, consulta_origen_id: consultaVet2 });
+check("consulta que no es control con origen rechazada", rechazado(r), `HTTP ${r.status}`);
+r = await patchV(`consultas?id=eq.${controlId}`, { consulta_origen_id: historica.id });
+check("el origen de un control no se cambia", rechazado(r), `HTTP ${r.status}`);
+
 console.log(`\n${fallas === 0 ? "Todos los controles OK" : `${fallas} control(es) fallaron`}`);
 process.exit(fallas === 0 ? 0 : 1);
