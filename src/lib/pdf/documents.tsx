@@ -29,6 +29,10 @@ import type {
   VacunaPortal,
 } from "@/lib/data/portal";
 import { agruparControles, contarHistorial } from "@/lib/consultas/agrupar";
+import {
+  camposConsultaHistorial,
+  type OpcionesCampos,
+} from "@/lib/consultas/campos-historial";
 import { calcularEdad, formatearFecha, formatearPeso } from "@/lib/utils/format";
 
 const TEAL = "#0d9488";
@@ -328,11 +332,10 @@ export function RecetaDoc({
 // --------------------------------------------------------------------------
 // Historial clínico completo
 // --------------------------------------------------------------------------
-export interface OpcionesHistorial {
+export interface OpcionesHistorial extends OpcionesCampos {
   incluirRecetas: boolean;
   incluirExamenes: boolean;
   incluirVacunas: boolean;
-  incluirNotasInternas: boolean;
 }
 
 // Una consulta o un control dentro del historial.
@@ -340,17 +343,21 @@ function ConsultaHistorial({
   c,
   recetas,
   opciones,
+  origen = null,
   origenFecha,
 }: {
   c: ConsultaConVet;
   recetas: Receta[];
   opciones: OpcionesHistorial;
+  // Consulta de origen de un control, si está en el mismo documento.
+  origen?: ConsultaConVet | null;
   origenFecha?: string | null;
 }) {
-  const esControl = !!c.consulta_origen_id;
+  const campos = camposConsultaHistorial(c, opciones, origen);
   return (
     <>
-      <View style={styles.cardHead}>
+      {/* La cabecera no queda sola al pie de una página. */}
+      <View style={styles.cardHead} minPresenceAhead={24}>
         <Text style={styles.bold}>
           {formatearFecha(c.fecha)} · {labelTipoConsulta(c.tipo)}
         </Text>
@@ -361,18 +368,11 @@ function ConsultaHistorial({
           Control de la consulta del {formatearFecha(origenFecha)}
         </Text>
       ) : null}
-      {esControl ? (
-        <Text>Evolución: {c.evolucion ?? ""}</Text>
-      ) : (
-        <>
-          <Text>Motivo: {c.motivo}</Text>
-          <Text>Diagnóstico: {c.diagnostico}</Text>
-        </>
-      )}
-      <Text>Tratamiento: {c.tratamiento}</Text>
-      {opciones.incluirNotasInternas && c.notas ? (
-        <Text style={{ color: SLATE }}>Notas: {c.notas}</Text>
-      ) : null}
+      {campos.map((f) => (
+        <Text key={f.label} style={f.tenue ? { color: SLATE } : undefined}>
+          {f.label}: {f.valor}
+        </Text>
+      ))}
       {opciones.incluirRecetas &&
         recetas.map((r) => (
           <View key={r.id} style={{ marginTop: 3 }}>
@@ -439,11 +439,9 @@ export function HistorialDoc({
           ) : (
             entradas.map((e) =>
               e.tipo === "consulta" ? (
-                <View
-                  key={e.consulta.id}
-                  style={styles.card}
-                  wrap={e.controles.length > 0}
-                >
+                // Con todos los campos una consulta puede superar una página:
+                // la tarjeta se parte en vez de desbordarse.
+                <View key={e.consulta.id} style={styles.card}>
                   <ConsultaHistorial
                     c={e.consulta}
                     recetas={recetasPorConsulta(e.consulta.id)}
@@ -455,12 +453,13 @@ export function HistorialDoc({
                         c={k}
                         recetas={recetasPorConsulta(k.id)}
                         opciones={opciones}
+                        origen={e.consulta}
                       />
                     </View>
                   ))}
                 </View>
               ) : (
-                <View key={e.control.id} style={styles.card} wrap={false}>
+                <View key={e.control.id} style={styles.card}>
                   <ConsultaHistorial
                     c={e.control}
                     recetas={recetasPorConsulta(e.control.id)}

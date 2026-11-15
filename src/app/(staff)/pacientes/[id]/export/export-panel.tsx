@@ -69,6 +69,8 @@ export default function ExportPanel({
     incluirRecetas: true,
     incluirExamenes: true,
     incluirVacunas: true,
+    incluirAnamnesis: true,
+    incluirSignosVitales: true,
     incluirNotasInternas: false,
   });
   const [desde, setDesde] = useState("");
@@ -465,6 +467,8 @@ export default function ExportPanel({
                     ["incluirRecetas", "Incluir recetas"],
                     ["incluirVacunas", "Incluir vacunas"],
                     ["incluirExamenes", "Incluir exámenes"],
+                    ["incluirAnamnesis", "Incluir anamnesis y examen físico"],
+                    ["incluirSignosVitales", "Incluir signos vitales"],
                     ["incluirNotasInternas", "Incluir notas internas"],
                   ] as [keyof OpcionesHistorial, string][]
                 ).map(([key, label]) => (
