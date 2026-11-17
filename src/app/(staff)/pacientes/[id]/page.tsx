@@ -173,6 +173,8 @@ export default async function FichaPage({
           pacienteId={paciente.id}
           citaId={searchParams.cita}
           autoOpen={!!searchParams.cita}
+          veterinarios={veterinarios}
+          usuarioId={emisor?.id ?? null}
         />
       </div>
 
@@ -328,6 +330,8 @@ export default async function FichaPage({
           clinica={clinica}
           paciente={paciente}
           dueno={principal}
+          veterinarios={veterinarios}
+          usuarioId={emisor?.id ?? null}
         />
       </section>
       </div>

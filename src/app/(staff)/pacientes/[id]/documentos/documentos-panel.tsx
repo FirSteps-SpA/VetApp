@@ -4,6 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pdf } from "@react-pdf/renderer";
 
 import {
+  SelectorVeterinario,
+  veterinarioPorDefecto,
+} from "@/components/selector-veterinario";
+
+import {
   AutorizacionDoc,
   CAMPOS_EXTRA,
   type AutorizacionData,
@@ -88,6 +93,13 @@ function vetFields(vet: EmisorDoc | null): Pick<
   };
 }
 
+// Veterinario a cargo inicial: el emisor si es un veterinario elegible; si no
+// (p. ej. 'dev'), ninguno y los campos quedan vacíos hasta elegir.
+function vetInicial(data: DocumentosData): EmisorDoc | null {
+  const id = veterinarioPorDefecto(data.veterinarios, data.emisor?.id);
+  return data.veterinarios.find((v) => v.id === id) ?? null;
+}
+
 function initAuth(data: DocumentosData) {
   const { clinica, paciente, dueno } = data;
   return {
@@ -106,7 +118,7 @@ function initAuth(data: DocumentosData) {
       : "",
     raza: paciente.raza ?? "",
     antecedentes: "",
-    medicoACargo: data.emisor?.nombre ?? "",
+    medicoACargo: vetInicial(data)?.nombre ?? "",
     extra: {} as Record<string, string>,
   };
 }
@@ -134,7 +146,7 @@ function initMicro(data: DocumentosData): MicrochipData {
     tipoProcedimiento: "",
     modoObtencion: paciente.modo_obtencion ?? "",
     razonTenencia: paciente.razon_tenencia ?? "",
-    ...vetFields(data.emisor),
+    ...vetFields(vetInicial(data)),
     comuna: clinica?.ciudad ?? "",
     fechaProcedimiento: hoy(),
   };
@@ -153,15 +165,10 @@ export default function DocumentosPanel({
   const [generando, setGenerando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Veterinario a cargo: por defecto el emisor, con opción de emitir en nombre
-  // de otro. La lista incluye al emisor aunque no sea veterinario.
-  const vets = useMemo<EmisorDoc[]>(() => {
-    const porId = new Map<string, EmisorDoc>();
-    if (data.emisor) porId.set(data.emisor.id, data.emisor);
-    for (const v of data.veterinarios) porId.set(v.id, v);
-    return Array.from(porId.values());
-  }, [data.emisor, data.veterinarios]);
-  const [vetId, setVetId] = useState(() => data.emisor?.id ?? "");
+  // Veterinario a cargo: por defecto el emisor si es elegible, con opción de
+  // emitir en nombre de otro. Solo veterinarios activos (nunca 'dev').
+  const vets = data.veterinarios;
+  const [vetId, setVetId] = useState(() => vetInicial(data)?.id ?? "");
 
   function aplicarVet(id: string) {
     setVetId(id);
@@ -328,21 +335,13 @@ export default function DocumentosPanel({
           {vets.length > 0 && (
             <label className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 text-sm text-text">
               Veterinario a cargo
-              <select
+              <SelectorVeterinario
+                veterinarios={vets}
                 value={vetId}
-                onChange={(e) => aplicarVet(e.target.value)}
+                onChange={aplicarVet}
+                usuarioId={data.emisor?.id}
                 className={field}
-              >
-                {!vets.some((v) => v.id === vetId) && (
-                  <option value={vetId}>—</option>
-                )}
-                {vets.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.nombre}
-                    {v.id === data.emisor?.id ? " (tú)" : ""}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
           )}
 

@@ -5,6 +5,7 @@ import { Icon } from "@/components/icon";
 import Link from "next/link";
 
 import { ButtonLink } from "@/components/button";
+import type { VeterinarioOpcion } from "@/components/selector-veterinario";
 
 import {
   colorEstadoCita,
@@ -19,8 +20,9 @@ import {
   type Examen,
   type Paciente,
   type Receta,
-  type Vacuna,
+  type VacunaConVet,
 } from "@/lib/types/db";
+import { agruparControles, contarHistorial } from "@/lib/consultas/agrupar";
 import { formatearFecha, formatearFechaHora } from "@/lib/utils/format";
 
 import { CitaActions } from "@/app/(staff)/agenda/cita-actions";
@@ -43,9 +45,11 @@ const TABS: { id: TabId; label: string; fase?: number }[] = [
 
 function ConsultaItem({
   consulta,
+  controles,
   pacienteId,
 }: {
   consulta: ConsultaConVet;
+  controles: ConsultaConVet[];
   pacienteId: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -66,31 +70,83 @@ function ConsultaItem({
         <span className="min-w-0 flex-1 truncate text-support font-medium text-text">
           {consulta.diagnostico}
         </span>
+        {controles.length > 0 && (
+          <span className="shrink-0 text-xs text-text-muted">
+            {controles.length === 1 ? "1 control" : `${controles.length} controles`}
+          </span>
+        )}
       </button>
 
       {open && (
         <div className="space-y-2 border-t border-border px-3 py-3 text-body">
           <Campo label="Motivo" value={consulta.motivo} />
+          <Campo label="Evolución" value={consulta.evolucion} />
           <Campo label="Anamnesis" value={consulta.anamnesis} />
           <Campo label="Examen físico" value={consulta.examen_fisico} />
-          <Campo label="Diagnóstico" value={consulta.diagnostico} />
           <Campo
             label="Diagnóstico diferencial"
             value={consulta.diagnostico_diferencial}
           />
+          <Campo label="Diagnóstico" value={consulta.diagnostico} />
           <Campo label="Tratamiento" value={consulta.tratamiento} />
           <Campo label="Notas" value={consulta.notas} />
           <div className="flex items-center justify-between pt-1 text-xs text-text-muted">
             <span>{consulta.veterinario?.nombre ?? "—"}</span>
-            <Link
-              href={`/pacientes/${pacienteId}/consultas/${consulta.id}`}
-              className="font-medium text-accent hover:underline"
-            >
-              Ver completo →
-            </Link>
+            <span className="flex gap-3">
+              <Link
+                href={`/pacientes/${pacienteId}/consultas/${consulta.id}/control`}
+                className="font-medium text-accent hover:underline"
+              >
+                Registrar control
+              </Link>
+              <Link
+                href={`/pacientes/${pacienteId}/consultas/${consulta.id}`}
+                className="font-medium text-accent hover:underline"
+              >
+                Ver completo →
+              </Link>
+            </span>
           </div>
+          {controles.length > 0 && (
+            <div className="space-y-2 border-t border-border pt-2">
+              {controles.map((k) => (
+                <ControlResumen key={k.id} control={k} pacienteId={pacienteId} />
+              ))}
+            </div>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+// Control dentro de su consulta (historial de la ficha).
+function ControlResumen({
+  control,
+  pacienteId,
+  origenFecha,
+}: {
+  control: ConsultaConVet;
+  pacienteId: string;
+  // Solo para controles cuyo origen no se lista (no ocurre en la ficha completa).
+  origenFecha?: string | null;
+}) {
+  return (
+    <div className="space-y-1 rounded-control bg-surface-sunken px-3 py-2">
+      <div className="flex items-center justify-between gap-2 text-xs text-text-muted">
+        <span>
+          Control · {formatearFecha(control.fecha)} · {control.veterinario?.nombre ?? "—"}
+          {origenFecha ? ` · de la consulta del ${formatearFecha(origenFecha)}` : ""}
+        </span>
+        <Link
+          href={`/pacientes/${pacienteId}/consultas/${control.id}`}
+          className="font-medium text-accent hover:underline"
+        >
+          Ver →
+        </Link>
+      </div>
+      <Campo label="Evolución" value={control.evolucion} />
+      <Campo label="Tratamiento" value={control.tratamiento} />
     </div>
   );
 }
@@ -187,6 +243,8 @@ export function FichaTabs({
   clinica,
   paciente,
   dueno,
+  veterinarios,
+  usuarioId,
 }: {
   pacienteId: string;
   notas: string | null;
@@ -194,12 +252,14 @@ export function FichaTabs({
   recetas: Receta[];
   examenes: Examen[];
   urlsExamenes: Record<string, string>;
-  vacunas: Vacuna[];
+  vacunas: VacunaConVet[];
   esquemas: EsquemaVacunacion[];
   citas: CitaConRel[];
   clinica: ClinicaConfig | null;
   paciente: Paciente;
   dueno: DuenoDePaciente | null;
+  veterinarios: VeterinarioOpcion[];
+  usuarioId: string | null;
 }) {
   const [active, setActive] = useState<TabId>("resumen");
 
@@ -220,7 +280,7 @@ export function FichaTabs({
             {(() => {
               const n =
                 tab.id === "historial"
-                  ? consultas.length
+                  ? contarHistorial(agruparControles(consultas)).consultas
                   : tab.id === "recetas"
                     ? recetas.length
                     : tab.id === "examenes"
@@ -255,9 +315,23 @@ export function FichaTabs({
             <EmptyTab label="consultas registradas" />
           ) : (
             <div className="space-y-2">
-              {consultas.map((c) => (
-                <ConsultaItem key={c.id} consulta={c} pacienteId={pacienteId} />
-              ))}
+              {agruparControles(consultas).map((e) =>
+                e.tipo === "consulta" ? (
+                  <ConsultaItem
+                    key={e.consulta.id}
+                    consulta={e.consulta}
+                    controles={e.controles}
+                    pacienteId={pacienteId}
+                  />
+                ) : (
+                  <ControlResumen
+                    key={e.control.id}
+                    control={e.control}
+                    pacienteId={pacienteId}
+                    origenFecha={e.origenFecha}
+                  />
+                ),
+              )}
             </div>
           ))}
 
@@ -298,6 +372,8 @@ export function FichaTabs({
             clinica={clinica}
             paciente={paciente}
             dueno={dueno}
+            veterinarios={veterinarios}
+            usuarioId={usuarioId}
           />
         )}
         {active === "citas" && (

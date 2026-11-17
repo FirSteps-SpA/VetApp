@@ -4,17 +4,22 @@ import { useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 import { useRouter } from "next/navigation";
 
+import {
+  SelectorVeterinario,
+  veterinarioPorDefecto,
+  type VeterinarioOpcion,
+} from "@/components/selector-veterinario";
 import { createClient } from "@/lib/supabase/client";
 import { MIMES_ACEPTADOS, subirExamen } from "@/lib/examenes-upload";
 import {
   TIPOS_CONSULTA,
   TIPOS_EXAMEN,
-  type Medicamento,
   type TipoConsulta,
   type TipoExamen,
 } from "@/lib/types/db";
 
 import { crearConsulta, type ExamenPendiente } from "./actions";
+import { RecetaEditor, useReceta } from "./receta-editor";
 
 interface AdjuntoRow extends ExamenPendiente {
   key: number;
@@ -24,35 +29,30 @@ const field =
   "w-full rounded-control border border-border bg-surface px-3 py-2 text-base text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle";
 const label = "flex flex-col gap-1 text-sm font-medium text-text";
 
-interface MedRow extends Medicamento {
-  key: number;
-}
-
-const emptyMed = (key: number): MedRow => ({
-  key,
-  nombre: "",
-  presentacion: "",
-  dosis: "",
-  frecuencia: "",
-  duracion: "",
-  instrucciones: "",
-});
 
 export function NuevaConsultaDrawer({
   pacienteId,
   citaId,
   autoOpen,
+  veterinarios,
+  usuarioId,
 }: {
   pacienteId: string;
   citaId?: string;
   autoOpen?: boolean;
+  veterinarios: VeterinarioOpcion[];
+  usuarioId: string | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(!!autoOpen);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Campos de consulta.
+  // Campos de consulta. El veterinario responsable parte en el usuario actual si
+  // es elegible; si no (p. ej. 'dev'), hay que elegirlo.
+  const [veterinarioId, setVeterinarioId] = useState(() =>
+    veterinarioPorDefecto(veterinarios, usuarioId),
+  );
   const [tipo, setTipo] = useState<TipoConsulta>("consulta");
   const [motivo, setMotivo] = useState("");
   const [anamnesis, setAnamnesis] = useState("");
@@ -65,9 +65,7 @@ export function NuevaConsultaDrawer({
   const [notas, setNotas] = useState("");
 
   // Receta.
-  const [conReceta, setConReceta] = useState(false);
-  const [meds, setMeds] = useState<MedRow[]>([emptyMed(0)]);
-  const [instrucciones, setInstrucciones] = useState("");
+  const receta = useReceta();
 
   // Adjuntos (se suben a Storage al seleccionarlos; se vinculan al guardar).
   const fileRef = useRef<HTMLInputElement>(null);
@@ -98,6 +96,7 @@ export function NuevaConsultaDrawer({
   }
 
   function reset() {
+    setVeterinarioId(veterinarioPorDefecto(veterinarios, usuarioId));
     setTipo("consulta");
     setMotivo("");
     setAnamnesis("");
@@ -108,9 +107,7 @@ export function NuevaConsultaDrawer({
     setPesoKg("");
     setTemperatura("");
     setNotas("");
-    setConReceta(false);
-    setMeds([emptyMed(0)]);
-    setInstrucciones("");
+    receta.reset();
     setAdjuntos([]);
     setError(null);
   }
@@ -122,16 +119,17 @@ export function NuevaConsultaDrawer({
     reset();
   }
 
-  function updateMed(key: number, patch: Partial<Medicamento>) {
-    setMeds((rows) => rows.map((r) => (r.key === key ? { ...r, ...patch } : r)));
-  }
-
   async function submit() {
+    if (!veterinarioId) {
+      setError("Elige el veterinario responsable.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
     const result = await crearConsulta({
       pacienteId,
+      veterinarioId,
       tipo,
       motivo,
       anamnesis,
@@ -142,19 +140,7 @@ export function NuevaConsultaDrawer({
       peso_kg: pesoKg,
       temperatura_c: temperatura,
       notas,
-      receta: conReceta
-        ? {
-            instrucciones_generales: instrucciones,
-            medicamentos: meds.map((m) => ({
-              nombre: m.nombre,
-              presentacion: m.presentacion,
-              dosis: m.dosis,
-              frecuencia: m.frecuencia,
-              duracion: m.duracion,
-              instrucciones: m.instrucciones,
-            })),
-          }
-        : null,
+      receta: receta.aInput(),
       examenes: adjuntos.map((a) => ({
         tipo: a.tipo,
         nombre: a.nombre,
@@ -216,6 +202,17 @@ export function NuevaConsultaDrawer({
             <div className="flex-1 space-y-4 overflow-y-auto p-5">
               {/* Datos clínicos */}
               <section className="space-y-3 rounded-card border border-border bg-surface p-4">
+                <label className={label}>
+                  Veterinario responsable *
+                  <SelectorVeterinario
+                    veterinarios={veterinarios}
+                    value={veterinarioId}
+                    onChange={setVeterinarioId}
+                    usuarioId={usuarioId}
+                    required
+                    className={field}
+                  />
+                </label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className={label}>
                     Tipo
@@ -286,19 +283,19 @@ export function NuevaConsultaDrawer({
               {/* Diagnóstico y tratamiento */}
               <section className="space-y-3 rounded-card border border-border bg-surface p-4">
                 <label className={label}>
-                  Diagnóstico *
+                  Diagnóstico diferencial
                   <textarea
-                    value={diagnostico}
-                    onChange={(e) => setDiagnostico(e.target.value)}
+                    value={diagDiferencial}
+                    onChange={(e) => setDiagDiferencial(e.target.value)}
                     rows={2}
                     className={field}
                   />
                 </label>
                 <label className={label}>
-                  Diagnóstico diferencial
+                  Diagnóstico *
                   <textarea
-                    value={diagDiferencial}
-                    onChange={(e) => setDiagDiferencial(e.target.value)}
+                    value={diagnostico}
+                    onChange={(e) => setDiagnostico(e.target.value)}
                     rows={2}
                     className={field}
                   />
@@ -323,125 +320,7 @@ export function NuevaConsultaDrawer({
                 </label>
               </section>
 
-              {/* Receta inline */}
-              <section className="space-y-3 rounded-card border border-border bg-surface p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-text">Receta</h3>
-                  <label className="flex items-center gap-2 text-sm text-text-muted">
-                    <input
-                      type="checkbox"
-                      checked={conReceta}
-                      onChange={(e) => setConReceta(e.target.checked)}
-                      className="h-4 w-4"
-                    />
-                    Agregar receta
-                  </label>
-                </div>
-
-                {conReceta && (
-                  <div className="space-y-3">
-                    {meds.map((m, i) => (
-                      <div
-                        key={m.key}
-                        className="space-y-2 rounded-control border border-border p-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-text-muted">
-                            Medicamento {i + 1}
-                          </span>
-                          {meds.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setMeds((rows) =>
-                                  rows.filter((r) => r.key !== m.key),
-                                )
-                              }
-                              className="text-xs text-danger hover:underline"
-                            >
-                              Quitar
-                            </button>
-                          )}
-                        </div>
-                        <input
-                          placeholder="Nombre *"
-                          value={m.nombre}
-                          onChange={(e) =>
-                            updateMed(m.key, { nombre: e.target.value })
-                          }
-                          className={field}
-                        />
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          <input
-                            placeholder="Presentación"
-                            value={m.presentacion}
-                            onChange={(e) =>
-                              updateMed(m.key, { presentacion: e.target.value })
-                            }
-                            className={field}
-                          />
-                          <input
-                            placeholder="Dosis"
-                            value={m.dosis}
-                            onChange={(e) =>
-                              updateMed(m.key, { dosis: e.target.value })
-                            }
-                            className={field}
-                          />
-                          <input
-                            placeholder="Frecuencia"
-                            value={m.frecuencia}
-                            onChange={(e) =>
-                              updateMed(m.key, { frecuencia: e.target.value })
-                            }
-                            className={field}
-                          />
-                          <input
-                            placeholder="Duración"
-                            value={m.duracion}
-                            onChange={(e) =>
-                              updateMed(m.key, { duracion: e.target.value })
-                            }
-                            className={field}
-                          />
-                        </div>
-                        <input
-                          placeholder="Instrucciones"
-                          value={m.instrucciones}
-                          onChange={(e) =>
-                            updateMed(m.key, { instrucciones: e.target.value })
-                          }
-                          className={field}
-                        />
-                      </div>
-                    ))}
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setMeds((rows) => [
-                          ...rows,
-                          emptyMed((rows.at(-1)?.key ?? 0) + 1),
-                        ])
-                      }
-                      className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
-                    >
-                      <Icon name="plus" className="h-3.5 w-3.5" />
-                      Agregar medicamento
-                    </button>
-
-                    <label className={label}>
-                      Instrucciones generales
-                      <textarea
-                        value={instrucciones}
-                        onChange={(e) => setInstrucciones(e.target.value)}
-                        rows={2}
-                        className={field}
-                      />
-                    </label>
-                  </div>
-                )}
-              </section>
+              <RecetaEditor receta={receta} />
 
               {/* Adjuntar exámenes */}
               <section className="space-y-3 rounded-card border border-border bg-surface p-4">

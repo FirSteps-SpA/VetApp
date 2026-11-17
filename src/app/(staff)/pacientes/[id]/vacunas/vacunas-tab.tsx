@@ -4,13 +4,19 @@ import { useState } from "react";
 import { Icon } from "@/components/icon";
 import { useRouter } from "next/navigation";
 
+import {
+  SelectorVeterinario,
+  veterinarioPorDefecto,
+  type VeterinarioOpcion,
+} from "@/components/selector-veterinario";
+
 import type {
   ClinicaConfig,
   DuenoDePaciente,
   EsquemaVacunacion,
   EstadoAlertaVacuna,
   Paciente,
-  Vacuna,
+  VacunaConVet,
 } from "@/lib/types/db";
 import { formatearFecha, isoDia } from "@/lib/utils/format";
 import { sumarDias } from "@/lib/utils/zona";
@@ -46,19 +52,26 @@ export function VacunasTab({
   clinica,
   paciente,
   dueno,
+  veterinarios,
+  usuarioId,
 }: {
   pacienteId: string;
-  vacunas: Vacuna[];
+  vacunas: VacunaConVet[];
   esquemas: EsquemaVacunacion[];
   clinica: ClinicaConfig | null;
   paciente: Paciente;
   dueno: DuenoDePaciente | null;
+  veterinarios: VeterinarioOpcion[];
+  usuarioId: string | null;
 }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [veterinarioId, setVeterinarioId] = useState(() =>
+    veterinarioPorDefecto(veterinarios, usuarioId),
+  );
   const [nombreSel, setNombreSel] = useState("");
   const [nombreLibre, setNombreLibre] = useState("");
   const [laboratorio, setLaboratorio] = useState("");
@@ -77,6 +90,7 @@ export function VacunasTab({
   }
 
   function reset() {
+    setVeterinarioId(veterinarioPorDefecto(veterinarios, usuarioId));
     setNombreSel("");
     setNombreLibre("");
     setLaboratorio("");
@@ -92,10 +106,15 @@ export function VacunasTab({
       setError("Selecciona o escribe el nombre de la vacuna.");
       return;
     }
+    if (!veterinarioId) {
+      setError("Elige el veterinario responsable.");
+      return;
+    }
     setGuardando(true);
     setError(null);
     const res = await crearVacuna({
       pacienteId,
+      veterinarioId,
       nombre_vacuna: nombreFinal,
       laboratorio,
       lote,
@@ -145,6 +164,17 @@ export function VacunasTab({
       ) : (
         <div className="space-y-3 rounded-card border border-border bg-surface p-4">
           <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm text-text sm:col-span-2">
+              Veterinario responsable *
+              <SelectorVeterinario
+                veterinarios={veterinarios}
+                value={veterinarioId}
+                onChange={setVeterinarioId}
+                usuarioId={usuarioId}
+                required
+                className={field}
+              />
+            </label>
             <label className="flex flex-col gap-1 text-sm text-text">
               Vacuna
               <select
@@ -320,6 +350,7 @@ export function VacunasTab({
                     : ""}
                   {v.laboratorio ? ` · ${v.laboratorio}` : ""}
                   {v.lote ? ` · lote ${v.lote}` : ""}
+                  {v.veterinario ? ` · ${v.veterinario.nombre}` : ""}
                 </p>
               </div>
               <button

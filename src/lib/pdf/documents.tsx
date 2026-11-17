@@ -28,6 +28,11 @@ import type {
   RecetaPortal,
   VacunaPortal,
 } from "@/lib/data/portal";
+import { agruparControles, contarHistorial } from "@/lib/consultas/agrupar";
+import {
+  camposConsultaHistorial,
+  type OpcionesCampos,
+} from "@/lib/consultas/campos-historial";
 import { calcularEdad, formatearFecha, formatearPeso } from "@/lib/utils/format";
 
 const TEAL = "#0d9488";
@@ -88,6 +93,14 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   cardHead: { flexDirection: "row", justifyContent: "space-between" },
+  // Control dentro del bloque de su consulta.
+  control: {
+    marginTop: 6,
+    paddingTop: 5,
+    paddingLeft: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+  },
   label: { fontSize: 8, color: LIGHT },
   med: {
     borderLeftWidth: 2,
@@ -319,11 +332,61 @@ export function RecetaDoc({
 // --------------------------------------------------------------------------
 // Historial clínico completo
 // --------------------------------------------------------------------------
-export interface OpcionesHistorial {
+export interface OpcionesHistorial extends OpcionesCampos {
   incluirRecetas: boolean;
   incluirExamenes: boolean;
   incluirVacunas: boolean;
-  incluirNotasInternas: boolean;
+}
+
+// Una consulta o un control dentro del historial.
+function ConsultaHistorial({
+  c,
+  recetas,
+  opciones,
+  origen = null,
+  origenFecha,
+}: {
+  c: ConsultaConVet;
+  recetas: Receta[];
+  opciones: OpcionesHistorial;
+  // Consulta de origen de un control, si está en el mismo documento.
+  origen?: ConsultaConVet | null;
+  origenFecha?: string | null;
+}) {
+  const campos = camposConsultaHistorial(c, opciones, origen);
+  return (
+    <>
+      {/* La cabecera no queda sola al pie de una página. */}
+      <View style={styles.cardHead} minPresenceAhead={24}>
+        <Text style={styles.bold}>
+          {formatearFecha(c.fecha)} · {labelTipoConsulta(c.tipo)}
+        </Text>
+        <Text style={styles.label}>{c.veterinario?.nombre ?? ""}</Text>
+      </View>
+      {origenFecha ? (
+        <Text style={styles.label}>
+          Control de la consulta del {formatearFecha(origenFecha)}
+        </Text>
+      ) : null}
+      {campos.map((f) => (
+        <Text key={f.label} style={f.tenue ? { color: SLATE } : undefined}>
+          {f.label}: {f.valor}
+        </Text>
+      ))}
+      {opciones.incluirRecetas &&
+        recetas.map((r) => (
+          <View key={r.id} style={{ marginTop: 3 }}>
+            <Text style={styles.label}>
+              {r.numero_receta}
+              {!r.vigente ? " (anulada)" : ""}
+            </Text>
+            {r.medicamentos.map((m, i) => (
+              <Text key={i}>· {resumenMedicamento(m)}</Text>
+            ))}
+          </View>
+        ))}
+    </>
+  );
 }
 
 export function HistorialDoc({
@@ -335,6 +398,7 @@ export function HistorialDoc({
   examenes,
   vacunas,
   opciones,
+  todasConsultas,
 }: {
   clinica: ClinicaConfig | null;
   paciente: Paciente;
@@ -344,9 +408,15 @@ export function HistorialDoc({
   examenes: Examen[];
   vacunas: Vacuna[];
   opciones: OpcionesHistorial;
+  // Todas las consultas del paciente, para fechar el origen de los controles
+  // que entran en el rango sin su consulta. Por defecto, `consultas`.
+  todasConsultas?: ConsultaConVet[];
 }) {
   const recetasPorConsulta = (consultaId: string) =>
     recetas.filter((r) => r.consulta_id === consultaId);
+  // Controles dentro del bloque de su consulta (misma agrupación que la ficha).
+  const entradas = agruparControles(consultas, todasConsultas ?? consultas);
+  const conteo = contarHistorial(entradas);
 
   return (
     <Document title={`Historial ${paciente.nombre}`}>
@@ -359,39 +429,46 @@ export function HistorialDoc({
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            Consultas ({consultas.length})
+            Consultas ({conteo.consultas})
+            {conteo.controles > 0
+              ? ` · ${conteo.controles} ${conteo.controles === 1 ? "control" : "controles"}`
+              : ""}
           </Text>
           {consultas.length === 0 ? (
             <Text style={{ color: LIGHT }}>Sin consultas en el período.</Text>
           ) : (
-            consultas.map((c) => (
-              <View key={c.id} style={styles.card} wrap={false}>
-                <View style={styles.cardHead}>
-                  <Text style={styles.bold}>
-                    {formatearFecha(c.fecha)} · {labelTipoConsulta(c.tipo)}
-                  </Text>
-                  <Text style={styles.label}>{c.veterinario?.nombre ?? ""}</Text>
-                </View>
-                <Text>Motivo: {c.motivo}</Text>
-                <Text>Diagnóstico: {c.diagnostico}</Text>
-                <Text>Tratamiento: {c.tratamiento}</Text>
-                {opciones.incluirNotasInternas && c.notas ? (
-                  <Text style={{ color: SLATE }}>Notas: {c.notas}</Text>
-                ) : null}
-                {opciones.incluirRecetas &&
-                  recetasPorConsulta(c.id).map((r) => (
-                    <View key={r.id} style={{ marginTop: 3 }}>
-                      <Text style={styles.label}>
-                        {r.numero_receta}
-                        {!r.vigente ? " (anulada)" : ""}
-                      </Text>
-                      {r.medicamentos.map((m, i) => (
-                        <Text key={i}>· {resumenMedicamento(m)}</Text>
-                      ))}
+            entradas.map((e) =>
+              e.tipo === "consulta" ? (
+                // Con todos los campos una consulta puede superar una página:
+                // la tarjeta se parte en vez de desbordarse.
+                <View key={e.consulta.id} style={styles.card}>
+                  <ConsultaHistorial
+                    c={e.consulta}
+                    recetas={recetasPorConsulta(e.consulta.id)}
+                    opciones={opciones}
+                  />
+                  {e.controles.map((k) => (
+                    <View key={k.id} style={styles.control} wrap={false}>
+                      <ConsultaHistorial
+                        c={k}
+                        recetas={recetasPorConsulta(k.id)}
+                        opciones={opciones}
+                        origen={e.consulta}
+                      />
                     </View>
                   ))}
-              </View>
-            ))
+                </View>
+              ) : (
+                <View key={e.control.id} style={styles.card}>
+                  <ConsultaHistorial
+                    c={e.control}
+                    recetas={recetasPorConsulta(e.control.id)}
+                    opciones={opciones}
+                    origenFecha={e.origenFecha}
+                  />
+                </View>
+              ),
+            )
           )}
         </View>
 

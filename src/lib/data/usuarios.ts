@@ -28,9 +28,11 @@ export async function getMiPerfil(): Promise<Usuario | null> {
   return data as Usuario | null;
 }
 
-// Datos mínimos del veterinario a cargo para autollenar documentos. Solo devuelve
-// los usuarios que el rol actual puede ver por RLS (dev/veterinario ven a todos;
-// recepcionista solo su propia fila, que suele no ser veterinario).
+// Veterinarios elegibles como responsables de consultas, recetas y vacunas, y
+// como veterinario a cargo en documentos: rol 'veterinario' y activos (nunca
+// 'dev'). Misma regla que `es_veterinario_elegible` en la BD. Solo devuelve los
+// usuarios que el rol actual puede ver por RLS (dev/veterinario ven a todos;
+// recepcionista solo su propia fila, así que para ella la lista viene vacía).
 export type VeterinarioRef = Pick<
   Usuario,
   "id" | "nombre" | "rut" | "titulo_profesional"
@@ -41,7 +43,7 @@ export async function getVeterinarios(): Promise<VeterinarioRef[]> {
   const { data, error } = await supabase
     .from("usuarios")
     .select("id, nombre, rut, titulo_profesional")
-    .in("rol", ["dev", "veterinario"])
+    .eq("rol", "veterinario")
     .eq("activo", true)
     .order("nombre");
 
@@ -50,4 +52,21 @@ export async function getVeterinarios(): Promise<VeterinarioRef[]> {
     return [];
   }
   return (data as VeterinarioRef[]) ?? [];
+}
+
+// Validación en server actions antes de escribir (la BD lo garantiza con el
+// trigger validar_veterinario_responsable, que responde con el código 23514).
+export const VETERINARIO_INVALIDO = "El veterinario seleccionado no es válido.";
+
+export async function esVeterinarioElegible(id: string | undefined): Promise<boolean> {
+  if (!id) return false;
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("usuarios")
+    .select("id")
+    .eq("id", id)
+    .eq("rol", "veterinario")
+    .eq("activo", true)
+    .maybeSingle();
+  return !!data;
 }

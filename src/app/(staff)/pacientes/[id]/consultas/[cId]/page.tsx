@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { getClinicaConfig } from "@/lib/data/clinica";
-import { getConsulta } from "@/lib/data/consultas";
+import { getConsulta, getControles } from "@/lib/data/consultas";
 import { getDuenosDePaciente, getPaciente } from "@/lib/data/pacientes";
 import {
   labelTipoConsulta,
@@ -110,6 +110,14 @@ export default async function ConsultaPage({
 
   const { consulta, recetas } = result;
 
+  // Un control enlaza a su consulta de origen; una consulta lista sus controles.
+  const [origen, controles] = await Promise.all([
+    consulta.consulta_origen_id
+      ? getConsulta(consulta.consulta_origen_id).then((r) => r?.consulta ?? null)
+      : null,
+    consulta.consulta_origen_id ? [] : getControles(consulta.id),
+  ]);
+
   // Contexto para imprimir recetas (solo se usa si hay recetas).
   const [clinica, paciente, duenos] =
     recetas.length > 0
@@ -149,10 +157,28 @@ export default async function ConsultaPage({
         <span className="text-sm text-text-muted">
           · {consulta.veterinario?.nombre ?? "—"}
         </span>
+        {origen && (
+          <span className="flex basis-full flex-wrap gap-x-4 gap-y-1 text-sm font-medium">
+            <Link
+              href={`/pacientes/${params.id}/consultas/${origen.id}`}
+              className="text-accent hover:underline"
+            >
+              Control de la consulta del {formatearFecha(origen.fecha)} →
+            </Link>
+            {/* Se registra sobre la misma consulta de origen (no se anidan). */}
+            <Link
+              href={`/pacientes/${params.id}/consultas/${consulta.id}/control`}
+              className="text-accent hover:underline"
+            >
+              Registrar otro control
+            </Link>
+          </span>
+        )}
       </header>
 
       <section className="space-y-4 rounded-2xl border border-border bg-surface p-5">
         <Bloque label="Motivo" value={consulta.motivo} />
+        <Bloque label="Evolución" value={consulta.evolucion} />
         <Bloque label="Anamnesis" value={consulta.anamnesis} />
         <Bloque label="Examen físico" value={consulta.examen_fisico} />
         <div className="flex gap-6">
@@ -163,14 +189,52 @@ export default async function ConsultaPage({
             <Bloque label="Temperatura" value={`${consulta.temperatura_c} °C`} />
           )}
         </div>
-        <Bloque label="Diagnóstico" value={consulta.diagnostico} />
         <Bloque
           label="Diagnóstico diferencial"
           value={consulta.diagnostico_diferencial}
         />
+        <Bloque label="Diagnóstico" value={consulta.diagnostico} />
         <Bloque label="Tratamiento" value={consulta.tratamiento} />
         <Bloque label="Notas" value={consulta.notas} />
       </section>
+
+      {!origen && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-text">
+              Controles{controles.length > 0 ? ` (${controles.length})` : ""}
+            </h2>
+            <Link
+              href={`/pacientes/${params.id}/consultas/${consulta.id}/control`}
+              className="inline-flex items-center gap-1.5 rounded-control bg-accent px-3 py-1.5 text-sm font-medium text-on-accent hover:opacity-90"
+            >
+              <Icon name="plus" />
+              Registrar control
+            </Link>
+          </div>
+          {controles.length === 0 ? (
+            <p className="text-sm text-text-muted">Sin controles registrados.</p>
+          ) : (
+            <ul className="space-y-2">
+              {controles.map((k) => (
+                <li key={k.id}>
+                  <Link
+                    href={`/pacientes/${params.id}/consultas/${k.id}`}
+                    className="block rounded-control border border-border bg-surface px-4 py-3 hover:bg-surface-sunken"
+                  >
+                    <span className="text-xs text-text-muted">
+                      {formatearFecha(k.fecha)} · {k.veterinario?.nombre ?? "—"}
+                    </span>
+                    <span className="mt-0.5 block whitespace-pre-wrap text-sm text-text">
+                      {k.evolucion}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {recetas.length > 0 && (
         <section className="space-y-3">

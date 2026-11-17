@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import {
+  SelectorVeterinario,
+  type VeterinarioOpcion,
+} from "@/components/selector-veterinario";
 import { TIPOS_CONSULTA, type ConsultaConVet, type TipoConsulta } from "@/lib/types/db";
 
 import { actualizarConsulta } from "../../actions";
@@ -14,11 +18,16 @@ const label = "flex flex-col gap-1 text-sm font-medium text-text";
 export function EditConsultaForm({
   pacienteId,
   consulta,
+  veterinarios,
+  usuarioId,
 }: {
   pacienteId: string;
   consulta: ConsultaConVet;
+  veterinarios: VeterinarioOpcion[];
+  usuarioId: string | null;
 }) {
   const router = useRouter();
+  const [veterinarioId, setVeterinarioId] = useState(consulta.veterinario_id);
   const [tipo, setTipo] = useState<TipoConsulta>(consulta.tipo);
   const [motivo, setMotivo] = useState(consulta.motivo);
   const [anamnesis, setAnamnesis] = useState(consulta.anamnesis ?? "");
@@ -33,14 +42,20 @@ export function EditConsultaForm({
     consulta.temperatura_c?.toString() ?? "",
   );
   const [notas, setNotas] = useState(consulta.notas ?? "");
+  const [evolucion, setEvolucion] = useState(consulta.evolucion ?? "");
 
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function guardar() {
+    if (!veterinarioId) {
+      setError("Elige el veterinario responsable.");
+      return;
+    }
     setGuardando(true);
     setError(null);
     const res = await actualizarConsulta(consulta.id, pacienteId, {
+      veterinarioId,
       tipo,
       motivo,
       anamnesis,
@@ -51,6 +66,7 @@ export function EditConsultaForm({
       peso_kg: pesoKg,
       temperatura_c: temperatura,
       notas,
+      ...(tipo === "control" && { evolucion }),
     });
     setGuardando(false);
     if (res.error) {
@@ -64,11 +80,28 @@ export function EditConsultaForm({
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-3 rounded-card border border-border bg-surface p-4 sm:grid-cols-2">
+        <label className={`${label} sm:col-span-2`}>
+          Veterinario responsable *
+          <SelectorVeterinario
+            veterinarios={veterinarios}
+            value={veterinarioId}
+            onChange={setVeterinarioId}
+            usuarioId={usuarioId}
+            actual={{
+              id: consulta.veterinario_id,
+              nombre: consulta.veterinario?.nombre ?? "—",
+            }}
+            required
+            className={field}
+          />
+        </label>
         <label className={label}>
           Tipo
+          {/* Un control enlazado a su consulta sigue siendo control. */}
           <select
             value={tipo}
             onChange={(e) => setTipo(e.target.value as TipoConsulta)}
+            disabled={!!consulta.consulta_origen_id}
             className={field}
           >
             {TIPOS_CONSULTA.map((t) => (
@@ -82,6 +115,12 @@ export function EditConsultaForm({
           Motivo *
           <input value={motivo} onChange={(e) => setMotivo(e.target.value)} className={field} />
         </label>
+        {tipo === "control" && (
+          <label className={`${label} sm:col-span-2`}>
+            Evolución
+            <textarea value={evolucion} onChange={(e) => setEvolucion(e.target.value)} rows={3} className={field} />
+          </label>
+        )}
         <label className={`${label} sm:col-span-2`}>
           Anamnesis
           <textarea value={anamnesis} onChange={(e) => setAnamnesis(e.target.value)} rows={2} className={field} />
@@ -99,12 +138,12 @@ export function EditConsultaForm({
           <input type="number" step="0.1" value={temperatura} onChange={(e) => setTemperatura(e.target.value)} className={field} />
         </label>
         <label className={`${label} sm:col-span-2`}>
-          Diagnóstico *
-          <textarea value={diagnostico} onChange={(e) => setDiagnostico(e.target.value)} rows={2} className={field} />
-        </label>
-        <label className={`${label} sm:col-span-2`}>
           Diagnóstico diferencial
           <textarea value={diagDiferencial} onChange={(e) => setDiagDiferencial(e.target.value)} rows={2} className={field} />
+        </label>
+        <label className={`${label} sm:col-span-2`}>
+          Diagnóstico *
+          <textarea value={diagnostico} onChange={(e) => setDiagnostico(e.target.value)} rows={2} className={field} />
         </label>
         <label className={`${label} sm:col-span-2`}>
           Tratamiento *
