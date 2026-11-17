@@ -29,20 +29,23 @@ export async function solicitarCita(
   const { data: pac } = await supabase
     .rpc("portal_mascotas")
     .eq("id", input.pacienteId)
-    .maybeSingle();
+    .maybeSingle<{ id: string; tenant_id: string }>();
   if (!pac) return { error: "Mascota no válida." };
 
+  // La cita, el dueño y el veterinario son de la clínica de la mascota.
   const { data: dueno } = await supabase
     .rpc("portal_mi_dueno")
+    .eq("tenant_id", pac.tenant_id)
     .maybeSingle<{ id: string }>();
 
   const admin = createAdminClient();
   const { data: vet } = await admin
     .from("usuarios")
     .select("id")
-    .in("rol", ["veterinario", "dev"])
+    .eq("rol", "veterinario")
+    .eq("tenant_id", pac.tenant_id)
     .eq("activo", true)
-    .order("rol", { ascending: false }) // 'veterinario' antes que 'dev'
+    .order("nombre")
     .limit(1)
     .maybeSingle();
   if (!vet) return { error: "No hay veterinario disponible." };
@@ -51,6 +54,7 @@ export async function solicitarCita(
   if (Number.isNaN(fechaHora.getTime())) return { error: "Fecha/hora inválida." };
 
   const { error } = await admin.from("citas").insert({
+    tenant_id: pac.tenant_id,
     paciente_id: input.pacienteId,
     dueno_id: dueno?.id ?? null,
     veterinario_id: vet.id,

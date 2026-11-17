@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { rutaEnTenant, tenantDeUsuario } from "@/lib/storage-rutas";
 import { createClient } from "@/lib/supabase/client";
 import { iconoEspecie, type Especie } from "@/lib/types/db";
 
@@ -42,9 +43,18 @@ export function PhotoUploader({
     setPreview(localPreview);
 
     const ext = file.name.split(".").pop() || "jpg";
-    const path = `${pacienteId}/perfil_${Date.now()}.${ext}`;
-
     const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const tenantId = tenantDeUsuario(user);
+    if (!tenantId) {
+      setError("No se pudo subir la imagen.");
+      setSubiendo(false);
+      return;
+    }
+    const path = rutaEnTenant(tenantId, pacienteId, `perfil_${Date.now()}.${ext}`);
+
     const { error: uploadError } = await supabase.storage
       .from("fotos-pacientes")
       .upload(path, file, { upsert: false });

@@ -25,6 +25,16 @@ export default function AdminHome() {
         </Link>
 
         <Link
+          href="/admin/clinicas"
+          className="rounded-card border border-border bg-surface p-5 transition-colors hover:border-accent"
+        >
+          <h2 className="font-medium text-text">Clínicas</h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Alta de clínicas y clínica activa para soporte.
+          </p>
+        </Link>
+
+        <Link
           href="/admin/usuarios"
           className="rounded-card border border-border bg-surface p-5 transition-colors hover:border-accent"
         >

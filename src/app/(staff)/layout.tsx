@@ -33,6 +33,9 @@ export default async function StaffLayout({
     countSolicitudesPendientes(),
     getClinicaConfig(),
   ]);
+  // Sin clínica (desactivada o inexistente) el staff no tiene acceso a nada;
+  // la cuenta de plataforma sí entra, para elegir otra clínica activa.
+  if (!clinicaConfig && rol !== "dev") redirect("/unauthorized?motivo=clinica");
   const destinos = staffDestinos({ esDev: rol === "dev" });
   const nombreClinica = clinicaConfig?.nombre_clinica || "VetApp";
 
@@ -63,6 +66,16 @@ export default async function StaffLayout({
               {nombreClinica}
             </Link>
             <div className="flex items-center gap-3">
+              {rol === "dev" && (
+                // La cuenta de plataforma ve siempre en qué clínica está
+                // operando y desde ahí la cambia.
+                <Link
+                  href="/admin/clinicas"
+                  className="rounded-pill border border-border px-3 py-1 text-support font-medium text-text hover:border-accent"
+                >
+                  {clinicaConfig ? `Clínica: ${clinicaConfig.nombre_clinica}` : "Elegir clínica"}
+                </Link>
+              )}
               <Link
                 href="/perfil"
                 className="hidden text-support text-text-muted hover:text-text desktop:inline"

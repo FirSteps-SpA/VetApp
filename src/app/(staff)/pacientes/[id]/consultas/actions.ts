@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getTenantId } from "@/lib/auth/tenant";
+import { rutaEsDeTenant } from "@/lib/storage-rutas";
 import { createClient } from "@/lib/supabase/server";
 import {
   VETERINARIO_INVALIDO,
@@ -135,7 +137,11 @@ export async function crearConsulta(
   }
 
   // 3) Exámenes adjuntos (ya subidos a Storage), vinculados a esta consulta.
-  const examenes = (input.examenes ?? []).filter((e) => e.archivo_url);
+  // Solo rutas de la carpeta de la clínica de la sesión.
+  const tenantId = await getTenantId();
+  const examenes = (input.examenes ?? []).filter(
+    (e) => tenantId && rutaEsDeTenant(e.archivo_url, tenantId),
+  );
   if (examenes.length > 0) {
     const { error: examenesError } = await supabase.from("examenes").insert(
       examenes.map((e) => ({

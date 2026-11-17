@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { rutaEnTenant, tenantDeUsuario } from "@/lib/storage-rutas";
 import { createClient } from "@/lib/supabase/client";
 
 import { setLogoClinica } from "./actions";
@@ -30,9 +31,18 @@ export function LogoUploader({ actualUrl }: { actualUrl: string | null }) {
     setSubiendo(true);
     setPreview(URL.createObjectURL(file));
     const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-    const path = `logo_${Date.now()}.${ext}`;
-
     const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const tenantId = tenantDeUsuario(user);
+    if (!tenantId) {
+      setError("No hay una clínica activa.");
+      setSubiendo(false);
+      return;
+    }
+    const path = rutaEnTenant(tenantId, `logo_${Date.now()}.${ext}`);
+
     const { error: upErr } = await supabase.storage
       .from("clinica-assets")
       .upload(path, file, { upsert: true, contentType: file.type });

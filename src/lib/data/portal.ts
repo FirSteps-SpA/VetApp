@@ -1,5 +1,6 @@
 import "server-only";
 
+import { rutaEsDeTenant } from "@/lib/storage-rutas";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -19,10 +20,11 @@ import type {
 // citas/duenos: se leen con las funciones `portal_*` de la BD, que devuelven
 // solo estas columnas y solo de las mascotas del cliente (auditoría #5).
 
+// Una ficha de dueño por clínica (spec 6): cada fila dice de qué clínica es.
 export type DuenoPortal = Pick<
   Dueno,
   "id" | "nombre" | "rut" | "telefono" | "email" | "direccion" | "comuna" | "sector"
->;
+> & { tenant_id: string; clinica_nombre: string };
 
 export interface MascotaPortal {
   id: string;
@@ -34,6 +36,8 @@ export interface MascotaPortal {
   peso_kg: number | null;
   numero_ficha: string;
   foto_url: string | null;
+  tenant_id: string;
+  clinica_nombre: string;
 }
 
 export interface ConsultaPortal {
@@ -75,13 +79,16 @@ export interface CitaPortal {
   motivo: string;
   estado: EstadoCita;
   paciente: { nombre: string } | null;
+  tenant_id: string;
+  clinica_nombre: string;
 }
 
-// El dueño (registro) asociado al cliente autenticado.
-export async function getMiDueno(): Promise<DuenoPortal | null> {
+// Fichas de dueño del cliente autenticado, una por clínica.
+export async function getMisDuenos(): Promise<DuenoPortal[]> {
   const supabase = createClient();
-  const { data } = await supabase.rpc("portal_mi_dueno").maybeSingle();
-  return (data as DuenoPortal | null) ?? null;
+  const { data, error } = await supabase.rpc("portal_mi_dueno");
+  if (error) console.error("getMisDuenos:", error.message);
+  return (data as DuenoPortal[] | null) ?? [];
 }
 
 export async function getMisNotificaciones(): Promise<Notificacion[]> {
@@ -103,9 +110,10 @@ export async function countNotificacionesNoLeidas(): Promise<number> {
   return count ?? 0;
 }
 
-// Preferencias del cliente (con defaults si aún no las guardó).
+// Preferencias del cliente (con defaults si aún no las guardó). Se guardan
+// iguales en todas sus fichas de dueño, así que basta leer la primera.
 export async function getMiConfig(): Promise<NotificacionesConfig | null> {
-  const dueno = await getMiDueno();
+  const [dueno] = await getMisDuenos();
   if (!dueno) return null;
   const supabase = createClient();
   const { data } = await supabase
@@ -160,12 +168,16 @@ export interface FichaPortal {
   vacunas: VacunaPortal[];
 }
 
-// Firma rutas privadas con el cliente admin. Es seguro porque las rutas
-// provienen de lecturas ya filtradas por RLS (pertenecen al cliente y no son internas).
+// Firma rutas privadas con el cliente admin. Las rutas provienen de lecturas
+// ya filtradas por RLS (pertenecen al cliente y no son internas), y además se
+// firman solo las que están en la carpeta de la clínica de la mascota: una
+// ruta de otra clínica guardada por error nunca se expone.
 async function firmar(
   bucket: string,
-  paths: string[],
+  tenantId: string,
+  rutas: string[],
 ): Promise<Record<string, string>> {
+  const paths = rutas.filter((r) => rutaEsDeTenant(r, tenantId));
   if (paths.length === 0) return {};
   const admin = createAdminClient();
   const { data } = await admin.storage.from(bucket).createSignedUrls(paths, 3600);
@@ -190,7 +202,7 @@ export async function getMascotaPortal(id: string): Promise<FichaPortal | null> 
 
   const [duenoRes, consultasRes, recetasRes, examenesRes, vacunasRes] =
     await Promise.all([
-      supabase.rpc("portal_mi_dueno").maybeSingle(),
+      supabase.rpc("portal_mi_dueno"),
       supabase.rpc("portal_consultas", { p_paciente: id }),
       supabase
         .from("recetas")
@@ -214,14 +226,19 @@ export async function getMascotaPortal(id: string): Promise<FichaPortal | null> 
 
   const urlsExamenes = await firmar(
     "examenes",
+    p.tenant_id,
     examenesRaw.map((e) => e.archivo_url).filter((x): x is string => !!x),
   );
 
-  const fotoUrls = p.foto_url ? await firmar("fotos-pacientes", [p.foto_url]) : {};
+  const fotoUrls = p.foto_url ? await firmar("fotos-pacientes", p.tenant_id, [p.foto_url]) : {};
+  // La ficha de dueño de la clínica de esta mascota.
+  const dueno =
+    ((duenoRes.data as DuenoPortal[] | null) ?? []).find((d) => d.tenant_id === p.tenant_id) ??
+    null;
 
   return {
     paciente: p,
-    dueno: (duenoRes.data as DuenoPortal | null) ?? null,
+    dueno,
     fotoUrl: p.foto_url ? (fotoUrls[p.foto_url] ?? null) : null,
     consultas: (consultasRes.data as ConsultaPortal[]) ?? [],
     recetas: (recetasRes.data as unknown as RecetaPortal[]) ?? [],

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { getMisCitas, getMisMascotas } from "@/lib/data/portal";
+import { agruparPorClinica } from "@/lib/portal/agrupar-clinica";
 import { colorEstadoCita, iconoEspecie, labelEstadoCita } from "@/lib/types/db";
 import { formatearFechaHora } from "@/lib/utils/format";
 
@@ -15,6 +16,8 @@ export default async function PortalHome() {
     getMisCitas(),
   ]);
 
+  const grupos = agruparPorClinica(mascotas);
+  const variasClinicas = grupos.length > 1;
   const proximas = citas.filter(
     (c) =>
       new Date(c.fecha_hora) >= new Date() &&
@@ -32,25 +35,33 @@ export default async function PortalHome() {
             Aún no hay mascotas asociadas a tu cuenta.
           </p>
         ) : (
-          <div className="grid gap-2 sm:grid-cols-2">
-            {mascotas.map((m) => (
-              <Link
-                key={m.id}
-                href={`/portal/mascotas/${m.id}`}
-                className="flex items-center gap-3 rounded-card border border-border bg-surface p-3 hover:border-accent"
-              >
-                <span className="grid h-11 w-11 place-items-center rounded-pill bg-surface-sunken text-xl">
-                  {iconoEspecie(m.especie)}
-                </span>
-                <div>
-                  <p className="font-medium text-text">{m.nombre}</p>
-                  <p className="text-xs text-text-muted">
-                    {m.raza ?? m.especie} · {m.numero_ficha}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
+          // Con mascotas en varias clínicas, cada grupo lleva el nombre de la suya.
+          grupos.map((g) => (
+            <div key={g.tenant_id} className="mb-3">
+              {grupos.length > 1 && (
+                <h2 className="mb-2 text-sm font-semibold text-text-muted">{g.clinica_nombre}</h2>
+              )}
+              <div className="grid gap-2 sm:grid-cols-2">
+                {g.items.map((m) => (
+                  <Link
+                    key={m.id}
+                    href={`/portal/mascotas/${m.id}`}
+                    className="flex items-center gap-3 rounded-card border border-border bg-surface p-3 hover:border-accent"
+                  >
+                    <span className="grid h-11 w-11 place-items-center rounded-pill bg-surface-sunken text-xl">
+                      {iconoEspecie(m.especie)}
+                    </span>
+                    <div>
+                      <p className="font-medium text-text">{m.nombre}</p>
+                      <p className="text-xs text-text-muted">
+                        {m.raza ?? m.especie} · {m.numero_ficha}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))
         )}
       </section>
 
@@ -77,6 +88,7 @@ export default async function PortalHome() {
                 </span>
                 <span className="min-w-0 flex-1 truncate text-sm text-text">
                   {c.paciente?.nombre} · {c.motivo}
+                  {variasClinicas ? ` · ${c.clinica_nombre}` : ""}
                 </span>
                 <span
                   className={`rounded-pill px-2 py-0.5 text-xs font-medium ${colorEstadoCita(c.estado)}`}

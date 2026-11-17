@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import { getClinicaConfig } from "@/lib/data/clinica";
+import { getClinicasDelCliente } from "@/lib/data/clinica";
 import { getMascotaPortal } from "@/lib/data/portal";
 import {
   iconoEspecie,
@@ -27,11 +27,13 @@ export default async function MascotaPortalPage({
 }: {
   params: { id: string };
 }) {
-  const [ficha, clinica] = await Promise.all([
+  const [ficha, clinicas] = await Promise.all([
     getMascotaPortal(params.id),
-    getClinicaConfig(),
+    getClinicasDelCliente(),
   ]);
   if (!ficha) notFound();
+  // Los documentos llevan la marca de la clínica de esta mascota.
+  const clinica = clinicas.find((c) => c.id === ficha.paciente.tenant_id) ?? null;
 
   const { paciente, dueno, fotoUrl, consultas, examenes, recetas, vacunas } =
     ficha;
