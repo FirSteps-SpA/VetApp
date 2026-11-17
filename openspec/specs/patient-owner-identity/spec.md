@@ -35,12 +35,17 @@ Al guardar, el sistema SHALL derivar una forma normalizada del RUT del dueño (a
 
 ### Requirement: Unicidad del RUT de dueño
 
-Cuando el RUT está presente, MUST ser único entre los dueños. Los valores ausentes no participan de la unicidad.
+Cuando el RUT está presente, MUST ser único entre los dueños de una misma clínica. Dueños de clínicas distintas pueden tener el mismo RUT, porque cada clínica mantiene su propia ficha de dueño. Los valores ausentes no participan de la unicidad.
 
 #### Scenario: RUT de dueño duplicado
 
-- **WHEN** se intenta guardar un dueño con un RUT que ya tiene otro dueño (en cualquier formato equivalente)
+- **WHEN** se intenta guardar un dueño con un RUT que ya tiene otro dueño de la misma clínica (en cualquier formato equivalente)
 - **THEN** la operación se rechaza y el registro no se crea
+
+#### Scenario: Mismo RUT en otra clínica
+
+- **WHEN** se guarda un dueño con un RUT que ya tiene un dueño de otra clínica
+- **THEN** el registro se acepta
 
 #### Scenario: Mismo número en paciente y dueño
 
