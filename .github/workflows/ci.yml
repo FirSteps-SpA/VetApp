@@ -37,8 +37,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      # Versión fija: con `latest` la acción consulta la API de GitHub para
+      # resolverla y a veces falla por límite de tasa ("rate limit exceeded").
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.2.0
+      - run: supabase --version
       - run: supabase start -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
       - run: npm run test:rls
