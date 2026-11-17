@@ -8,7 +8,6 @@ import {
   iconoEspecie,
   labelEstadoCita,
   type CitaConRel,
-  type EstadoCita,
 } from "@/lib/types/db";
 import { formatearFechaHora } from "@/lib/utils/format";
 
@@ -18,17 +17,30 @@ import { SolicitudActions } from "./solicitud-actions";
 // completa). Se agrupan por estado real de la cita — no existe un estado
 // "reprogramada" en el modelo, así que esa pestaña no se construye (gap
 // documentado en el proposal).
-type Tab = "pendientes" | "confirmadas" | "canceladas" | "no_asistio";
+type Tab = "pendientes" | "confirmadas" | "canceladas" | "canceladas_dueno" | "no_asistio";
 
-const TABS: { id: Tab; label: string; estados: EstadoCita[] }[] = [
-  { id: "pendientes", label: "Pendientes", estados: ["pendiente"] },
+const CATORCE_DIAS = 14 * 86400_000;
+
+const TABS: { id: Tab; label: string; incluye: (c: CitaConRel) => boolean }[] = [
+  { id: "pendientes", label: "Pendientes", incluye: (c) => c.creado_por_cliente === true && c.estado === "pendiente" },
   {
     id: "confirmadas",
     label: "Confirmadas",
-    estados: ["confirmada", "en_consulta", "realizada"],
+    incluye: (c) =>
+      c.creado_por_cliente === true && ["confirmada", "en_consulta", "realizada"].includes(c.estado),
   },
-  { id: "canceladas", label: "Canceladas", estados: ["cancelada"] },
-  { id: "no_asistio", label: "No asistió", estados: ["no_asistio"] },
+  { id: "canceladas", label: "Canceladas", incluye: (c) => c.creado_por_cliente === true && c.estado === "cancelada" },
+  // Spec 8: horas que el dueño canceló desde el portal en los últimos 14 días,
+  // las haya solicitado él o las haya agendado el staff.
+  {
+    id: "canceladas_dueno",
+    label: "Canceladas por dueños",
+    incluye: (c) =>
+      c.cancelada_por_cliente &&
+      !!c.cancelada_en &&
+      Date.now() - new Date(c.cancelada_en).getTime() <= CATORCE_DIAS,
+  },
+  { id: "no_asistio", label: "No asistió", incluye: (c) => c.creado_por_cliente === true && c.estado === "no_asistio" },
 ];
 
 function soloDigitos(tel: string): string {
@@ -48,7 +60,7 @@ export function SolicitudesConTabs({
     for (const t of TABS) {
       map.set(
         t.id,
-        solicitudes.filter((s) => t.estados.includes(s.estado)),
+        solicitudes.filter(t.incluye),
       );
     }
     return map;
@@ -114,6 +126,7 @@ export function SolicitudesConTabs({
                     </p>
                     <p className="truncate text-xs text-text-muted">
                       {formatearFechaHora(s.fecha_hora)} · {s.motivo}
+                      {s.cancelada_por_cliente ? " · Cancelada por el dueño" : ""}
                     </p>
                   </div>
                   <span
@@ -161,6 +174,15 @@ export function SolicitudesConTabs({
                 <dt className="text-text-muted">Motivo</dt>
                 <dd className="text-text">{seleccionada.motivo}</dd>
               </div>
+              {seleccionada.cancelada_por_cliente && (
+                <div>
+                  <dt className="text-text-muted">Cancelada por el dueño</dt>
+                  <dd className="text-text">
+                    {seleccionada.cancelada_en ? formatearFechaHora(seleccionada.cancelada_en) : ""}
+                    {seleccionada.notas_cliente ? ` · ${seleccionada.notas_cliente}` : ""}
+                  </dd>
+                </div>
+              )}
               {seleccionada.dueno && (
                 <div>
                   <dt className="text-text-muted">Tutor</dt>

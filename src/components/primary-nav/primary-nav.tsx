@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Bell,
   CalendarDays,
+  CircleHelp,
   Home,
   PawPrint,
   Settings,
@@ -39,6 +40,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   user: User,
   settings: Settings,
   shield: ShieldCheck,
+  help: CircleHelp,
 };
 
 function contadorDe(d: NavDestino, c: Contadores): number {

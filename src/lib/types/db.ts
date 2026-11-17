@@ -285,6 +285,8 @@ export interface ClinicaConfig {
   id: string;
   slug: string;
   activo: boolean;
+  // Spec 8: horas mínimas de anticipación para que un dueño cancele en línea.
+  horas_cancelacion: number;
   nombre_clinica: string;
   direccion: string | null;
   telefono: string | null;
@@ -450,6 +452,9 @@ export interface Cita {
   notas: string | null;
   notas_cliente: string | null;
   creado_por_cliente: boolean | null;
+  // Spec 8: cancelada por el dueño desde el portal, y cuándo.
+  cancelada_por_cliente: boolean;
+  cancelada_en: string | null;
   consulta_id: string | null;
   created_at: string;
   updated_at: string;

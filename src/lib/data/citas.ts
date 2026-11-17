@@ -53,13 +53,14 @@ export async function getSolicitudesPendientes(): Promise<CitaConRel[]> {
 }
 
 // Todas las solicitudes hechas por clientes, cualquier estado (para las
-// pestañas de Reservas: pendientes/confirmadas/canceladas/no asistió).
+// pestañas de Reservas: pendientes/confirmadas/canceladas/no asistió), más
+// las horas que un dueño canceló desde el portal aunque las agendara el staff.
 export async function getSolicitudes(): Promise<CitaConRel[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("citas")
     .select(SELECT)
-    .eq("creado_por_cliente", true)
+    .or("creado_por_cliente.eq.true,cancelada_por_cliente.eq.true")
     .order("fecha_hora", { ascending: false });
 
   if (error) {

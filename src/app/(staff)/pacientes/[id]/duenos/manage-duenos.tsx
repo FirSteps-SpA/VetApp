@@ -43,9 +43,11 @@ export function ManageDuenos({
   const [buscando, setBuscando] = useState(false);
 
   // Invitación al portal.
-  const [enlace, setEnlace] = useState<{ duenoId: string; url: string } | null>(
-    null,
-  );
+  const [enlace, setEnlace] = useState<{
+    duenoId: string;
+    url: string;
+    correo: string | null;
+  } | null>(null);
 
   // Crear nuevo.
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
@@ -91,7 +93,7 @@ export function ManageDuenos({
       setError(res.error);
       return;
     }
-    setEnlace({ duenoId: id, url: res.link });
+    setEnlace({ duenoId: id, url: res.link, correo: res.correo });
     router.refresh();
   }
 
@@ -237,7 +239,9 @@ export function ManageDuenos({
             {enlace?.duenoId === d.id && (
               <div className="mt-3 rounded-control bg-blue-50 p-3">
                 <p className="text-xs font-medium text-blue-800">
-                  Enlace de acceso (compártelo con el dueño):
+                  {enlace.correo
+                    ? `Invitación enviada por correo a ${enlace.correo}. También puedes compartir el enlace:`
+                    : "No se pudo enviar el correo: comparte el enlace con el dueño (p. ej. por WhatsApp)."}
                 </p>
                 <input
                   readOnly

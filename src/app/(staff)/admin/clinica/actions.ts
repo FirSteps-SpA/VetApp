@@ -27,6 +27,10 @@ export async function guardarClinica(
       error: "El slug solo admite minúsculas, números y guiones (sin guion al inicio o al final).",
     };
   }
+  const horas = Number(str(formData, "horas_cancelacion"));
+  if (!Number.isInteger(horas) || horas < 0 || horas > 168) {
+    return { error: "El plazo de cancelación debe ser un número entero de 0 a 168 horas." };
+  }
   const clinica = await getClinicaConfigRaw();
   if (!clinica) return { error: "No hay una clínica activa." };
 
@@ -36,6 +40,7 @@ export async function guardarClinica(
     .update({
       nombre,
       slug,
+      horas_cancelacion: horas,
       direccion: str(formData, "direccion") || null,
       ciudad: str(formData, "ciudad") || null,
       telefono: str(formData, "telefono") || null,

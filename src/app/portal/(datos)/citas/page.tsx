@@ -7,6 +7,8 @@ import { getMisCitas } from "@/lib/data/portal";
 import { colorEstadoCita, labelEstadoCita } from "@/lib/types/db";
 import { formatearFechaHora } from "@/lib/utils/format";
 
+import { CancelarCita } from "./cancelar-cita";
+
 export const metadata: Metadata = {
   title: "Mis citas",
 };
@@ -40,7 +42,7 @@ export default async function MisCitasPage() {
           {citas.map((c) => (
             <div
               key={c.id}
-              className="flex items-center gap-3 rounded-card border border-border bg-surface-raised p-3"
+              className="flex flex-wrap items-center gap-3 rounded-card border border-border bg-surface-raised p-3"
             >
               <span className="text-support text-text-muted">
                 {formatearFechaHora(c.fecha_hora)}
@@ -54,6 +56,17 @@ export default async function MisCitasPage() {
               >
                 {labelEstadoCita(c.estado)}
               </span>
+              {c.cancelable ? (
+                <CancelarCita
+                  citaId={c.id}
+                  descripcion={`${c.paciente?.nombre ?? "tu mascota"} del ${formatearFechaHora(c.fecha_hora)}`}
+                />
+              ) : (c.estado === "pendiente" || c.estado === "confirmada") &&
+                new Date(c.fecha_hora) > new Date() ? (
+                <span className="w-full text-xs text-text-muted">
+                  Para cancelarla, contacta a la clínica (fuera del plazo para cancelar en línea).
+                </span>
+              ) : null}
             </div>
           ))}
         </div>
