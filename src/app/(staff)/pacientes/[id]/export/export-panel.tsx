@@ -23,6 +23,8 @@ import {
 } from "@/lib/types/db";
 import { formatearFecha } from "@/lib/utils/format";
 
+import { registrarExportacion } from "../registro-actions";
+
 export interface ExportData {
   pacienteId: string;
   clinica: ClinicaConfig | null;
@@ -334,6 +336,16 @@ export default function ExportPanel({
   async function descargar() {
     setGenerando(true);
     try {
+      // Registro de accesos (spec 7): sin registro no hay descarga.
+      const registro = await registrarExportacion(
+        paciente.id,
+        tipo,
+        tipo === "receta" ? { recetas: recetasMarcadas.map((r) => r.numero_receta) } : {},
+      );
+      if (!registro.ok) {
+        setError("No se pudo registrar la exportación. Intenta de nuevo.");
+        return;
+      }
       const blob = await generarBlob();
       if (!blob) return;
       const url = URL.createObjectURL(blob);

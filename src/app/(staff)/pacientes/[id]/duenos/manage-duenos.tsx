@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ActionMenu } from "@/components/action-menu";
 import { Icon } from "@/components/icon";
 
+import { descargarPaquete } from "@/lib/privacidad/descargar";
 import type { Dueno, DuenoDePaciente } from "@/lib/types/db";
 
 import {
@@ -16,6 +17,7 @@ import {
   marcarPrincipal,
   vincularDueno,
 } from "./actions";
+import { anonimizarDueno, exportarDatosDueno } from "./datos-actions";
 import { invitarCliente, revocarAcceso } from "./invite-actions";
 
 const field =
@@ -24,9 +26,12 @@ const field =
 export function ManageDuenos({
   pacienteId,
   duenos,
+  esClinico,
 }: {
   pacienteId: string;
   duenos: DuenoDePaciente[];
+  // Exportar datos y eliminar datos personales: solo staff clínico (spec 7).
+  esClinico: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +93,23 @@ export function ManageDuenos({
     }
     setEnlace({ duenoId: id, url: res.link });
     router.refresh();
+  }
+
+  async function exportar(id: string, formato: "pdf" | "json") {
+    setBusy(true);
+    setError(null);
+    const res = await exportarDatosDueno(id);
+    if (res.ok) await descargarPaquete(res.paquete, res.clinica, formato);
+    else setError(res.error);
+    setBusy(false);
+  }
+
+  function eliminarDatos(d: DuenoDePaciente) {
+    const escrito = window.prompt(
+      `Se borrarán de forma irreversible el nombre, RUT, contacto y dirección de ${d.nombre}, y su acceso al portal de esta clínica. Las fichas de sus mascotas se conservan.\n\nEscribe ELIMINAR para confirmar.`,
+    );
+    if (escrito === null) return;
+    run(() => anonimizarDueno(d.id, pacienteId, escrito.trim()));
   }
 
   async function crear() {
@@ -168,6 +190,26 @@ export function ManageDuenos({
                             onClick: () => invitar(d.id),
                           }
                         : { label: "Invitar (requiere email)", disabled: true },
+                    ...(esClinico
+                      ? [
+                          {
+                            label: "Exportar datos (PDF)",
+                            disabled: busy,
+                            onClick: () => exportar(d.id, "pdf"),
+                          },
+                          {
+                            label: "Exportar datos (JSON)",
+                            disabled: busy,
+                            onClick: () => exportar(d.id, "json"),
+                          },
+                          {
+                            label: "Eliminar datos personales",
+                            danger: true,
+                            disabled: busy,
+                            onClick: () => eliminarDatos(d),
+                          },
+                        ]
+                      : []),
                     ...(!d.es_principal
                       ? [
                           {
