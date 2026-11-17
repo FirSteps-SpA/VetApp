@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getRol } from "@/lib/auth/roles";
+import { getClinicaConfigRaw } from "@/lib/data/clinica";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/utils/site";
@@ -20,13 +21,15 @@ async function esClinico(): Promise<boolean> {
   return rol === "dev" || rol === "veterinario";
 }
 
-function confirmUrl(hashedToken: string): string {
+// El enlace lleva a la entrada con la marca de la clínica que invita, que
+// recién al hacer clic consume el token en /auth/confirm.
+function confirmUrl(hashedToken: string, slug: string): string {
   const params = new URLSearchParams({
     token_hash: hashedToken,
     type: "magiclink",
     next: "/portal",
   });
-  return `${getOrigin()}/auth/confirm?${params.toString()}`;
+  return `${getOrigin()}/c/${slug}/acceso?${params.toString()}`;
 }
 
 // Invita a un dueño al portal: crea (o reutiliza) su usuario cliente, lo vincula
@@ -39,15 +42,20 @@ export async function invitarCliente(
     return { ok: false, error: "No autorizado." };
   }
 
+  // La ficha se lee con la sesión del staff: la RLS solo devuelve dueños de
+  // su clínica. Recién después se usa service_role.
+  const supabase = createClient();
+  const [{ data: dueno }, clinica] = await Promise.all([
+    supabase
+      .from("duenos")
+      .select("id, nombre, email, usuario_id, tenant_id")
+      .eq("id", duenoId)
+      .maybeSingle(),
+    getClinicaConfigRaw(),
+  ]);
+
+  if (!dueno || !clinica) return { ok: false, error: "Dueño no encontrado." };
   const admin = createAdminClient();
-
-  const { data: dueno } = await admin
-    .from("duenos")
-    .select("id, nombre, email, usuario_id")
-    .eq("id", duenoId)
-    .maybeSingle();
-
-  if (!dueno) return { ok: false, error: "Dueño no encontrado." };
   if (!dueno.email) {
     return { ok: false, error: "El dueño necesita un email para ser invitado." };
   }
@@ -88,15 +96,20 @@ export async function invitarCliente(
       if (existente.rol !== "cliente") {
         return { ok: false, error: "Ese email pertenece a una cuenta del equipo." };
       }
-      // Solo se reutiliza una cuenta huérfana: si ya está vinculada a otro
-      // dueño, re-vincularla le daría acceso a las mascotas de este.
+      // Una cuenta puede tener una ficha de dueño en cada clínica (spec 6),
+      // pero no dos en la misma: re-vincularla le daría acceso a las mascotas
+      // de otra ficha de esta clínica.
       const { data: otroDueno } = await admin
         .from("duenos")
         .select("id")
         .eq("usuario_id", existente.id)
+        .eq("tenant_id", dueno.tenant_id)
         .maybeSingle();
       if (otroDueno) {
-        return { ok: false, error: "Ese email ya tiene acceso al portal con otra ficha de dueño." };
+        return {
+          ok: false,
+          error: "Ese email ya tiene acceso al portal con otra ficha de dueño de esta clínica.",
+        };
       }
       userId = existente.id;
     } else {
@@ -143,31 +156,40 @@ export async function invitarCliente(
   }
 
   revalidatePath(`/pacientes/${pacienteId}/duenos`);
-  return { ok: true, link: confirmUrl(link.properties.hashed_token) };
+  return { ok: true, link: confirmUrl(link.properties.hashed_token, clinica.slug) };
 }
 
-// Revoca el acceso al portal: desactiva el usuario y desvincula el dueño.
+// Revoca el acceso al portal de esta ficha: la desvincula y, si la cuenta no
+// tiene fichas en otras clínicas, la desactiva.
 export async function revocarAcceso(
   duenoId: string,
   pacienteId: string,
 ): Promise<{ error: string | null }> {
   if (!(await esClinico())) return { error: "No autorizado." };
 
-  const admin = createAdminClient();
-
-  const { data: dueno } = await admin
+  // Ficha leída con la sesión del staff (solo dueños de su clínica).
+  const supabase = createClient();
+  const { data: dueno } = await supabase
     .from("duenos")
-    .select("usuario_id")
+    .select("id, usuario_id")
     .eq("id", duenoId)
     .maybeSingle();
+  if (!dueno) return { error: "Dueño no encontrado." };
 
-  if (dueno?.usuario_id) {
-    await admin
-      .from("usuarios")
-      .update({ activo: false })
-      .eq("id", dueno.usuario_id);
+  const admin = createAdminClient();
+  await admin.from("duenos").update({ usuario_id: null }).eq("id", dueno.id);
+
+  // La cuenta solo se desactiva si no le queda ficha en ninguna clínica: en
+  // las demás sigue teniendo acceso.
+  if (dueno.usuario_id) {
+    const { count } = await admin
+      .from("duenos")
+      .select("id", { count: "exact", head: true })
+      .eq("usuario_id", dueno.usuario_id);
+    if (!count) {
+      await admin.from("usuarios").update({ activo: false }).eq("id", dueno.usuario_id);
+    }
   }
-  await admin.from("duenos").update({ usuario_id: null }).eq("id", duenoId);
 
   revalidatePath(`/pacientes/${pacienteId}/duenos`);
   return { error: null };

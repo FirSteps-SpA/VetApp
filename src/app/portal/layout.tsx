@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 
 import { getRol } from "@/lib/auth/roles";
-import { getClinicaConfig } from "@/lib/data/clinica";
+import { getClinicasDelCliente } from "@/lib/data/clinica";
 import { countNotificacionesNoLeidas } from "@/lib/data/portal";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -27,12 +27,15 @@ export default async function PortalLayout({
   if (!user) redirect("/login");
   if (getRol(user) !== "cliente") redirect("/");
 
-  const [{ data: perfil }, noLeidas, clinicaConfig] = await Promise.all([
+  const [{ data: perfil }, noLeidas, clinicas] = await Promise.all([
     supabase.from("usuarios").select("nombre").eq("id", user.id).maybeSingle(),
     countNotificacionesNoLeidas(),
-    getClinicaConfig(),
+    getClinicasDelCliente(),
   ]);
-  const nombreClinica = clinicaConfig?.nombre_clinica || "VetApp";
+  // Con una sola clínica el chrome lleva su nombre; con varias, la marca
+  // VetApp (cada sección dice de qué clínica es).
+  const nombreClinica =
+    (clinicas.length === 1 ? clinicas[0].nombre_clinica : null) || "VetApp";
 
   const railCookie = cookies().get("rail")?.value;
   const shellStyle: CSSProperties | undefined =

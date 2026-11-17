@@ -279,8 +279,12 @@ export interface VacunaConVet extends Vacuna {
   veterinario: { nombre: string } | null;
 }
 
+// Configuración y marca de una clínica (fila de `tenants`, con `nombre`
+// expuesto como `nombre_clinica`).
 export interface ClinicaConfig {
-  id: number;
+  id: string;
+  slug: string;
+  activo: boolean;
   nombre_clinica: string;
   direccion: string | null;
   telefono: string | null;
@@ -333,6 +337,8 @@ export interface Usuario {
   rol: Rol;
   activo: boolean;
   sucursal_id: string | null;
+  // Clínica del staff; null para clientes (un dueño puede serlo de varias).
+  tenant_id: string | null;
   rut: string | null;
   titulo_profesional: TituloProfesional | null;
   created_at: string;

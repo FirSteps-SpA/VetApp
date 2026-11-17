@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 
 export default async function MisCitasPage() {
   const citas = await getMisCitas();
+  // Con citas en varias clínicas, cada una dice de cuál es.
+  const variasClinicas = new Set(citas.map((c) => c.tenant_id)).size > 1;
 
   return (
     <div>
@@ -45,6 +47,7 @@ export default async function MisCitasPage() {
               </span>
               <span className="min-w-0 flex-1 truncate text-support text-text">
                 {c.paciente?.nombre} · {c.motivo}
+                {variasClinicas ? ` · ${c.clinica_nombre}` : ""}
               </span>
               <span
                 className={`rounded-pill px-2 py-0.5 text-xs font-medium ${colorEstadoCita(c.estado)}`}

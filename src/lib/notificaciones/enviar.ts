@@ -7,6 +7,10 @@ import { enviarPush } from "./push";
 
 export interface NotificarInput {
   usuarioId: string;
+  // Clínica de la que viene la notificación (spec 6): se guarda con ella y su
+  // nombre encabeza el email y el push.
+  tenantId: string;
+  clinicaNombre: string;
   tipo: string;
   titulo: string;
   cuerpo?: string;
@@ -19,11 +23,16 @@ export interface NotificarInput {
   canalPush?: boolean;
 }
 
+function escaparHtml(t: string): string {
+  return t.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
+
 // Crea la notificación in-app (idempotente por referencia) y despacha email/push.
 export async function crearYNotificar(input: NotificarInput): Promise<void> {
   const admin = createAdminClient();
 
   const { error } = await admin.from("notificaciones").insert({
+    tenant_id: input.tenantId,
     usuario_id: input.usuarioId,
     tipo: input.tipo,
     titulo: input.titulo,
@@ -50,13 +59,13 @@ export async function crearYNotificar(input: NotificarInput): Promise<void> {
   if (input.canalEmail !== false && input.email) {
     await enviarEmail(
       input.email,
-      input.titulo,
-      `<p>${input.cuerpo ?? ""}</p>${linkHtml}`,
+      `${input.clinicaNombre}: ${input.titulo}`,
+      `<p>${input.cuerpo ?? ""}</p>${linkHtml}<p>${escaparHtml(input.clinicaNombre)}</p>`,
     );
   }
   if (input.canalPush !== false) {
     await enviarPush(input.usuarioId, {
-      title: input.titulo,
+      title: `${input.clinicaNombre} · ${input.titulo}`,
       body: input.cuerpo,
       url: input.url,
     });
@@ -82,10 +91,19 @@ export async function notificarDueno(
   const admin = createAdminClient();
   const { data: dueno } = await admin
     .from("duenos")
-    .select("usuario_id, email")
+    .select("usuario_id, email, tenant_id")
     .eq("id", duenoId)
     .maybeSingle();
   if (!dueno?.usuario_id) return; // sin portal, no hay destinatario in-app/push
+  // La notificación lleva la marca de la clínica de esta ficha; una clínica
+  // desactivada no notifica. (Consulta aparte: embeber `tenants` sería ambiguo,
+  // porque varias tablas enlazan dueños y clínicas.)
+  const { data: clinica } = await admin
+    .from("tenants")
+    .select("nombre, activo")
+    .eq("id", dueno.tenant_id)
+    .maybeSingle();
+  if (!clinica?.activo) return;
 
   const { data: cfg } = await admin
     .from("notificaciones_config")
@@ -98,6 +116,8 @@ export async function notificarDueno(
 
   await crearYNotificar({
     usuarioId: dueno.usuario_id as string,
+    tenantId: dueno.tenant_id as string,
+    clinicaNombre: clinica.nombre,
     tipo: notif.tipo,
     titulo: notif.titulo,
     cuerpo: notif.cuerpo,

@@ -18,7 +18,10 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Enlace inválido o vencido: de vuelta a la entrada de la clínica que invitó.
+  const slug = searchParams.get("c");
+  const login = slug && /^[a-z0-9-]+$/.test(slug) ? `/c/${slug}/login` : "/login";
   return NextResponse.redirect(
-    new URL("/login?error=enlace_invalido", request.url),
+    new URL(`${login}?error=enlace_invalido`, request.url),
   );
 }

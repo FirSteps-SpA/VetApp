@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { tipoConflictoUnico } from "@/lib/db-errors";
+import { getTenantId } from "@/lib/auth/tenant";
+import { rutaEsDeTenant } from "@/lib/storage-rutas";
 import { createClient } from "@/lib/supabase/server";
 import {
   ESPECIES,
@@ -99,6 +101,11 @@ export async function setFotoPaciente(
   pacienteId: string,
   path: string,
 ): Promise<{ error: string | null }> {
+  // La foto tiene que estar en la carpeta de la clínica de la sesión.
+  const tenantId = await getTenantId();
+  if (!tenantId || !rutaEsDeTenant(path, tenantId)) {
+    return { error: "No se pudo guardar la foto." };
+  }
   const supabase = createClient();
   const { error } = await supabase
     .from("pacientes")

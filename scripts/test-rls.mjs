@@ -47,11 +47,16 @@ async function http(method, path, { token, key = ANON, body, prefer } = {}) {
   return { status: res.status, data };
 }
 
-// Inserta como service_role (bypassa RLS; los triggers sí corren).
+// Clínica 1 (tenant creado por la migración multi-tenant, spec 6).
+const T1 = "00000000-0000-4000-8000-000000000001";
+
+// Inserta como service_role (bypassa RLS; los triggers sí corren). Sin JWT no
+// hay tenant de sesión: salvo que la fila diga otro, va a la clínica 1.
 async function insert(table, row) {
+  const conTenant = table === "usuarios" || "tenant_id" in row ? row : { ...row, tenant_id: T1 };
   const r = await http("POST", `/rest/v1/${table}`, {
     key: SVC,
-    body: row,
+    body: conTenant,
     prefer: "return=representation",
   });
   if (r.status !== 201) throw new Error(`insert ${table}: ${r.status} ${JSON.stringify(r.data)}`);
@@ -61,14 +66,21 @@ async function insert(table, row) {
 const run = randomUUID().slice(0, 8);
 const PASSWORD = "Test-1234!";
 
-async function crearUsuario(alias, rol) {
+// El staff pertenece a una clínica; los clientes no tienen (spec 6).
+async function crearUsuario(alias, rol, tenant = T1) {
   const email = `${alias}-${run}@test.local`;
   const r = await http("POST", "/auth/v1/admin/users", {
     key: SVC,
     body: { email, password: PASSWORD, email_confirm: true },
   });
   if (r.status !== 200) throw new Error(`crear usuario ${alias}: ${r.status}`);
-  await insert("usuarios", { id: r.data.id, nombre: alias, email, rol });
+  await insert("usuarios", {
+    id: r.data.id,
+    nombre: alias,
+    email,
+    rol,
+    tenant_id: rol === "cliente" ? null : tenant,
+  });
   return { id: r.data.id, email };
 }
 
@@ -313,6 +325,179 @@ r = await postV("consultas", { ...base, veterinario_id: vet.id, consulta_origen_
 check("consulta que no es control con origen rechazada", rechazado(r), `HTTP ${r.status}`);
 r = await patchV(`consultas?id=eq.${controlId}`, { consulta_origen_id: historica.id });
 check("el origen de un control no se cambia", rechazado(r), `HTTP ${r.status}`);
+
+
+// --- Multi-tenant (spec 6): dos clínicas en el mismo proyecto ---
+const svc = (method, path, body, prefer = "return=representation") =>
+  http(method, path, { key: SVC, body, prefer });
+const t2 = await svc("POST", "/rest/v1/tenants", { slug: `t2-${run}`, nombre: `Clínica Dos ${run}` });
+const T2 = t2.data[0].id;
+const vetT2 = await crearUsuario("vet-t2", "veterinario", T2);
+const tV2 = await login(vetT2.email);
+const asV2 = (method, path, body) =>
+  http(method, `/rest/v1/${path}`, { token: tV2, body, prefer: "return=representation" });
+
+// Dueña con ficha en ambas clínicas (misma cuenta) y datos completos en la 2.
+const multi = await crearUsuario("multi", "cliente");
+const fichaM1 = await insert("duenos", { nombre: "Multi", telefono: "+56911111111", email: multi.email, usuario_id: multi.id, rut: `9${run.replace(/\D/g, "").slice(0, 6)}-1` });
+const fichaM2 = await insert("duenos", { tenant_id: T2, nombre: "Multi", telefono: "+56911111111", email: multi.email, usuario_id: multi.id, rut: `9${run.replace(/\D/g, "").slice(0, 6)}-1` });
+check("mismo email y RUT de dueño en otra clínica: se acepta", !!fichaM2.id);
+r = await svc("POST", "/rest/v1/duenos", { tenant_id: T1, nombre: "Dup", telefono: "1", email: multi.email });
+check("mismo email de dueño en la misma clínica: se rechaza", r.status === 409, `HTTP ${r.status}`);
+
+const pacM1 = await insert("pacientes", { nombre: `Compartido ${run}`, especie: "gato" });
+const pacM2 = await insert("pacientes", { tenant_id: T2, nombre: `Compartido ${run}`, especie: "gato" });
+check("la primera ficha de una clínica nueva es PAC-00001", pacM2.numero_ficha === "PAC-00001", pacM2.numero_ficha);
+check("la clínica 1 sigue su propia numeración", pacM1.numero_ficha !== "PAC-00001", pacM1.numero_ficha);
+await insert("paciente_duenos", { paciente_id: pacM1.id, dueno_id: fichaM1.id, es_principal: true });
+await insert("paciente_duenos", { tenant_id: T2, paciente_id: pacM2.id, dueno_id: fichaM2.id, es_principal: true });
+const consultaT2 = await insert("consultas", { tenant_id: T2, paciente_id: pacM2.id, veterinario_id: vetT2.id, motivo: "m", diagnostico: "d", tratamiento: "t" });
+const recetaT2 = await insert("recetas", { tenant_id: T2, consulta_id: consultaT2.id, paciente_id: pacM2.id, veterinario_id: vetT2.id, medicamentos: [] });
+check("la primera receta de una clínica nueva es REC-00001", recetaT2.numero_receta === "REC-00001", recetaT2.numero_receta);
+await insert("vacunas", { tenant_id: T2, paciente_id: pacM2.id, veterinario_id: vetT2.id, nombre_vacuna: "Triple", fecha_aplicacion: hoyIso });
+await insert("examenes", { tenant_id: T2, paciente_id: pacM2.id, nombre: "rx", tipo: "hemograma", fecha: hoyIso });
+await insert("citas", { tenant_id: T2, paciente_id: pacM2.id, dueno_id: fichaM2.id, veterinario_id: vetT2.id, fecha_hora: "2030-01-02T13:00:00Z", motivo: "x" });
+
+// El staff de la clínica 2 no ve nada de la 1 (ni la 1 de la 2).
+const enT1 = {
+  pacientes: [A.paciente, B.paciente, pacM1.id],
+  duenos: [A.dueno, B.dueno, fichaM1.id],
+  consultas: [consultaVet2, historica.id],
+  recetas: [recetaVet2],
+  citas: [A.cita, B.cita],
+  usuarios: [vet.id, vet2.id],
+};
+for (const [tabla, idsT1] of Object.entries(enT1)) {
+  r = await asV2("GET", `${tabla}?select=id&id=in.(${idsT1.join(",")})`);
+  check(`clínica 2 no lee ${tabla} de la clínica 1`, same(r.data, []), `${r.data?.length ?? r.status} filas`);
+}
+for (const tabla of ["examenes", "vacunas", "paciente_duenos", "documentos_emitidos", "audit_log"]) {
+  r = await asV2("GET", `${tabla}?select=tenant_id&tenant_id=eq.${T1}`);
+  check(`clínica 2 no lee ${tabla} de la clínica 1`, same(r.data, []), `${r.data?.length ?? r.status} filas`);
+}
+const sucT2 = await insert("sucursales", { tenant_id: T2, nombre: "Sede dos" });
+r = await asV2("GET", `sucursales?select=id`);
+check("clínica 2 solo ve sus sucursales", same(ids(r), [sucT2.id]), `${r.data?.length} filas`);
+r = await asV2("GET", `esquemas_vacunacion?select=tenant_id&tenant_id=eq.${T1}`);
+check("clínica 2 no lee esquemas de la clínica 1", same(r.data, []));
+r = await asV2("GET", `tenants?select=id`);
+check("clínica 2 solo ve su propia clínica", same(ids(r), [T2]), `${r.data?.length} filas`);
+r = await getV(`pacientes?select=id&id=eq.${pacM2.id}`);
+check("clínica 1 no lee pacientes de la clínica 2", same(r.data, []));
+r = await getV(`consultas?select=id&id=eq.${consultaT2.id}`);
+check("clínica 1 no lee consultas de la clínica 2 por id", same(r.data, []));
+r = await http("POST", "/rest/v1/rpc/buscar_pacientes", { token: tV, body: { q: `Compartido ${run}` } });
+check("búsqueda: solo pacientes de la propia clínica", same(ids(r), [pacM1.id]), `${r.data?.length} filas`);
+r = await http("GET", "/rest/v1/usuarios?select=id&rol=eq.veterinario", { token: tV2 });
+check("selector de veterinarios: solo los de la propia clínica", same(ids(r), [vetT2.id]), `${r.data?.length} filas`);
+
+// Los embeds de PostgREST siguen siendo unívocos con las FKs compuestas (una
+// relación por par de tablas): la app los usa en fichas, agenda y cron.
+for (const q of [
+  "consultas?select=id,pacientes(nombre),usuarios(nombre)&limit=1",
+  "citas?select=id,pacientes(nombre),duenos(nombre),usuarios(nombre)&limit=1",
+  "vacunas?select=id,pacientes(nombre),usuarios(nombre)&limit=1",
+  "recetas?select=id,consultas(fecha),pacientes(nombre)&limit=1",
+  "paciente_duenos?select=es_principal,duenos(nombre),pacientes(nombre)&limit=1",
+]) {
+  r = await getV(q);
+  check(`embed unívoco: ${q.split("?")[0]}`, r.status === 200, r.status === 200 ? "" : r.data?.message);
+}
+
+// Escrituras cruzadas.
+r = await asV2("POST", "consultas", { paciente_id: A.paciente, veterinario_id: vetT2.id, motivo: "m", diagnostico: "d", tratamiento: "t" });
+check("clínica 2 no registra consultas de pacientes de la 1", r.status >= 400, `HTTP ${r.status}`);
+r = await asV2("PATCH", `pacientes?id=eq.${A.paciente}`, { nombre: "hackeado" });
+check("clínica 2 no modifica pacientes de la 1", same(r.data, []), `HTTP ${r.status}`);
+r = await asV2("POST", "pacientes", { tenant_id: T1, nombre: "intruso", especie: "perro" });
+check("clínica 2 no crea pacientes en la 1", r.status === 403, `HTTP ${r.status}`);
+r = await svc("POST", "/rest/v1/consultas", { tenant_id: T2, paciente_id: A.paciente, veterinario_id: vetT2.id, motivo: "m", diagnostico: "d", tratamiento: "t" });
+check("la base rechaza una consulta que cruza clínicas aun con service_role", r.status === 409 && r.data?.code === "23503", `HTTP ${r.status}`);
+r = await svc("POST", "/rest/v1/pacientes", { nombre: "sin clínica", especie: "perro", tenant_id: null });
+check("una fila sin clínica se rechaza", r.status === 400 && r.data?.code === "23502", `HTTP ${r.status}`);
+r = await asV2("POST", "pacientes", { nombre: `Nuevo T2 ${run}`, especie: "perro" });
+check("un paciente creado sin indicar clínica queda en la de la sesión", r.data?.[0]?.tenant_id === T2, `HTTP ${r.status}`);
+
+// Storage por carpeta de clínica.
+const subir = (token, ruta) =>
+  fetch(`${API}/storage/v1/object/examenes/${ruta}`, {
+    method: "POST",
+    headers: { apikey: ANON, Authorization: `Bearer ${token}`, "Content-Type": "text/plain" },
+    body: "contenido",
+  }).then((x) => x.status);
+const rutaT1 = `${T1}/${A.paciente}/${run}.txt`;
+check("staff sube un archivo en la carpeta de su clínica", (await subir(tV, rutaT1)) === 200);
+check("staff no sube archivos en la carpeta de otra clínica", (await subir(tV, `${T2}/${pacM2.id}/${run}.txt`)) >= 400);
+check("staff no sube archivos fuera de una carpeta de clínica", (await subir(tV, `${A.paciente}/${run}-suelto.txt`)) >= 400);
+const bajar = await fetch(`${API}/storage/v1/object/authenticated/examenes/${rutaT1}`, {
+  headers: { apikey: ANON, Authorization: `Bearer ${tV2}` },
+});
+check("clínica 2 no descarga archivos de la clínica 1", bajar.status >= 400, `HTTP ${bajar.status}`);
+const bajarT1 = await fetch(`${API}/storage/v1/object/authenticated/examenes/${rutaT1}`, {
+  headers: { apikey: ANON, Authorization: `Bearer ${tV}` },
+});
+check("clínica 1 descarga sus archivos", bajarT1.status === 200, `HTTP ${bajarT1.status}`);
+r = await http("POST", "/storage/v1/object/list/examenes", { token: tV2, body: { prefix: T1 } });
+check("clínica 2 no lista la carpeta de la clínica 1", r.status >= 400 || same(r.data, []), `HTTP ${r.status}`);
+
+// Dueña con fichas en dos clínicas.
+const tM = await login(multi.email);
+const rpcM = (fn, args = {}) => http("POST", `/rest/v1/rpc/${fn}`, { token: tM, body: args });
+r = await rpcM("portal_mascotas");
+check(
+  "portal: la dueña ve sus mascotas de ambas clínicas, cada una con su clínica",
+  r.data?.length === 2 && new Set(r.data.map((x) => x.tenant_id)).size === 2 && r.data.every((x) => x.clinica_nombre),
+  `${r.data?.length} filas`,
+);
+r = await rpcM("portal_mi_dueno");
+check("portal: una ficha de dueño por clínica", r.data?.length === 2, `${r.data?.length} filas`);
+r = await rpcM("portal_consultas", { p_paciente: pacM2.id });
+check("portal: consultas de la mascota de la clínica 2", r.data?.length === 1);
+r = await http("GET", "/rest/v1/tenants?select=id", { token: tM });
+check("portal: la dueña lee las dos clínicas donde tiene ficha", r.data?.length === 2, `${r.data?.length} filas`);
+r = await http("GET", `/rest/v1/tenants?select=id&id=eq.${T1}`, { token: tA });
+check("un dueño no lee clínicas donde no tiene ficha", r.data?.length === 1 && (await http("GET", `/rest/v1/tenants?select=id&id=eq.${T2}`, { token: tA })).data.length === 0);
+// Revocación en la clínica 1: deja de ver esa clínica y conserva la 2.
+await svc("PATCH", `/rest/v1/duenos?id=eq.${fichaM1.id}`, { usuario_id: null });
+r = await rpcM("portal_mascotas");
+check("revocada en la clínica 1, sigue viendo la mascota de la 2", same(ids(r), [pacM2.id]), `${r.data?.length} filas`);
+
+// Clínica desactivada: su staff y sus dueños pierden el acceso de inmediato.
+await svc("PATCH", `/rest/v1/tenants?id=eq.${T2}`, { activo: false });
+r = await asV2("GET", `pacientes?select=id`);
+check("clínica desactivada: su staff no lee nada", same(r.data, []), `${r.data?.length} filas`);
+r = await rpcM("portal_mascotas");
+check("clínica desactivada: el portal no la muestra", same(r.data, []), `${r.data?.length} filas`);
+r = await http("POST", "/rest/v1/rpc/branding_por_slug", { body: { p_slug: `t2-${run}` } });
+check("clínica desactivada: su entrada no existe", same(r.data, []));
+await svc("PATCH", `/rest/v1/tenants?id=eq.${T2}`, { activo: true });
+r = await http("POST", "/rest/v1/rpc/branding_por_slug", { body: { p_slug: `t2-${run}` } });
+check("entrada pública: nombre y logo sin sesión, nada más", r.data?.length === 1 && same(Object.keys(r.data[0]).sort(), ["logo_url", "nombre", "slug"]));
+r = await http("POST", "/rest/v1/rpc/branding_por_slug", { body: { p_slug: `no-existe-${run}` } });
+check("entrada pública: slug inexistente sin datos", same(r.data, []));
+
+// Plataforma: solo dev da de alta clínicas y cambia de clínica activa.
+r = await http("POST", "/rest/v1/rpc/crear_clinica", { token: tV, body: { p_slug: `x-${run}`, p_nombre: "X", p_sucursal: "S" } });
+check("un veterinario no da de alta clínicas", r.status >= 400, `HTTP ${r.status}`);
+r = await http("POST", "/rest/v1/rpc/cambiar_clinica_activa", { token: tV, body: { p_tenant: T2 } });
+check("un veterinario no cambia de clínica", r.status >= 400, `HTTP ${r.status}`);
+r = await http("PATCH", `/rest/v1/usuarios?id=eq.${vet.id}`, { token: tV, body: { tenant_id: T2 } });
+check("un veterinario no se cambia de clínica editando su usuario", r.status === 403, `HTTP ${r.status}`);
+const tD = await login(dev.email);
+r = await http("POST", "/rest/v1/rpc/crear_clinica", { token: tD, body: { p_slug: `t3-${run}`, p_nombre: "Tres", p_sucursal: "Centro" } });
+const T3 = r.data;
+check("dev da de alta una clínica", r.status === 200 && typeof T3 === "string", `HTTP ${r.status}`);
+r = await http("GET", `/rest/v1/sucursales?select=nombre&tenant_id=eq.${T3}`, { key: SVC });
+check("la clínica nueva nace con su sucursal", r.data?.[0]?.nombre === "Centro");
+r = await http("GET", `/rest/v1/esquemas_vacunacion?select=id&tenant_id=eq.${T3}`, { key: SVC });
+check("la clínica nueva nace con los esquemas de vacunación", r.data?.length > 0, `${r.data?.length} esquemas`);
+r = await http("POST", "/rest/v1/rpc/crear_clinica", { token: tD, body: { p_slug: `t3-${run}`, p_nombre: "Otra", p_sucursal: "S" } });
+check("slug repetido rechazado", r.status === 409, `HTTP ${r.status}`);
+r = await http("POST", "/rest/v1/rpc/cambiar_clinica_activa", { token: tD, body: { p_tenant: T2 } });
+check("dev cambia de clínica activa", r.status === 204 || r.status === 200, `HTTP ${r.status}`);
+const tD2 = await login(dev.email);
+r = await http("GET", `/rest/v1/pacientes?select=id&id=in.(${pacM2.id},${A.paciente})`, { token: tD2 });
+check("dev con la clínica 2 activa ve solo sus pacientes", same(ids(r), [pacM2.id]), `${r.data?.length} filas`);
 
 console.log(`\n${fallas === 0 ? "Todos los controles OK" : `${fallas} control(es) fallaron`}`);
 process.exit(fallas === 0 ? 0 : 1);

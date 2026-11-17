@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { getMiDueno } from "@/lib/data/portal";
+import { getMisDuenos } from "@/lib/data/portal";
 import { createClient } from "@/lib/supabase/server";
 
 export async function marcarTodasLeidas(): Promise<void> {
@@ -30,13 +30,17 @@ export interface Preferencias {
 export async function guardarPreferencias(
   prefs: Preferencias,
 ): Promise<{ error: string | null }> {
-  const dueno = await getMiDueno();
-  if (!dueno) return { error: "No se encontró tu registro." };
+  // Las preferencias valen para todas las clínicas: se guardan en cada ficha.
+  const duenos = await getMisDuenos();
+  if (duenos.length === 0) return { error: "No se encontró tu registro." };
 
   const supabase = createClient();
   const { error } = await supabase
     .from("notificaciones_config")
-    .upsert({ dueno_id: dueno.id, ...prefs }, { onConflict: "dueno_id" });
+    .upsert(
+      duenos.map((d) => ({ dueno_id: d.id, ...prefs })),
+      { onConflict: "dueno_id" },
+    );
 
   if (error) return { error: "No se pudieron guardar las preferencias." };
   revalidatePath("/portal/notificaciones");

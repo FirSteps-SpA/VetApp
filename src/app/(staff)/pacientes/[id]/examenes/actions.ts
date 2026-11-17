@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getTenantId } from "@/lib/auth/tenant";
+import { rutaEsDeTenant } from "@/lib/storage-rutas";
 import { createClient } from "@/lib/supabase/server";
 import { TIPOS_EXAMEN, type TipoExamen } from "@/lib/types/db";
 
@@ -27,6 +29,10 @@ export async function crearExamen(
   }
   if (!input.nombre?.trim()) return { error: "El nombre es obligatorio." };
   if (!input.fecha) return { error: "La fecha es obligatoria." };
+  const tenantId = await getTenantId();
+  if (!tenantId || !rutaEsDeTenant(input.archivo_url, tenantId)) {
+    return { error: "No se pudo registrar el examen." };
+  }
 
   const supabase = createClient();
   const { error } = await supabase.from("examenes").insert({

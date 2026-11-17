@@ -2,6 +2,8 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { rutaEnTenant, tenantDeUsuario } from "@/lib/storage-rutas";
+
 // Tipos soportados y límites (ver sección 2.3 de la arquitectura).
 const LIMITES: { mimes: string[]; maxBytes: number; etiqueta: string }[] = [
   {
@@ -69,7 +71,12 @@ export async function subirExamen(
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const path = `${pacienteId}/${periodo}/${uuid}_${sanitizar(file.name)}.${ext}`;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const tenantId = tenantDeUsuario(user);
+  if (!tenantId) return { error: "No se pudo subir el archivo." };
+  const path = rutaEnTenant(tenantId, pacienteId, periodo, `${uuid}_${sanitizar(file.name)}.${ext}`);
 
   const { error: uploadError } = await supabase.storage
     .from("examenes")

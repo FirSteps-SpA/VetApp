@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { esDev } from "@/lib/auth/guards";
+import { getClinicaConfigRaw } from "@/lib/data/clinica";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/utils/site";
@@ -37,7 +38,21 @@ export async function crearUsuario(input: {
     return { ok: false, error: "Rol inválido (los clientes se invitan desde su ficha de dueño)." };
   }
 
+  // El staff pertenece a la clínica activa de quien lo da de alta (spec 6).
+  const clinica = await getClinicaConfigRaw();
+  if (!clinica) return { ok: false, error: "No hay una clínica activa." };
+
   const admin = createAdminClient();
+  // Un email, una cuenta: si ya la tiene alguien (staff de cualquier clínica o
+  // un dueño), no se puede registrar como staff.
+  const emailLike = input.email.trim().replace(/[\\%_]/g, (c) => `\\${c}`);
+  const { data: existente } = await admin
+    .from("usuarios")
+    .select("id")
+    .ilike("email", emailLike)
+    .maybeSingle();
+  if (existente) return { ok: false, error: "Ese email ya está en uso." };
+
   const { data: created, error: createError } =
     await admin.auth.admin.createUser({
       email: input.email.trim(),
@@ -53,6 +68,7 @@ export async function crearUsuario(input: {
     email: input.email.trim(),
     rol: input.rol,
     sucursal_id: input.sucursal_id,
+    tenant_id: clinica.id,
   });
   if (usuarioError) {
     await admin.auth.admin.deleteUser(created.user.id);
@@ -70,7 +86,7 @@ export async function crearUsuario(input: {
     type: "magiclink",
     next: "/",
   });
-  return { ok: true, link: `${getOrigin()}/auth/confirm?${params.toString()}` };
+  return { ok: true, link: `${getOrigin()}/c/${clinica.slug}/acceso?${params.toString()}` };
 }
 
 export async function actualizarUsuario(
@@ -116,9 +132,29 @@ export async function eliminarUsuario(
     return { error: "No puedes eliminar tu propia cuenta." };
   }
 
+  // Con la sesión de dev: la RLS solo devuelve usuarios de su clínica activa.
+  const supabase = createClient();
+  const { data: usuario } = await supabase
+    .from("usuarios")
+    .select("id, rol")
+    .eq("id", id)
+    .maybeSingle();
+  if (!usuario) return { error: "Usuario no encontrado." };
+
   const admin = createAdminClient();
-  // Desvincula dueños que apunten a este usuario para no violar la FK.
-  await admin.from("duenos").update({ usuario_id: null }).eq("usuario_id", id);
+  if (usuario.rol === "cliente") {
+    // Un dueño puede tener ficha en otras clínicas: aquí solo se desvinculan
+    // las de esta, y la cuenta se borra solo si no le queda ninguna.
+    await supabase.from("duenos").update({ usuario_id: null }).eq("usuario_id", id);
+    const { count } = await admin
+      .from("duenos")
+      .select("id", { count: "exact", head: true })
+      .eq("usuario_id", id);
+    if (count) {
+      revalidatePath("/admin/usuarios");
+      return { error: null };
+    }
+  }
   // Borra el usuario de Auth; la fila en `usuarios` cae por ON DELETE CASCADE.
   const { error } = await admin.auth.admin.deleteUser(id);
   if (error) return { error: "No se pudo eliminar." };

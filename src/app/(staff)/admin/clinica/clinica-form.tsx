@@ -39,6 +39,19 @@ export function ClinicaForm({ config }: { config: ClinicaConfig }) {
           />
         </label>
         <label className={label}>
+          Slug (entrada: /c/&lt;slug&gt;/login) *
+          <input
+            name="slug"
+            required
+            pattern="[a-z0-9-]+"
+            defaultValue={config.slug}
+            className={field}
+          />
+          <span className="text-xs font-normal text-text-muted">
+            Cambiarlo invalida los enlaces de entrada e invitación anteriores.
+          </span>
+        </label>
+        <label className={label}>
           Número de registro
           <input
             name="numero_registro"

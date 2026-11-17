@@ -5,12 +5,18 @@ export const metadata: Metadata = {
   title: "Sin acceso",
 };
 
-export default function UnauthorizedPage() {
+export default function UnauthorizedPage({
+  searchParams,
+}: {
+  searchParams: { motivo?: string };
+}) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
       <h1 className="text-page font-semibold text-text">Sin acceso</h1>
       <p className="max-w-md text-text-muted">
-        Tu cuenta no tiene permisos para ver esta sección.
+        {searchParams.motivo === "clinica"
+          ? "Tu clínica no está activa en VetApp. Contacta a la clínica o al soporte de VetApp."
+          : "Tu cuenta no tiene permisos para ver esta sección."}
       </p>
       <Link
         href="/"
