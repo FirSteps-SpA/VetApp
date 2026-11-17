@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { getRol } from "@/lib/auth/roles";
 import { getClinicaConfigRaw } from "@/lib/data/clinica";
+import { clinicaTieneAviso } from "@/lib/data/privacidad";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/utils/site";
@@ -40,6 +41,14 @@ export async function invitarCliente(
 ): Promise<InvitarResult> {
   if (!(await esClinico())) {
     return { ok: false, error: "No autorizado." };
+  }
+  // Ningún dueño entra al portal sin aceptar un aviso de privacidad: sin aviso
+  // publicado no hay qué aceptar (spec 7).
+  if (!(await clinicaTieneAviso())) {
+    return {
+      ok: false,
+      error: "Primero hay que publicar el aviso de privacidad de la clínica (Admin › Privacidad).",
+    };
   }
 
   // La ficha se lee con la sesión del staff: la RLS solo devuelve dueños de

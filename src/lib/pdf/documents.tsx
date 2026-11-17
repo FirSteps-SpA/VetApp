@@ -18,8 +18,10 @@ import {
   type Examen,
   type Paciente,
   type Receta,
+  type TipoConsulta,
   type Vacuna,
 } from "@/lib/types/db";
+import type { PaqueteDatos } from "@/lib/privacidad/paquete";
 import type {
   ConsultaPortal,
   DuenoPortal,
@@ -822,6 +824,121 @@ export function VacunacionDoc({
                 ) : null}
               </View>
             ))
+          )}
+        </View>
+
+        <Footer />
+      </Page>
+    </Document>
+  );
+}
+
+// --------------------------------------------------------------------------
+// Datos del dueño (spec 7: derecho de acceso). Dibuja el mismo paquete que se
+// entrega en JSON.
+// --------------------------------------------------------------------------
+export function DatosDuenoDoc({
+  clinica,
+  paquete,
+}: {
+  clinica: ClinicaConfig | null;
+  paquete: PaqueteDatos;
+}) {
+  const d = paquete.dueno;
+  const fila = (label: string, valor: string | null) =>
+    valor ? (
+      <Text>
+        {label}: {valor}
+      </Text>
+    ) : null;
+  return (
+    <Document title={`Datos de ${d.nombre}`}>
+      <Page size="A4" style={styles.page}>
+        <Header clinica={clinica} />
+        <Text style={styles.docTitle}>Tus datos en {paquete.clinica.nombre}</Text>
+        <Text style={styles.docMeta}>Generado el {formatearFecha(paquete.generado_en)}</Text>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Datos personales</Text>
+          {fila("Nombre", d.nombre)}
+          {fila("RUT", d.rut)}
+          {fila("Teléfono", d.telefono)}
+          {fila("Email", d.email)}
+          {fila("Dirección", [d.direccion, d.comuna, d.sector].filter(Boolean).join(", ") || null)}
+        </View>
+
+        {paquete.mascotas.map((m) => (
+          <View key={m.numero_ficha} style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {m.nombre} · {m.numero_ficha}
+            </Text>
+            <Text>
+              {m.especie}
+              {m.raza ? ` · ${m.raza}` : ""}
+              {m.sexo ? ` · ${m.sexo}` : ""}
+              {m.fecha_nacimiento ? ` · nacimiento ${formatearFecha(m.fecha_nacimiento)}` : ""}
+              {m.peso_kg != null ? ` · ${m.peso_kg} kg` : ""}
+            </Text>
+            {m.consultas.map((c, i) => (
+              <View key={i} style={styles.card} wrap={false}>
+                <Text style={styles.bold}>
+                  {formatearFecha(c.fecha)} · {labelTipoConsulta(c.tipo as TipoConsulta)}
+                </Text>
+                <Text>Diagnóstico: {c.diagnostico}</Text>
+                <Text>Tratamiento: {c.tratamiento}</Text>
+              </View>
+            ))}
+            {m.vacunas.map((v, i) => (
+              <Text key={`v${i}`}>
+                Vacuna {v.nombre_vacuna} · {formatearFecha(v.fecha_aplicacion)}
+                {v.proxima_dosis ? ` · próxima: ${formatearFecha(v.proxima_dosis)}` : ""}
+              </Text>
+            ))}
+            {m.recetas.map((r) => (
+              <View key={r.numero_receta} style={{ marginTop: 3 }}>
+                <Text style={styles.bold}>
+                  {r.numero_receta} · {formatearFecha(r.fecha)}
+                </Text>
+                {r.medicamentos.map((med, i) => (
+                  <Text key={i}>· {resumenMedicamento(med)}</Text>
+                ))}
+              </View>
+            ))}
+            {m.examenes.map((x, i) => (
+              <Text key={`x${i}`}>
+                Examen {x.nombre} · {x.tipo} · {formatearFecha(x.fecha)}
+              </Text>
+            ))}
+          </View>
+        ))}
+
+        {paquete.citas.length > 0 ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Citas</Text>
+            {paquete.citas.map((c, i) => (
+              <Text key={i}>
+                {formatearFecha(c.fecha_hora)} · {c.mascota ?? ""} · {c.motivo} · {c.estado}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Privacidad y notificaciones</Text>
+          {paquete.aceptaciones_aviso.map((a, i) => (
+            <Text key={i}>
+              Aviso de privacidad versión {a.version} aceptado el {formatearFecha(a.aceptado_en)}
+            </Text>
+          ))}
+          {paquete.preferencias ? (
+            <Text>
+              Recordatorios de citas: {paquete.preferencias.recordatorio_citas ? "sí" : "no"} ·
+              de vacunas: {paquete.preferencias.recordatorio_vacunas ? "sí" : "no"} · email:{" "}
+              {paquete.preferencias.canal_email ? "sí" : "no"} · push:{" "}
+              {paquete.preferencias.canal_push ? "sí" : "no"}
+            </Text>
+          ) : (
+            <Text>Preferencias de notificación: las predeterminadas.</Text>
           )}
         </View>
 

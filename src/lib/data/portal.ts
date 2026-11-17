@@ -24,7 +24,13 @@ import type {
 export type DuenoPortal = Pick<
   Dueno,
   "id" | "nombre" | "rut" | "telefono" | "email" | "direccion" | "comuna" | "sector"
-> & { tenant_id: string; clinica_nombre: string };
+> & {
+  tenant_id: string;
+  clinica_nombre: string;
+  // Aviso de privacidad vigente de la clínica y si falta aceptarlo (spec 7).
+  aviso_vigente_id: string | null;
+  aviso_pendiente: boolean;
+};
 
 export interface MascotaPortal {
   id: string;

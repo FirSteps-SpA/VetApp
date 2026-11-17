@@ -18,6 +18,8 @@ import type {
 import { resumenMedicamento, type ClinicaConfig } from "@/lib/types/db";
 import { formatearFecha } from "@/lib/utils/format";
 
+import { registrarDescargaPortal } from "./registro-actions";
+
 export interface PortalDownloadsData {
   clinica: ClinicaConfig | null;
   mascota: MascotaPortal;
@@ -48,6 +50,11 @@ export default function PortalDownloads({
 
   async function historial() {
     setBusy(true);
+    if (!(await registrarDescargaPortal(mascota.id, "historial")).ok) {
+      setBusy(false);
+      window.alert("No se pudo preparar la descarga. Intenta de nuevo.");
+      return;
+    }
     await descargar(
       <HistorialClienteDoc
         clinica={clinica}
@@ -65,6 +72,11 @@ export default function PortalDownloads({
 
   async function receta(r: RecetaPortal) {
     setBusy(true);
+    if (!(await registrarDescargaPortal(mascota.id, "receta", { receta: r.numero_receta })).ok) {
+      setBusy(false);
+      window.alert("No se pudo preparar la descarga. Intenta de nuevo.");
+      return;
+    }
     await descargar(
       <RecetaClienteDoc
         clinica={clinica}

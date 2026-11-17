@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 
 import { getCitasPaciente } from "@/lib/data/citas";
 import { getClinicaConfig } from "@/lib/data/clinica";
+import { registrarAcceso } from "@/lib/privacidad/registro";
 import { getConsultas, getRecetas } from "@/lib/data/consultas";
 import { getDocumentosEmitidos } from "@/lib/data/documentos";
 import { getExamenes, getUrlsExamenes } from "@/lib/data/examenes";
@@ -81,6 +82,9 @@ export default async function FichaPage({
       getDocumentosEmitidos(paciente.id),
       getMiPerfil(),
       getVeterinarios(),
+      // Registro de accesos (spec 7): si falla, la ficha se muestra igual y el
+      // error va a Sentry.
+      registrarAcceso("ver_ficha", { paciente: paciente.id }),
     ]);
   const [urlsExamenes, esquemas] = await Promise.all([
     getUrlsExamenes(examenes),

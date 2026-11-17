@@ -132,6 +132,25 @@ for (const k of ["A", "B"]) {
 const A = datos.A;
 const B = datos.B;
 const tA = await login(A.usuario.email);
+
+// Spec 7: sin aceptar el aviso de privacidad vigente, el portal no entrega
+// datos. La clínica 1 publica uno y A lo acepta antes de los controles.
+async function publicarAvisoSvc(tenant, texto) {
+  const r = await http("POST", "/rest/v1/avisos_privacidad", {
+    key: SVC,
+    body: {
+      tenant_id: tenant,
+      version: (await http("GET", `/rest/v1/avisos_privacidad?select=version&tenant_id=eq.${tenant}&order=version.desc&limit=1`, { key: SVC })).data[0]?.version + 1 || 1,
+      texto,
+    },
+    prefer: "return=representation",
+  });
+  if (r.status !== 201) throw new Error(`aviso: ${r.status} ${JSON.stringify(r.data)}`);
+  return r.data[0].id;
+}
+const aceptar = (token, aviso) => http("POST", "/rest/v1/rpc/aceptar_aviso", { token, body: { p_aviso: aviso } });
+let avisoT1 = await publicarAvisoSvc(T1, `Aviso de prueba ${run}`);
+await aceptar(tA, avisoT1);
 const get = (path) => http("GET", `/rest/v1/${path}`, { token: tA });
 const ids = (r) => (Array.isArray(r.data) ? r.data.map((x) => x.id) : r.data);
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -442,6 +461,9 @@ check("clínica 2 no lista la carpeta de la clínica 1", r.status >= 400 || same
 
 // Dueña con fichas en dos clínicas.
 const tM = await login(multi.email);
+const avisoT2 = await publicarAvisoSvc(T2, `Aviso T2 ${run}`);
+await aceptar(tM, avisoT1);
+await aceptar(tM, avisoT2);
 const rpcM = (fn, args = {}) => http("POST", `/rest/v1/rpc/${fn}`, { token: tM, body: args });
 r = await rpcM("portal_mascotas");
 check(
@@ -498,6 +520,127 @@ check("dev cambia de clínica activa", r.status === 204 || r.status === 200, `HT
 const tD2 = await login(dev.email);
 r = await http("GET", `/rest/v1/pacientes?select=id&id=in.(${pacM2.id},${A.paciente})`, { token: tD2 });
 check("dev con la clínica 2 activa ve solo sus pacientes", same(ids(r), [pacM2.id]), `${r.data?.length} filas`);
+
+
+// --- Privacidad y consentimiento (spec 7) ---
+// Dueña nueva en la clínica 1, con una mascota con receta y examen.
+const pu = await crearUsuario("priv", "cliente");
+const fichaP = await insert("duenos", { nombre: "Priv Dueña", telefono: "+56944444444", email: pu.email, usuario_id: pu.id, rut: `8${run.replace(/\D/g, "").slice(0, 6)}-2`, direccion: "Calle 1", notas: "nota" });
+const pacP = await insert("pacientes", { nombre: `Priv ${run}`, especie: "perro" });
+await insert("paciente_duenos", { paciente_id: pacP.id, dueno_id: fichaP.id, es_principal: true });
+const consP = await insert("consultas", { paciente_id: pacP.id, veterinario_id: vet.id, motivo: "m", diagnostico: "d", tratamiento: "t" });
+await insert("recetas", { consulta_id: consP.id, paciente_id: pacP.id, veterinario_id: vet.id, medicamentos: [] });
+await insert("examenes", { paciente_id: pacP.id, nombre: "visible P", tipo: "hemograma", fecha: hoyIso, interno: false });
+await insert("citas", { paciente_id: pacP.id, dueno_id: fichaP.id, veterinario_id: vet.id, fecha_hora: "2030-02-01T13:00:00Z", motivo: "x", notas_cliente: "texto del dueño" });
+const tP = await login(pu.email);
+const rpcP = (fn, args = {}) => http("POST", `/rest/v1/rpc/${fn}`, { token: tP, body: args });
+
+r = await rpcP("portal_mi_dueno");
+check("sin aceptar: el portal sabe qué aviso falta", r.data?.[0]?.aviso_pendiente === true && r.data?.[0]?.aviso_vigente_id === avisoT1);
+r = await rpcP("portal_mascotas");
+check("sin aceptar: portal_mascotas no entrega la mascota", same(r.data, []), `${r.data?.length} filas`);
+r = await rpcP("portal_consultas", { p_paciente: pacP.id });
+check("sin aceptar: portal_consultas vacío", same(r.data, []));
+r = await http("GET", `/rest/v1/recetas?select=id&paciente_id=eq.${pacP.id}`, { token: tP });
+check("sin aceptar: no lee sus recetas", same(r.data, []));
+r = await http("GET", `/rest/v1/examenes?select=id&paciente_id=eq.${pacP.id}`, { token: tP });
+check("sin aceptar: no lee sus exámenes", same(r.data, []));
+r = await http("GET", `/rest/v1/avisos_privacidad?select=id,texto&id=eq.${avisoT1}`, { token: tP });
+check("sin aceptar: sí lee el aviso que debe aceptar", r.data?.length === 1);
+r = await aceptar(tP, avisoT2);
+check("no acepta el aviso de una clínica donde no tiene ficha", r.status >= 400, `HTTP ${r.status}`);
+r = await aceptar(tP, avisoT1);
+check("acepta el aviso vigente", r.status === 204 || r.status === 200, `HTTP ${r.status}`);
+r = await rpcP("portal_mascotas");
+check("aceptado: ve su mascota", same(ids(r), [pacP.id]));
+r = await http("GET", `/rest/v1/aceptaciones_privacidad?select=aviso_id,usuario_id&dueno_id=eq.${fichaP.id}`, { token: tP });
+check("la aceptación registra versión y cuenta", r.data?.length === 1 && r.data[0].aviso_id === avisoT1 && r.data[0].usuario_id === pu.id);
+
+// Versión nueva: vuelve a pedir la aceptación; la anterior se conserva.
+const avisoAnterior = avisoT1;
+avisoT1 = await publicarAvisoSvc(T1, `Aviso de prueba ${run} v2`);
+r = await aceptar(tP, avisoAnterior);
+check("no acepta una versión que ya no es la vigente", r.status >= 400, `HTTP ${r.status}`);
+r = await rpcP("portal_mascotas");
+check("versión nueva: vuelve a bloquear hasta aceptar", same(r.data, []));
+r = await http("GET", `/rest/v1/aceptaciones_privacidad?select=id&dueno_id=eq.${fichaP.id}`, { token: tP });
+check("versión nueva: la aceptación anterior se conserva", r.data?.length === 1);
+await aceptar(tP, avisoT1);
+r = await rpcP("portal_mascotas");
+check("aceptada la versión nueva: vuelve a ver su mascota", same(ids(r), [pacP.id]));
+await aceptar(tA, avisoT1);
+
+// Publicar: solo dev, y nunca editar ni borrar versiones.
+r = await http("POST", "/rest/v1/rpc/publicar_aviso", { token: tV, body: { p_texto: "x" } });
+check("un veterinario no publica avisos", r.status >= 400, `HTTP ${r.status}`);
+r = await http("POST", "/rest/v1/avisos_privacidad", { token: tV, body: { version: 99, texto: "x" } });
+check("nadie inserta avisos directamente", r.status >= 400, `HTTP ${r.status}`);
+r = await http("PATCH", `/rest/v1/avisos_privacidad?id=eq.${avisoT1}`, { key: SVC, body: { texto: "cambiado" } });
+check("un aviso publicado no se modifica (ni con service_role)", r.status >= 400, `HTTP ${r.status}`);
+r = await http("DELETE", `/rest/v1/avisos_privacidad?id=eq.${avisoT1}`, { key: SVC });
+check("un aviso publicado no se borra (ni con service_role)", r.status >= 400, `HTTP ${r.status}`);
+r = await http("PATCH", `/rest/v1/aceptaciones_privacidad?dueno_id=eq.${fichaP.id}`, { key: SVC, body: { aceptado_en: "2000-01-01T00:00:00Z" } });
+check("una aceptación no se modifica", r.status >= 400, `HTTP ${r.status}`);
+r = await http("DELETE", `/rest/v1/aceptaciones_privacidad?dueno_id=eq.${fichaP.id}`, { token: tP, prefer: "return=representation" });
+const quedan = (await http("GET", `/rest/v1/aceptaciones_privacidad?select=id&dueno_id=eq.${fichaP.id}`, { key: SVC })).data.length;
+check("el dueño no borra sus aceptaciones", quedan === 2, `${quedan} filas`);
+
+// Registro de accesos.
+const reg = (token, accion, args = {}) =>
+  http("POST", "/rest/v1/rpc/registrar_acceso", { token, body: { p_accion: accion, ...args } });
+r = await reg(tV, "ver_ficha", { p_paciente: pacP.id });
+const idRegistro = r.data;
+check("staff registra la apertura de una ficha de su clínica", r.status === 200 && typeof idRegistro === "number", `HTTP ${r.status}`);
+r = await http("GET", `/rest/v1/registro_accesos?select=usuario_id,tenant_id,accion&id=eq.${idRegistro}`, { key: SVC });
+check("la entrada queda a nombre de la sesión y en su clínica", r.data?.[0]?.usuario_id === vet.id && r.data?.[0]?.tenant_id === T1);
+r = await reg(tV, "ver_ficha", { p_paciente: pacM2.id });
+check("staff no registra accesos a pacientes de otra clínica", r.status >= 400, `HTTP ${r.status}`);
+r = await reg(tV, "anonimizar", { p_dueno: fichaP.id });
+check("la anonimización no se registra a mano", r.status >= 400, `HTTP ${r.status}`);
+r = await reg(tP, "descargar_portal", { p_paciente: pacP.id, p_detalle: { tipo: "historial" } });
+check("el dueño registra la descarga de su mascota", r.status === 200, `HTTP ${r.status}`);
+r = await reg(tP, "descargar_portal", { p_paciente: A.paciente });
+check("el dueño no registra accesos a mascotas ajenas", r.status >= 400, `HTTP ${r.status}`);
+r = await reg(tP, "ver_ficha", { p_paciente: pacP.id });
+check("el dueño no registra acciones de staff", r.status >= 400, `HTTP ${r.status}`);
+r = await http("POST", "/rest/v1/registro_accesos", { token: tV, body: { accion: "ver_ficha", usuario_id: dev.id, tenant_id: T1 } });
+check("nadie inserta en el registro directamente", r.status >= 400, `HTTP ${r.status}`);
+r = await http("PATCH", `/rest/v1/registro_accesos?id=eq.${idRegistro}`, { key: SVC, body: { accion: "exportar_datos" } });
+check("el registro no se modifica (ni con service_role)", r.status >= 400, `HTTP ${r.status}`);
+r = await http("DELETE", `/rest/v1/registro_accesos?id=eq.${idRegistro}`, { key: SVC });
+check("el registro no se borra (ni con service_role)", r.status >= 400, `HTTP ${r.status}`);
+r = await http("GET", `/rest/v1/registro_accesos?select=id&id=eq.${idRegistro}`, { token: tV });
+check("un veterinario no lee el registro", same(r.data, []));
+r = await http("GET", `/rest/v1/registro_accesos?select=id&id=eq.${idRegistro}`, { token: tP });
+check("un dueño no lee el registro", same(r.data, []));
+const devP = await crearUsuario("dev-priv", "dev");
+const tDP = await login(devP.email);
+r = await http("GET", `/rest/v1/registro_accesos?select=id&id=eq.${idRegistro}`, { token: tDP });
+check("dev de la clínica lee el registro", r.data?.length === 1);
+r = await http("GET", `/rest/v1/registro_accesos?select=id&id=eq.${idRegistro}`, { token: tD2 });
+check("dev con otra clínica activa no lo lee", same(r.data, []));
+
+// Anonimización.
+const anon = (token, dueno) => http("POST", "/rest/v1/rpc/anonimizar_dueno", { token, body: { p_dueno: dueno } });
+r = await anon(tR, fichaP.id);
+check("una recepcionista no anonimiza", r.status >= 400, `HTTP ${r.status}`);
+r = await anon(tV2, fichaP.id);
+check("otra clínica no anonimiza a sus dueños", r.status >= 400, `HTTP ${r.status}`);
+r = await anon(tV, fichaP.id);
+check("un veterinario anonimiza y obtiene la cuenta que tenía", r.status === 200 && r.data === pu.id, `HTTP ${r.status}`);
+const [anonimo] = (await http("GET", `/rest/v1/duenos?select=*&id=eq.${fichaP.id}`, { key: SVC })).data;
+check(
+  "sin datos personales",
+  anonimo.nombre === "Dueño eliminado" && anonimo.telefono === "—" && !anonimo.rut && !anonimo.email && !anonimo.direccion && !anonimo.notas && !anonimo.usuario_id,
+);
+r = await http("GET", `/rest/v1/consultas?select=id&paciente_id=eq.${pacP.id}`, { key: SVC });
+check("la ficha clínica de la mascota se conserva", r.data?.length === 1);
+r = await http("GET", `/rest/v1/citas?select=notas_cliente&dueno_id=eq.${fichaP.id}`, { key: SVC });
+check("las notas del dueño en sus citas se borran", r.data?.[0]?.notas_cliente === null);
+r = await rpcP("portal_mi_dueno");
+check("el dueño anonimizado ya no tiene ficha en el portal", same(r.data, []));
+r = await http("GET", `/rest/v1/registro_accesos?select=accion&dueno_id=eq.${fichaP.id}&accion=eq.anonimizar`, { key: SVC });
+check("la anonimización queda en el registro", r.data?.length === 1);
 
 console.log(`\n${fallas === 0 ? "Todos los controles OK" : `${fallas} control(es) fallaron`}`);
 process.exit(fallas === 0 ? 0 : 1);

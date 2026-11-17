@@ -9,6 +9,7 @@ import {
   Home,
   PawPrint,
   Settings,
+  ShieldCheck,
   Syringe,
   User,
   type LucideIcon,
@@ -37,6 +38,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   syringe: Syringe,
   user: User,
   settings: Settings,
+  shield: ShieldCheck,
 };
 
 function contadorDe(d: NavDestino, c: Contadores): number {

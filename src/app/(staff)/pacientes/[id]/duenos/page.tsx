@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+import { esRol } from "@/lib/auth/guards";
 import { getDuenosDePaciente, getPaciente } from "@/lib/data/pacientes";
 
 import { ManageDuenos } from "./manage-duenos";
@@ -15,9 +16,10 @@ export default async function DuenosPage({
 }: {
   params: { id: string };
 }) {
-  const [paciente, duenos] = await Promise.all([
+  const [paciente, duenos, esClinico] = await Promise.all([
     getPaciente(params.id),
     getDuenosDePaciente(params.id),
+    esRol("dev", "veterinario"),
   ]);
   if (!paciente) notFound();
 
@@ -32,7 +34,7 @@ export default async function DuenosPage({
       <h1 className="mb-6 mt-2 text-2xl font-semibold text-text">
         Dueños de {paciente.nombre}
       </h1>
-      <ManageDuenos pacienteId={params.id} duenos={duenos} />
+      <ManageDuenos pacienteId={params.id} duenos={duenos} esClinico={esClinico} />
     </div>
   );
 }

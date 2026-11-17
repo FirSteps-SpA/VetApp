@@ -35,6 +35,26 @@ export default function AdminHome() {
         </Link>
 
         <Link
+          href="/admin/privacidad"
+          className="rounded-card border border-border bg-surface p-5 transition-colors hover:border-accent"
+        >
+          <h2 className="font-medium text-text">Privacidad</h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Aviso de privacidad de la clínica y sus versiones.
+          </p>
+        </Link>
+
+        <Link
+          href="/admin/accesos"
+          className="rounded-card border border-border bg-surface p-5 transition-colors hover:border-accent"
+        >
+          <h2 className="font-medium text-text">Registro de accesos</h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Quién abrió fichas y exportó documentos o datos.
+          </p>
+        </Link>
+
+        <Link
           href="/admin/usuarios"
           className="rounded-card border border-border bg-surface p-5 transition-colors hover:border-accent"
         >

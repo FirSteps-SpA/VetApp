@@ -33,6 +33,7 @@ import {
 } from "@/lib/types/db";
 import { formatearFecha } from "@/lib/utils/format";
 
+import { registrarExportacion } from "../registro-actions";
 import { registrarDocumentoEmitido } from "./actions";
 
 // Datos mínimos del veterinario a cargo (una fila de `usuarios`). El emisor es
@@ -258,6 +259,12 @@ export default function DocumentosPanel({
     setGenerando(true);
     setError(null);
     try {
+      // Registro de accesos (spec 7): sin registro no se entrega el documento.
+      const registro = await registrarExportacion(data.pacienteId, "autorizacion", { tipo, accion });
+      if (!registro.ok) {
+        setError("No se pudo registrar la exportación. Intenta de nuevo.");
+        return;
+      }
       const blob = await generarBlob();
       const url = URL.createObjectURL(blob);
       if (accion === "descargar") {
