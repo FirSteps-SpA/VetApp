@@ -21,11 +21,19 @@ Cada clínica SHALL tener una entrada en `/c/<slug>/login` que muestra su nombre
 - **THEN** después del login opera en la clínica A
 
 ### Requirement: Invitaciones con la entrada de la clínica
-Los enlaces de invitación y de acceso que reciben el staff y los dueños SHALL llevar a la entrada con la marca de la clínica que invita.
+Los enlaces de invitación y de acceso que reciben el staff y los dueños SHALL llevar a la entrada con la marca de la clínica que invita. Al invitar a un dueño al portal, el sistema SHALL enviarle el enlace por correo con la marca de la clínica y SHALL mostrar al staff el mismo enlace para copiarlo, indicando si el correo se envió.
 
 #### Scenario: Dueño invitado
 - **WHEN** la clínica Pradera invita a un dueño al portal
 - **THEN** el enlace lleva a una pantalla con la marca de Pradera
+
+#### Scenario: Invitación por correo
+- **WHEN** el staff invita a un dueño con email y el envío de correo está configurado
+- **THEN** el dueño recibe el correo de invitación de la clínica y el staff ve el enlace con la indicación de que el correo fue enviado
+
+#### Scenario: Correo no enviado
+- **WHEN** el correo de invitación no se puede enviar
+- **THEN** el staff ve el enlace con la indicación de que el correo no salió, para compartirlo por otro medio
 
 ### Requirement: Alta de clínicas por la cuenta de plataforma
 Solo la cuenta de plataforma (rol dev) SHALL poder dar de alta una clínica con nombre, slug único, datos legales, logo y una sucursal inicial, y desactivarla. Una clínica desactivada SHALL dejar de admitir el ingreso de su staff y de sus dueños, y sus datos SHALL conservarse.
