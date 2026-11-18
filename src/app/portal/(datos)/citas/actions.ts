@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
+import { notificarDueno } from "@/lib/notificaciones/enviar";
+import { mensajeHoraCancelada } from "@/lib/notificaciones/mensajes";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatearFechaHora } from "@/lib/utils/format";
 import { createClient } from "@/lib/supabase/server";
 
 export interface SolicitarCitaInput {
@@ -68,6 +71,35 @@ export async function solicitarCita(
   if (error) return { error: "No se pudo enviar la solicitud." };
 
   revalidatePath("/portal/citas");
+  revalidatePath("/reservas");
+  return { error: null };
+}
+
+// El dueño cancela su hora (spec 8). La base valida propiedad, aviso
+// aceptado, estado y plazo de la clínica; aquí solo se envía el acuse.
+export async function cancelarCita(
+  citaId: string,
+  motivo: string,
+): Promise<{ error: string | null }> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .rpc("cancelar_cita_portal", { p_cita: citaId, p_motivo: motivo.trim() || null })
+    .maybeSingle<{ dueno_id: string | null; fecha_hora: string; paciente_nombre: string | null }>();
+  if (error || !data) {
+    return { error: "No se pudo cancelar: la hora ya no está dentro del plazo. Contacta a la clínica." };
+  }
+  if (data.dueno_id) {
+    await notificarDueno(data.dueno_id, {
+      mensaje: mensajeHoraCancelada({
+        mascota: data.paciente_nombre,
+        cuando: formatearFechaHora(data.fecha_hora),
+      }),
+      referenciaTipo: "cita_cancelada",
+      referenciaId: citaId,
+    });
+  }
+  revalidatePath("/portal", "layout");
+  revalidatePath("/agenda");
   revalidatePath("/reservas");
   return { error: null };
 }

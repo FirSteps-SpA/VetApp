@@ -92,6 +92,21 @@ export function ClinicaForm({ config }: { config: ClinicaConfig }) {
             className={field}
           />
         </label>
+        <label className={label}>
+          Plazo de cancelación en el portal (horas)
+          <input
+            name="horas_cancelacion"
+            type="number"
+            min={0}
+            max={168}
+            required
+            defaultValue={config.horas_cancelacion}
+            className={field}
+          />
+          <span className="text-xs font-normal text-text-muted">
+            Los dueños pueden cancelar sus horas hasta este número de horas antes (0 a 168).
+          </span>
+        </label>
       </div>
 
       {state.error && (

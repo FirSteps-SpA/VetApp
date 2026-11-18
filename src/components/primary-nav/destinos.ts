@@ -15,7 +15,8 @@ export type IconName =
   | "syringe"
   | "user"
   | "settings"
-  | "shield";
+  | "shield"
+  | "help";
 
 export type BadgeKey = "reservas" | "noLeidas";
 
@@ -114,6 +115,12 @@ export function portalDestinos(): NavDestino[] {
       href: "/portal/privacidad",
       icon: "shield",
       label: "Privacidad",
+      grupo: "secundario",
+    },
+    {
+      href: "/portal/ayuda",
+      icon: "help",
+      label: "Ayuda",
       grupo: "secundario",
     },
   ];

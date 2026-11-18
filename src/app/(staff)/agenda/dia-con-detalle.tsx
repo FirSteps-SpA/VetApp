@@ -9,7 +9,7 @@ import {
   labelEstadoCita,
   type CitaConRel,
 } from "@/lib/types/db";
-import { formatearHora } from "@/lib/utils/format";
+import { formatearFechaHora, formatearHora } from "@/lib/utils/format";
 
 import { CitaActions } from "./cita-actions";
 
@@ -64,6 +64,7 @@ export function DiaConDetalle({ citas }: { citas: CitaConRel[] }) {
                 <p className="truncate text-xs text-text-muted">
                   {c.motivo}
                   {c.dueno ? ` · ${c.dueno.nombre}` : ""}
+                  {c.cancelada_por_cliente ? " · Cancelada por el dueño" : ""}
                 </p>
               </div>
               <span
@@ -107,6 +108,15 @@ export function DiaConDetalle({ citas }: { citas: CitaConRel[] }) {
               <dt className="text-text-muted">Motivo</dt>
               <dd className="text-text">{seleccionada.motivo}</dd>
             </div>
+            {seleccionada.cancelada_por_cliente && (
+              <div>
+                <dt className="text-text-muted">Cancelada por el dueño</dt>
+                <dd className="text-text">
+                  {seleccionada.cancelada_en ? formatearFechaHora(seleccionada.cancelada_en) : ""}
+                  {seleccionada.notas_cliente ? ` · ${seleccionada.notas_cliente}` : ""}
+                </dd>
+              </div>
+            )}
             {seleccionada.dueno && (
               <div>
                 <dt className="text-text-muted">Tutor</dt>

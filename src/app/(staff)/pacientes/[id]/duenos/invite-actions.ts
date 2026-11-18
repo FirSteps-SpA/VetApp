@@ -5,12 +5,15 @@ import { revalidatePath } from "next/cache";
 import { getRol } from "@/lib/auth/roles";
 import { getClinicaConfigRaw } from "@/lib/data/clinica";
 import { clinicaTieneAviso } from "@/lib/data/privacidad";
+import { clinicaCorreo, enviarMensajePorCorreo } from "@/lib/notificaciones/enviar";
+import { mensajeInvitacion } from "@/lib/notificaciones/mensajes";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/utils/site";
 
 export type InvitarResult =
-  | { ok: true; link: string }
+  // `correo`: a qué email se envió la invitación, o null si no salió (spec 8).
+  | { ok: true; link: string; correo: string | null }
   | { ok: false; error: string };
 
 async function esClinico(): Promise<boolean> {
@@ -165,7 +168,18 @@ export async function invitarCliente(
   }
 
   revalidatePath(`/pacientes/${pacienteId}/duenos`);
-  return { ok: true, link: confirmUrl(link.properties.hashed_token, clinica.slug) };
+  const url = confirmUrl(link.properties.hashed_token, clinica.slug);
+  // Invitación por correo con la marca de la clínica. Si no sale, el staff
+  // igual tiene el enlace para compartirlo por otro medio.
+  const marca = await clinicaCorreo(clinica.id);
+  const enviado =
+    !!marca &&
+    (await enviarMensajePorCorreo(
+      emailCuenta,
+      marca,
+      mensajeInvitacion({ nombreDueno: dueno.nombre, clinica: marca.nombre_clinica, enlace: url }),
+    ));
+  return { ok: true, link: url, correo: enviado ? emailCuenta : null };
 }
 
 // Revoca el acceso al portal de esta ficha: la desvincula y, si la cuenta no

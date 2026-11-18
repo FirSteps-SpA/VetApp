@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { notificarDueno } from "@/lib/notificaciones/enviar";
+import { mensajeHoraConfirmada, mensajeHoraRechazada } from "@/lib/notificaciones/mensajes";
 import { createClient } from "@/lib/supabase/server";
 import { formatearFechaHora } from "@/lib/utils/format";
 
@@ -41,10 +42,7 @@ export async function confirmarSolicitud(
   const cuando = formatearFechaHora(fechaHora ?? cita.fecha_hora);
   if (cita.dueno_id) {
     await notificarDueno(cita.dueno_id, {
-      tipo: "cita_confirmada",
-      titulo: "Cita confirmada",
-      cuerpo: `Tu hora para ${cita.pacientes?.nombre ?? "tu mascota"} quedó confirmada: ${cuando}.`,
-      url: "/portal/citas",
+      mensaje: mensajeHoraConfirmada({ mascota: cita.pacientes?.nombre, cuando }),
       preferencia: "citas",
     });
   }
@@ -70,12 +68,7 @@ export async function rechazarSolicitud(
 
   if (cita.dueno_id) {
     await notificarDueno(cita.dueno_id, {
-      tipo: "cita_rechazada",
-      titulo: "Solicitud de hora rechazada",
-      cuerpo: motivo
-        ? `Tu solicitud para ${cita.pacientes?.nombre ?? "tu mascota"} fue rechazada: ${motivo}`
-        : `Tu solicitud para ${cita.pacientes?.nombre ?? "tu mascota"} fue rechazada.`,
-      url: "/portal/citas",
+      mensaje: mensajeHoraRechazada({ mascota: cita.pacientes?.nombre, motivo }),
       preferencia: "citas",
     });
   }

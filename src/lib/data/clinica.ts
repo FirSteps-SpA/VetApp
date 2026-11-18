@@ -9,7 +9,7 @@ import type { ClinicaConfig } from "@/lib/types/db";
 // ficha; la entrada `/c/<slug>` usa `branding_por_slug`, sin sesión.
 
 const COLUMNAS =
-  "id, slug, nombre, direccion, ciudad, telefono, email, numero_registro, logo_url, activo";
+  "id, slug, nombre, direccion, ciudad, telefono, email, numero_registro, logo_url, activo, horas_cancelacion";
 
 interface TenantRow {
   id: string;
@@ -22,6 +22,7 @@ interface TenantRow {
   numero_registro: string | null;
   logo_url: string | null;
   activo: boolean;
+  horas_cancelacion: number;
 }
 
 function aConfig(t: TenantRow): ClinicaConfig {
@@ -36,6 +37,7 @@ function aConfig(t: TenantRow): ClinicaConfig {
     numero_registro: t.numero_registro,
     logo_url: t.logo_url,
     activo: t.activo,
+    horas_cancelacion: t.horas_cancelacion,
   };
 }
 

@@ -642,5 +642,53 @@ check("el dueño anonimizado ya no tiene ficha en el portal", same(r.data, []));
 r = await http("GET", `/rest/v1/registro_accesos?select=accion&dueno_id=eq.${fichaP.id}&accion=eq.anonimizar`, { key: SVC });
 check("la anonimización queda en el registro", r.data?.length === 1);
 
+
+// --- Cancelación de horas por el dueño (spec 8) ---
+// A (clínica 1, aviso aceptado) con horas a distintas distancias.
+const enHoras = (h) => new Date(Date.now() + h * 3600_000).toISOString();
+const nuevaCitaA = async (horas, estado = "confirmada") =>
+  (await insert("citas", { paciente_id: A.paciente, dueno_id: A.dueno, veterinario_id: vet.id, fecha_hora: enHoras(horas), motivo: "c", estado })).id;
+const lejana = await nuevaCitaA(72);
+const cercana = await nuevaCitaA(5);
+const realizada = await nuevaCitaA(48, "realizada");
+const cancelar = (token, cita, motivo) =>
+  http("POST", "/rest/v1/rpc/cancelar_cita_portal", { token, body: { p_cita: cita, p_motivo: motivo ?? null } });
+
+r = await rpc("portal_citas");
+const cancelables = Object.fromEntries((r.data ?? []).map((c) => [c.id, c.cancelable]));
+check("portal_citas indica qué horas se pueden cancelar", cancelables[lejana] === true && cancelables[cercana] === false && cancelables[realizada] === false);
+r = await cancelar(tA, cercana);
+check("fuera de plazo (5 h, plazo 24 h): se rechaza", r.status >= 400, `HTTP ${r.status}`);
+r = await cancelar(tA, realizada);
+check("una hora realizada no se cancela", r.status >= 400, `HTTP ${r.status}`);
+r = await cancelar(tA, B.cita);
+check("una hora ajena no se cancela", r.status >= 400, `HTTP ${r.status}`);
+r = await cancelar(tA, lejana, "  viaje  ");
+check("a tiempo: se cancela y devuelve los datos del acuse", r.status === 200 && r.data?.[0]?.dueno_id === A.dueno, `HTTP ${r.status}`);
+const [cancelada] = (await http("GET", `/rest/v1/citas?select=estado,cancelada_por_cliente,cancelada_en,notas_cliente,fecha_hora&id=eq.${lejana}`, { key: SVC })).data;
+check("queda cancelada por el dueño, con fecha y motivo", cancelada.estado === "cancelada" && cancelada.cancelada_por_cliente && !!cancelada.cancelada_en && cancelada.notas_cliente === "viaje");
+r = await cancelar(tA, lejana);
+check("una hora ya cancelada no se vuelve a cancelar", r.status >= 400, `HTTP ${r.status}`);
+r = await http("PATCH", `/rest/v1/citas?id=eq.${cercana}`, { token: tA, body: { fecha_hora: enHoras(100) }, prefer: "return=representation" });
+const [sinCambio] = (await http("GET", `/rest/v1/citas?select=estado,fecha_hora&id=eq.${cercana}`, { key: SVC })).data;
+check("el dueño no cambia sus horas directamente", sinCambio.estado === "confirmada" && Math.abs(new Date(sinCambio.fecha_hora) - Date.now() - 5 * 3600_000) < 60_000, `HTTP ${r.status}`);
+// Plazo por clínica: con 2 h, la de 5 h pasa a ser cancelable.
+await svc("PATCH", `/rest/v1/tenants?id=eq.${T1}`, { horas_cancelacion: 2 });
+r = await rpc("portal_citas");
+check("con un plazo menor, la hora de 5 h pasa a ser cancelable", (r.data ?? []).find((c) => c.id === cercana)?.cancelable === true);
+await svc("PATCH", `/rest/v1/tenants?id=eq.${T1}`, { horas_cancelacion: 24 });
+r = await svc("PATCH", `/rest/v1/tenants?id=eq.${T1}`, { horas_cancelacion: 500 });
+check("el plazo no supera 168 horas", r.status >= 400, `HTTP ${r.status}`);
+// Sin aviso aceptado: P fue anonimizada; uso una dueña nueva sin aceptar.
+const sinAviso = await crearUsuario("sinaviso", "cliente");
+const fichaSA = await insert("duenos", { nombre: "Sin aviso", telefono: "+56977777777", email: sinAviso.email, usuario_id: sinAviso.id });
+const pacSA = await insert("pacientes", { nombre: `SinAviso ${run}`, especie: "gato" });
+await insert("paciente_duenos", { paciente_id: pacSA.id, dueno_id: fichaSA.id, es_principal: true });
+const citaSA = (await insert("citas", { paciente_id: pacSA.id, dueno_id: fichaSA.id, veterinario_id: vet.id, fecha_hora: enHoras(96), motivo: "c" })).id;
+r = await cancelar(await login(sinAviso.email), citaSA);
+check("sin aceptar el aviso no se cancela", r.status >= 400, `HTTP ${r.status}`);
+r = await http("PATCH", `/rest/v1/usuarios?id=eq.${A.usuario.id}`, { token: tA, body: { bienvenida_vista_en: new Date().toISOString() }, prefer: "return=representation" });
+check("el dueño marca su bienvenida como vista", r.data?.[0]?.bienvenida_vista_en != null, `HTTP ${r.status}`);
+
 console.log(`\n${fallas === 0 ? "Todos los controles OK" : `${fallas} control(es) fallaron`}`);
 process.exit(fallas === 0 ? 0 : 1);

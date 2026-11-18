@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { logError } from "@/lib/log";
 import { notificarDueno } from "@/lib/notificaciones/enviar";
+import { mensajeRecordatorioCita, mensajeRecordatorioVacuna } from "@/lib/notificaciones/mensajes";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatearFecha, formatearFechaHora } from "@/lib/utils/format";
 
@@ -71,10 +72,10 @@ async function enviarRecordatorios() {
   }[]) ?? []) {
     if (!c.dueno_id) continue;
     await notificarDueno(c.dueno_id, {
-      tipo: "recordatorio_cita",
-      titulo: "Recordatorio de cita",
-      cuerpo: `Tienes una cita ${formatearFechaHora(c.fecha_hora)} para ${c.pacientes?.nombre ?? "tu mascota"}.`,
-      url: "/portal/citas",
+      mensaje: mensajeRecordatorioCita({
+        mascota: c.pacientes?.nombre,
+        cuando: formatearFechaHora(c.fecha_hora),
+      }),
       referenciaTipo: "cita",
       referenciaId: c.id,
       preferencia: "citas",
@@ -108,10 +109,11 @@ async function enviarRecordatorios() {
       .maybeSingle();
     if (!link?.dueno_id) continue;
     await notificarDueno(link.dueno_id as string, {
-      tipo: "recordatorio_vacuna",
-      titulo: "Recordatorio de vacuna",
-      cuerpo: `${v.pacientes?.nombre ?? "Tu mascota"}: ${v.nombre_vacuna} vence el ${formatearFecha(v.proxima_dosis)}.`,
-      url: "/portal",
+      mensaje: mensajeRecordatorioVacuna({
+        mascota: v.pacientes?.nombre,
+        vacuna: v.nombre_vacuna,
+        fecha: formatearFecha(v.proxima_dosis),
+      }),
       referenciaTipo: "vacuna",
       referenciaId: v.id,
       preferencia: "vacunas",

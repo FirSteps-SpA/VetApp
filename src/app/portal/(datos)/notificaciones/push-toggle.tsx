@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+
+import { diagnosticoPush, type DiagnosticoPush } from "@/lib/portal/push-soporte";
 
 import { guardarSuscripcion, quitarSuscripcion } from "./actions";
 
@@ -17,7 +20,7 @@ const btn =
   "inline-flex min-h-tap items-center justify-center rounded-control border border-border px-4 text-body font-medium text-text hover:bg-surface-sunken disabled:opacity-60";
 
 export function PushToggle() {
-  const [soportado, setSoportado] = useState(false);
+  const [soporte, setSoporte] = useState<DiagnosticoPush | null>(null);
   const [activo, setActivo] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -25,13 +28,17 @@ export function PushToggle() {
 
   useEffect(() => {
     (async () => {
-      if (
-        typeof navigator === "undefined" ||
-        !("serviceWorker" in navigator) ||
-        !("PushManager" in window)
-      )
-        return;
-      setSoportado(true);
+      if (typeof navigator === "undefined") return;
+      const d = diagnosticoPush({
+        userAgent: navigator.userAgent,
+        standalone:
+          window.matchMedia?.("(display-mode: standalone)").matches ||
+          (navigator as Navigator & { standalone?: boolean }).standalone === true,
+        tieneServiceWorker: "serviceWorker" in navigator,
+        tienePushManager: "PushManager" in window,
+      });
+      setSoporte(d);
+      if (d !== "disponible") return;
       const reg = await navigator.serviceWorker.getRegistration();
       const sub = await reg?.pushManager.getSubscription();
       setActivo(!!sub);
@@ -89,10 +96,23 @@ export function PushToggle() {
     setBusy(false);
   }
 
-  if (!soportado) {
+  if (soporte === "ios-instalar") {
     return (
       <p className="text-sm text-text-muted">
-        Tu navegador no soporta notificaciones push.
+        En iPhone y iPad, las notificaciones funcionan con VetApp agregada a tu pantalla de
+        inicio: en Safari toca Compartir → Agregar a inicio y ábrela desde ahí.{" "}
+        <Link href="/portal/ayuda#instalar" className="font-medium text-accent hover:underline">
+          Ver cómo
+        </Link>
+      </p>
+    );
+  }
+  if (soporte !== "disponible") {
+    return (
+      <p className="text-sm text-text-muted">
+        {soporte === null
+          ? "Revisando si tu dispositivo admite notificaciones…"
+          : "Este navegador no admite notificaciones push. Prueba con Chrome en Android o con la app instalada en iPhone."}
       </p>
     );
   }

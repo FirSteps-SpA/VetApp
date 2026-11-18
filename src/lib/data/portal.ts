@@ -87,6 +87,9 @@ export interface CitaPortal {
   paciente: { nombre: string } | null;
   tenant_id: string;
   clinica_nombre: string;
+  // Spec 8: si el dueño puede cancelarla ahora (estado y plazo de la clínica).
+  cancelable: boolean;
+  cancelada_por_cliente: boolean;
 }
 
 // Fichas de dueño del cliente autenticado, una por clínica.

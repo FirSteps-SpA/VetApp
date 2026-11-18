@@ -2,18 +2,39 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { getMisCitas, getMisMascotas } from "@/lib/data/portal";
+import { createClient } from "@/lib/supabase/server";
 import { agruparPorClinica } from "@/lib/portal/agrupar-clinica";
 import { colorEstadoCita, iconoEspecie, labelEstadoCita } from "@/lib/types/db";
 import { formatearFechaHora } from "@/lib/utils/format";
+
+import { Bienvenida } from "./bienvenida";
 
 export const metadata: Metadata = {
   title: "Portal",
 };
 
+async function getPerfilPortal(): Promise<{ nombre: string; bienvenida: boolean }> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { nombre: "", bienvenida: false };
+  const { data } = await supabase
+    .from("usuarios")
+    .select("nombre, bienvenida_vista_en")
+    .eq("id", user.id)
+    .maybeSingle();
+  return {
+    nombre: (data?.nombre as string | undefined)?.split(" ")[0] ?? "",
+    bienvenida: !data?.bienvenida_vista_en,
+  };
+}
+
 export default async function PortalHome() {
-  const [mascotas, citas] = await Promise.all([
+  const [mascotas, citas, perfil] = await Promise.all([
     getMisMascotas(),
     getMisCitas(),
+    getPerfilPortal(),
   ]);
 
   const grupos = agruparPorClinica(mascotas);
@@ -26,6 +47,7 @@ export default async function PortalHome() {
 
   return (
     <div className="flex flex-col gap-6">
+      {perfil.bienvenida && <Bienvenida nombre={perfil.nombre} />}
       <section>
         <h1 className="mb-3 text-xl font-semibold text-text">
           Mis mascotas
